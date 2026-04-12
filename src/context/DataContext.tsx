@@ -29,6 +29,13 @@ interface DataContextType {
   addLogEvent: (text: string, type: LogEvent['type']) => void;
   stats: UserData['stats'];
   incrementStat: (type: 'voice' | 'chat' | 'image') => void;
+  syncBackendSubscription: (sub: {
+    plan?: string;
+    status?: string;
+    isSubscribed?: boolean;
+    limits?: { image?: number; voice?: number };
+    usage?: { image?: number; voice?: number };
+  }) => void;
   isSubscribed: boolean;
   subscriptionStatus: UserData['subscriptionStatus'];
   subscriptionType: UserData['subscriptionType'];
@@ -348,6 +355,36 @@ export function DataProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /**
+   * Sync server-side subscription snapshot into local state.
+   * Called after any AI response (success or 403 limit_reached) that
+   * contains a `subscription` object. Authoritative for daily usage counts.
+   */
+  const syncBackendSubscription = useCallback((sub: {
+    plan?: string;
+    status?: string;
+    isSubscribed?: boolean;
+    limits?: { image?: number; voice?: number };
+    usage?: { image?: number; voice?: number };
+  }) => {
+    // Update subscription meta
+    if (sub.isSubscribed !== undefined) setIsSubscribed(sub.isSubscribed);
+    if (sub.status) setSubscriptionStatus(sub.status as UserData['subscriptionStatus']);
+    if (sub.plan) setSubscriptionType(sub.plan as UserData['subscriptionType']);
+
+    // Overwrite daily counters from authoritative server usage snapshot
+    if (sub.usage) {
+      setStats(prev => {
+        if (!prev) return prev;
+        const next = { ...prev };
+        if (sub.usage!.image !== undefined) next.image = { ...prev.image, d: sub.usage!.image };
+        if (sub.usage!.voice !== undefined) next.voice = { ...prev.voice, d: sub.usage!.voice };
+        statsRef.current = next;
+        return next;
+      });
+    }
+  }, []);
+
   // Debounced Auto-save: Uses REF MIRRORS (listRef, stockRef...) to avoid stale closure bugs
   useEffect(() => {
     if (user && isDataLoaded) {
@@ -432,7 +469,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       uiSettings, setUiSettings,
       diary, setDiary: guardedSetDiary,
       events, addLogEvent,
-      stats, incrementStat,
+      stats, incrementStat, syncBackendSubscription,
       isSubscribed, subscriptionStatus, subscriptionType, subscriptionEndDate,
       isDataLoaded,
       saveAll,

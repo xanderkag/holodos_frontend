@@ -29,7 +29,8 @@ export function AiProvider({ children }: { children: ReactNode }) {
     list, setList, stock, setStock, baseline, setBaseline, 
     diary, setDiary, messages, setMessages, incrementStat,
     addLogEvent, saveAll,
-    stats, isSubscribed, subscriptionType
+    stats, isSubscribed, subscriptionType,
+    syncBackendSubscription
   } = useData();
 
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -308,6 +309,8 @@ export function AiProvider({ children }: { children: ReactNode }) {
       }
     } catch (err: any) {
       if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
+        // Sync backend subscription snapshot into local state
+        if (err.data?.subscription) syncBackendSubscription(err.data.subscription);
         showToast(err.message || "Лимит фото исчерпан");
         addLogEvent(`⚠️ ${err.message}`, 'ai');
       } else {
@@ -359,11 +362,15 @@ export function AiProvider({ children }: { children: ReactNode }) {
       logDiagnostic('CHAT: Success received', 'net');
       if (result) {
         result.source = 'text';
+        // If backend sends subscription snapshot on success, sync it immediately
+        if (result.subscription) syncBackendSubscription(result.subscription);
       }
       incrementStat(isVoice ? 'voice' : 'chat');
       await applyActions(result);
     } catch (err: any) {
       if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
+        // Sync backend subscription snapshot into local state
+        if (err.data?.subscription) syncBackendSubscription(err.data.subscription);
         setMessages(prev => [...prev, { 
           id: Date.now().toString(), 
           role: 'system', 
