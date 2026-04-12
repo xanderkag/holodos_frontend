@@ -590,7 +590,7 @@ input {
 
 /* TMA Platform Adaptation */
 .telegram-miniapp {
-  --hdr-h: 44px; /* Ensure uniform header height calculation */
+  --hdr-h: 10px; /* Ensure uniform header height calculation */
   background: var(--bg); /* Use solid color to prevent background flickering */
 }
 
@@ -607,6 +607,11 @@ input {
 
 .telegram-miniapp .glass-tabbar {
   bottom: calc(16px + var(--sab, 0px) + 4px); /* Slight bump for TMA bottom handle */
+}
+
+/* TMA Smart Input Adaptation */
+.telegram-miniapp .smart-input-wrap {
+  bottom: calc(var(--tab-h, 80px) + 50px);
 }
 
 /* Onboarding Skip Button Adaptation */
