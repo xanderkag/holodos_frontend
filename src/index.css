@@ -21,7 +21,7 @@
   --red: #ba1a1a; /* Elegant red */
   --red-glow: rgba(186, 26, 26, 0.15);
   --tab-h: 72px; /* Slightly taller for better ergonomics */
-  --hdr-h: 40px; 
+  --hdr-h: 32px; 
   --sh-glass: rgba(0, 0, 0, 0.03);
   --sh-panel: 0 12px 40px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0,0,0,0.05);
   --sh-card: 0 4px 12px rgba(0, 0, 0, 0.05);

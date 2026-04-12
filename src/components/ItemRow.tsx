@@ -176,11 +176,6 @@ export default function ItemRow({
         {!hideBullet && (
           <div className="cat-marker" style={{ backgroundColor: CAT_COLORS[item.cat] || 'transparent' }} />
         )}
-        {!hideBullet && (
-          <div className={`item-bullet ${item.isChecked ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); onToggle?.(item.id); }}>
-            <div className="bullet-dot" />
-          </div>
-        )}
         
         <div className="item-content-wrap" onClick={() => { !onRowClick && onToggle?.(item.id); }}>
           <div className="item-name-row">

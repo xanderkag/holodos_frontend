@@ -40,7 +40,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingDurationMs, setRecordingDurationMs] = useState(0);
   
   // Gesture State v3.02.0
   const [dragOffset, setDragOffset] = useState(0); // in pixels
@@ -208,7 +207,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
           window.clearInterval(recordingTimerRef.current);
           recordingTimerRef.current = null;
         }
-        setRecordingDurationMs(0);
         setIsRecording(false);
 
         if (duration < MIN_RECORDING_MS) {
@@ -242,10 +240,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
       recorder.start();
       triggerHaptic(16);
       recordingStartedAtRef.current = Date.now();
-      recordingTimerRef.current = window.setInterval(() => {
-        if (!recordingStartedAtRef.current) return;
-        setRecordingDurationMs(Date.now() - recordingStartedAtRef.current);
-      }, 100);
       setIsRecording(true);
       showToast('🎙️ Слушаю...');
     } catch (err: any) {
@@ -285,13 +279,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     };
   }, [isRecording]);
 
-  const formatRecordingTime = (ms: number) => {
-    const totalSec = Math.floor(ms / 1000);
-    const min = Math.floor(totalSec / 60);
-    const sec = totalSec % 60;
-    return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-  };
-
   return (
     <div
       className="smart-input-wrap"
@@ -302,7 +289,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
       <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} style={{ display: 'none' }} onChange={processFile} />
 
       <div
-        className={`smart-input glass-panel ${isFocused ? 'focused' : ''} ${smartInputState !== 'hidden' ? 'visible' : 'hidden'} ${isRecording ? 'is-recording-active' : ''} active-side-${activeSide}`}
+        className={`smart-input glass-panel ${isFocused ? 'focused' : ''} ${smartInputState === 'active' || smartInputState === 'media' ? 'visible' : 'hidden'} active-side-${activeSide}`}
         onTouchStart={(e) => {
           if (isRecording) return;
           const touch = e.touches[0];
@@ -370,18 +357,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
           )}
 
           <div className="si-center-gesture">
-            {isRecording ? (
-              <div className="si-recording-center animated-pop">
-                <div className="rec-green-circle">
-                  <button className="rec-stop-btn" onClick={() => { triggerHaptic(20); stopRecording(); }}>
-                    ✕
-                  </button>
-                </div>
-                <div className="si-rec-info">
-                   <span className="rec-time">{formatRecordingTime(recordingDurationMs)}</span>
-                </div>
-              </div>
-            ) : (
+            {!isRecording && (
               <input
                 className="si-inp"
                 ref={textInputRef}

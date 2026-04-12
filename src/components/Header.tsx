@@ -12,7 +12,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ title, stores, currentStore, onStoreChange, showStoreSelector, onAddStore }) => {
-  const { user, logout, isTMA } = useAuth();
+  const { logout, isTMA } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,18 +39,6 @@ export const Header: React.FC<HeaderProps> = ({ title, stores, currentStore, onS
       <div className="hdr-row">
         <div className="hdr-left">
           <div className="hdr-title">{title}</div>
-          {user && (
-            <div className="hdr-user-pill">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="p" className="hdr-avatar" />
-              ) : (
-                <span className="hdr-user-icon">👤</span>
-              )}
-              <span className="hdr-username">
-                {user.telegramHandle ? `@${user.telegramHandle}` : user.displayName || 'Профиль'}
-              </span>
-            </div>
-          )}
         </div>
         
         <div className="hdr-right">

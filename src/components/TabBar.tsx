@@ -23,8 +23,35 @@ export const TabBar: React.FC<TabBarProps> = ({
   const touchStartXRef = useRef<number | null>(null);
   const [dragX, setDragX] = useState<number | null>(null);
   const [dockedSide, setDockedSide] = useState<'none' | 'left' | 'right'>('none');
+  const [recordingDurationMs, setRecordingDurationMs] = useState(0);
+  const recordingTimerRef = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
   const CONFIRM_THRESHOLD = 80;
+
+  useEffect(() => {
+    if (smartInputState === 'recording') {
+      const startTime = Date.now();
+      recordingTimerRef.current = window.setInterval(() => {
+        setRecordingDurationMs(Date.now() - startTime);
+      }, 100);
+    } else {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+      setRecordingDurationMs(0);
+    }
+    return () => {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    }
+  }, [smartInputState]);
+
+  const formatRecordingTime = (ms: number) => {
+    const totalSec = Math.floor(ms / 1000);
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  };
 
   // Reset drag when input state changes (e.g. recording started)
   useEffect(() => {
@@ -82,7 +109,7 @@ export const TabBar: React.FC<TabBarProps> = ({
               >
                 ✕
               </button>
-              <span className="recording-timer-mini">0:00</span>
+              <span className="recording-timer-mini">{formatRecordingTime(recordingDurationMs)}</span>
             </div>
           );
         }

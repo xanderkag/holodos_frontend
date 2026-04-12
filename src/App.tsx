@@ -394,7 +394,12 @@ export default function App() {
         tabs={[
           { id: 'list', label: 'Покупки', icon: '🧾' }, 
           { id: 'baseline', label: 'Холодос', icon: '🧊' }, 
-          { id: 'chat', label: 'Чат', icon: '💬', hasBadge: hasUnreadMessages }, 
+          { 
+            id: 'chat', 
+            label: currentTab === 'chat' || smartInputState !== 'hidden' ? 'Чат' : 'AI', 
+            icon: currentTab === 'chat' || smartInputState !== 'hidden' ? '💬' : '➕', 
+            hasBadge: hasUnreadMessages 
+          }, 
           { id: 'history', label: 'Дневник', icon: '📓' }, 
           { id: 'settings', label: 'Настройки', icon: '⚙️' }
         ]} 
