@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "holodos-6ff24"
+  },
+  "targets": {
+    "holodos-6ff24": {
+      "hosting": {
+        "staging": [
+          "holodos-staging-6ff24"
+        ],
+        "production": [
+          "holodos-6ff24"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

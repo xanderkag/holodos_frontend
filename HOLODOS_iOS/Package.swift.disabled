@@ -1,0 +1,49 @@
+// swift-tools-version: 5.9
+import PackageDescription
+import AppleProductTypes
+
+let package = Package(
+    name: "HOLODOS",
+    platforms: [
+        .iOS(.v17)
+    ],
+    products: [
+        .iOSApplication(
+            name: "HOLODOS",
+            targets: ["App"],
+            bundleIdentifier: "com.holodos.ai.ios",
+            displayVersion: "1.0",
+            bundleVersion: "1",
+            iconAssetName: "AppIcon",
+            accentColorAssetName: "AccentColor",
+            supportedDeviceFamilies: [
+                .pad,
+                .phone
+            ],
+            supportedInterfaceOrientations: [
+                .portrait,
+                .landscapeRight,
+                .landscapeLeft,
+                .lastQuarter,
+                .portraitUpsideDown
+            ],
+            capabilities: [
+                .backgroundModes(modes: [.remoteNotifications])
+            ]
+        )
+    ],
+    dependencies: [
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", .upToNextMajor(from: "10.15.0"))
+    ],
+    targets: [
+        .executableTarget(
+            name: "App",
+            dependencies: [
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseFirestoreSwift", package: "firebase-ios-sdk")
+            ],
+            path: "Sources"
+        )
+    ]
+)

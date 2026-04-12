@@ -1,0 +1,80 @@
+.cat-block {
+  margin: 0 var(--ui-px) 4px; /* Reduced from 12px for maximum compactness */
+  background: transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cb-capsule {
+  background: var(--sf);
+  border-radius: 12px; /* Thinner, more modern look */
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.cb-marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px; /* Subtle line */
+  z-index: 5;
+}
+
+.cb-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 7px 14px;
+  background: rgba(0,0,0,0.01);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  width: 100%;
+}
+
+.cat-name {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--cat-color);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.cb-hdr-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cat-icon {
+  font-size: 14px;
+}
+
+.cat-cnt {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--t2);
+  background: rgba(0, 0, 0, 0.06);
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.cb-drag-handle {
+  color: #c7c7cc;
+  font-size: 12px; /* Smaller handle */
+  cursor: grab;
+  padding: 2px;
+  opacity: 0.5;
+}
+
+.cat-body {
+  background: transparent;
+  padding: 0;
+}
+

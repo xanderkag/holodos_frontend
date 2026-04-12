@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HOLODOS AI</string>
+    <string name="title_activity_main">HOLODOS AI</string>
+    <string name="package_name">com.holodos.ai</string>
+    <string name="custom_url_scheme">com.holodos.ai</string>
+</resources>

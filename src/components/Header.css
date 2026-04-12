@@ -1,0 +1,140 @@
+.glass-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--sat) + 32px); /* Ultra-Compact height */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sat) 16px 0; /* Direct alignment to safe area */
+  background: var(--sf-glass-solid);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border-bottom: 1px solid var(--br-glass);
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.hdr-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hdr-right {
+  display: flex;
+  align-items: center;
+}
+
+.hdr-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--t1);
+  letter-spacing: -0.02em;
+}
+
+.hdr-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--br-glass);
+}
+
+.hdr-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.hdr-user-icon {
+  font-size: 12px;
+}
+
+.hdr-username {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--acc);
+}
+
+.store-dropdown {
+  position: relative;
+  min-width: 110px; /* Slimmer dropdown */
+}
+
+.dd-selected {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.04);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dd-sname {
+  font-size: 12px; /* Smaller store name */
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.dd-arrow {
+  font-size: 10px;
+  transition: transform 0.3s;
+}
+
+.dd-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dd-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 180px;
+  background: var(--sf-glass-solid);
+  backdrop-filter: blur(40px);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  padding: 8px;
+  display: none;
+  border: 1px solid var(--br-glass);
+}
+
+.dd-menu.open {
+  display: block;
+}
+
+.dd-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dd-item.active {
+  background: var(--acc);
+  color: #fff;
+}
+
+.dd-item.dd-add {
+  margin-top: 4px;
+  border-top: 1px solid var(--br-glass);
+  padding-top: 12px;
+  color: var(--acc);
+  font-weight: 700;
+}
+
+.dd-item:not(.active):hover {
+  background: rgba(0,0,0,0.05);
+}

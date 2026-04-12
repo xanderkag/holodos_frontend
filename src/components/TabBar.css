@@ -1,0 +1,258 @@
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--tab-h);
+  background: var(--sf-glass-solid);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border-top: 1px solid var(--br-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom);
+  transition: background 0.15s ease;
+  overflow: visible;
+}
+
+/* Always-visible corner hint icons */
+.tabbar-corner-hint {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) scale(0.7);
+  font-size: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease;
+  z-index: 5;
+}
+
+.tabbar-corner-hint.left  { left: 14px; }
+.tabbar-corner-hint.right { right: 14px; }
+
+/* появляются при начале свайпа */
+.tabbar-corner-hint.hint-visible {
+  opacity: 0.45;
+  transform: translateY(-50%) scale(1);
+}
+
+/* подсвечиваются при достижении порога */
+.tabbar-corner-hint.hint-triggered {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.4);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7));
+}
+
+.tabbar-track {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: space-around;
+  position: relative;
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  padding: 10px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.tab-icon {
+  font-size: 20px;
+  transition: transform 0.2s;
+}
+
+.tab-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--t3);
+  transition: color 0.2s;
+}
+
+.tab-btn.active .tab-icon {
+  transform: scale(1.2);
+}
+
+.tab-btn.active .tab-label {
+  color: var(--acc);
+}
+
+.tab-chat-main {
+  touch-action: none; /* allow horizontal swipe gesture */
+  cursor: grab;
+  overflow: visible;
+}
+
+.is-main-capsule {
+  width: 62px;
+  height: 68px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transform: translateY(-12px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--acc);
+  box-shadow: 0 4px 20px rgba(0,122,255,0.18);
+}
+
+/* IDLE state: big blue "+" */
+.capsule-plus {
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--acc);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tab-chat-main:active .capsule-plus,
+.tab-chat-main:hover .capsule-plus {
+  transform: scale(1.15);
+}
+
+/* Микрофон в капсуле во время записи */
+.capsule-mic {
+  font-size: 28px;
+  line-height: 1;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(52, 199, 89, 0.9));
+}
+
+@keyframes mic-pulse {
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 0 6px rgba(52, 199, 89, 0.8)); }
+  50%       { transform: scale(1.15); filter: drop-shadow(0 0 16px rgba(52, 199, 89, 1)); }
+}
+
+/* Зелёное свечение капсулы во время записи */
+.is-recording-capsule {
+  position: relative;
+  background: rgba(52, 199, 89, 0.12) !important;
+  border-color: rgba(52, 199, 89, 0.4) !important;
+  box-shadow: 0 0 20px rgba(52, 199, 89, 0.3), 0 4px 20px rgba(52, 199, 89, 0.15) !important;
+}
+
+.is-recording-capsule::before,
+.is-recording-capsule::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 34px;
+  border: 2px solid rgba(52, 199, 89, 0.6);
+  animation: recording-ring 1.6s ease-out infinite;
+}
+
+.is-recording-capsule::after {
+  animation-delay: 0.8s;
+}
+
+@keyframes recording-ring {
+  0%   { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 0;   transform: scale(1.4); }
+}
+
+.tab-chat-main.on .is-main-capsule,
+.is-active-capsule .is-main-capsule {
+  background: linear-gradient(135deg, var(--acc), #00aaff);
+  color: #fff !important;
+  height: 74px;
+  transform: translateY(-20px) scale(1.05);
+  box-shadow: 0 10px 25px var(--acc-glow), 0 0 0 4px rgba(0, 136, 204, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.chat-quick-mode .tab-indicator {
+  opacity: 0;
+}
+
+.tab.quick-hidden {
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.chat-quick-action {
+  position: absolute;
+  top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--br-glass);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  animation: quick-pop 180ms ease forwards;
+}
+
+.chat-quick-action.left {
+  left: 12px;
+}
+
+.chat-quick-action.right {
+  right: 12px;
+}
+
+@keyframes quick-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.inside-label {
+  font-size: 9px;
+  font-weight: 700;
+  margin-top: 1px;
+  color: inherit !important;
+  opacity: 0.9;
+}
+
+.tab-chat-main.on .inside-label {
+  opacity: 1;
+  font-weight: 800;
+}
+
+.tab-indicator {
+  z-index: 1;
+  pointer-events: none;
+  background: rgba(0, 122, 255, 0.08);
+  border-radius: 31px;
+  width: calc(20% - 2.4px);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+}
+
+.ticon {
+  position: relative;
+}
+
+.tab-badge {
+  position: absolute;
+  top: -2px;
+  right: -6px;
+  width: 10px;
+  height: 10px;
+  background-color: var(--warning-color, #ff3b30);
+  border-radius: 50%;
+  border: 2px solid var(--glass-bg);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+

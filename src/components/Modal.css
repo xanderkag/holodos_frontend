@@ -1,0 +1,117 @@
+.moverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 10000; /* Ensure it is above everything else, including SmartInput (1100) */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.moverlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 32px 32px 0 0;
+  padding: 16px 20px 40px;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+}
+.moverlay.show .modal {
+  transform: translateY(0);
+}
+
+.mhandle {
+  width: 48px;
+  height: 5px;
+  background: var(--br2);
+  border-radius: 3px;
+  margin: 0 auto 20px;
+  opacity: 0.6;
+}
+
+.mtitle {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+.mcontent {
+  margin-bottom: 20px;
+}
+
+.mlbl {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t2);
+  margin-bottom: 8px;
+}
+
+.minp {
+  width: 100%;
+  height: 48px;
+  border: 1.5px solid var(--br-glass);
+  border-radius: 16px;
+  padding: 0 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--t1);
+  outline: none;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+.minp:focus {
+  border-color: var(--acc);
+  background: #fff;
+  box-shadow: 0 0 0 4px var(--acc-glow);
+}
+
+.macts {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.mbtn {
+  flex: 1;
+  height: 50px;
+  border-radius: 16px;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mbcancel {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--t2);
+}
+.mbcancel:active { background: rgba(0,0,0,0.1); }
+
+.mbdel {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--red);
+}
+.mbdel:active { background: var(--red); color: #fff; }
+
+.mbsave {
+  background: var(--acc);
+  color: #fff;
+  box-shadow: 0 4px 12px var(--acc-glow);
+}
+.mbsave:active { background: #005bb5; }

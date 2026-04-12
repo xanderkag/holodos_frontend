@@ -1,0 +1,39 @@
+.erm-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.erm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.erm-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #8e8e93;
+  margin-bottom: 2px;
+}
+
+.erm-input {
+  height: 52px;
+  border-radius: 16px;
+  border: 1.5px solid var(--br-glass);
+  background: #fff;
+  padding: 0 16px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.erm-input:focus {
+  border-color: var(--acc);
+}
+
+.erm-input.erm-emoji {
+  text-align: center;
+  font-size: 24px;
+}

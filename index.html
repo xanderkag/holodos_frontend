@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
+    <script>
+      window.addEventListener('error', function(e) {
+        var msg = e.error ? e.error.stack : e.message;
+        var details = e.filename ? (e.filename + ':' + e.lineno + ':' + e.colno) : 'No filename';
+        console.error('🚨 BOOT CRASH 🚨', details, msg);
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        console.warn('⚠️ UNHANDLED PROMISE ⚠️', event.reason);
+      });
+    </script>
+    <script>
+      // Force unregister stale service workers and clear cache storage to fix v2.13.3 zombie PWA issue
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          for (const registration of registrations) {
+            registration.unregister();
+            console.log('Force unregister sw:', registration);
+          }
+        });
+      }
+      if (typeof caches !== 'undefined') {
+        caches.keys().then(names => {
+          for (const name of names) {
+            caches.delete(name);
+            console.log('Force clear cache:', name);
+          }
+        });
+      }
+    </script>
+    <!-- Preconnect to speed up font loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="apple-touch-icon" href="/vite.svg" />
+    <meta name="theme-color" content="#f8f9ff" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>HOLODOS AI</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="modal-root"></div>
+    <div id="toast-portal"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+  </body>
+</html>

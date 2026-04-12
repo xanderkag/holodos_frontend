@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "983609791949",
+    "project_id": "holodos-6ff24",
+    "storage_bucket": "holodos-6ff24.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:983609791949:android:bf7e557830ec719b032084",
+        "android_client_info": {
+          "package_name": "com.holodos.ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "983609791949-i8ic43rp1hh8kul5d0blic0htdhglsrt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.holodos.ai",
+            "certificate_hash": "93123b0441f557d49e744044333dcc5a6d7fffaf"
+          }
+        },
+        {
+          "client_id": "983609791949-041og7lpedat9olfnp3iptgpi7q18rqv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_1FiU4dmyuBJy5t_vmOjnc85mN8TCXvw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "983609791949-041og7lpedat9olfnp3iptgpi7q18rqv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "983609791949-ho327kctfrajfiniitgbsk2m89foodgu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.holodos.ai.ios"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,222 @@
+.baseline-screen {
+  padding-bottom: 240px;
+}
+
+/* SubHeader handles sticky tabs and gradient blur */
+
+.bl-content { 
+  padding-top: 4px; 
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20px, black calc(100% - 120px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 20px, black calc(100% - 120px), transparent 100%);
+}
+
+.bl-subtabs { 
+  display: flex; 
+  padding: 0 16px 16px; 
+  gap: 12px; 
+  align-items: center;
+}
+
+.bl-st-left {
+  display: flex;
+  background: var(--active-overlay);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  flex: 1;
+}
+
+.bl-subtab { 
+  flex: 1; 
+  height: 32px; 
+  border-radius: 9px; 
+  font-size: 13px; 
+  font-weight: 600; 
+  color: var(--t2); 
+  border: none;
+  background: transparent;
+}
+.bl-subtab.active { 
+  background: var(--sf);
+  color: var(--acc); 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.bl-st-add {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--sf);
+  color: var(--acc);
+  font-size: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid var(--br-glass);
+}
+
+.rv-save-btn {
+  background: var(--grn) !important;
+  box-shadow: 0 6px 16px var(--grn-glow) !important;
+}
+
+.ric-arrow.up { transform: rotate(180deg); }
+
+.bl-header-card {
+  margin: 0 16px 20px;
+  padding: 16px;
+  border-radius: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--sf);
+  box-shadow: var(--sh-panel);
+  border: 1px solid var(--br-glass);
+}
+
+.bl-hc-left { display: flex; align-items: center; gap: 12px; }
+.bl-hc-icon { font-size: 24px; background: rgba(0,0,0,0.03); padding: 8px; border-radius: 12px; }
+.bl-hc-title { font-size: 18px; font-weight: 800; color: var(--t1); }
+.bl-hc-cnt { font-size: 13px; color: var(--t3); font-weight: 500; }
+.bl-hc-btn { 
+  background: var(--acc); 
+  color: #fff; 
+  padding: 10px 20px; 
+  border-radius: 20px; 
+  font-size: 14px; 
+  font-weight: 700; 
+  box-shadow: 0 4px 12px var(--acc-glow); 
+}
+
+/* Recipes */
+.recipes-list { display: flex; flex-direction: column; gap: 12px; padding: 0 16px; }
+.r-item-card { 
+  border-radius: 25px; 
+  overflow: hidden; 
+  background: var(--sf); 
+  border: 1px solid var(--br-glass); 
+}
+.r-item-header { display: flex; align-items: center; padding: 14px 16px; cursor: pointer; gap: 12px; }
+.ric-emoji-box { font-size: 28px; background: rgba(0,0,0,0.03); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 16px; }
+.ric-info { flex: 1; cursor: pointer; }
+.ric-name { font-size: 13px; font-weight: 800; color: var(--t2); letter-spacing: 0.5px; }
+.ric-meta { font-size: 12px; color: var(--t3); margin-top: 2px; }
+
+.ric-actions {
+  display: flex;
+  gap: 8px;
+  margin-right: 8px;
+}
+
+.ric-btn-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.03);
+  color: var(--t2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: 1px solid var(--br-glass);
+  transition: all 0.2s;
+}
+
+.ric-btn-mini:active {
+  background: var(--active-overlay);
+  transform: scale(0.9);
+}
+
+.ric-btn-mini.del {
+  color: #ff3b30;
+}
+
+.ric-arrow { font-size: 18px; color: var(--t3); transition: transform 0.3s; cursor: pointer; }
+.ric-arrow.up { transform: rotate(180deg); }
+
+.ric-body { padding: 16px; background: rgba(0,0,0,0.015); border-top: 1px solid var(--br-glass); }
+.rv-label { font-size: 13px; font-weight: 700; color: var(--acc); margin-bottom: 12px; text-transform: uppercase; }
+.rv-ings { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+.rv-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.rv-act-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--acc);
+  border: 1.5px solid var(--acc);
+  background: var(--sf);
+  transition: all 0.2s;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.rv-act-btn.acc {
+  background: var(--acc);
+  color: #fff;
+  box-shadow: 0 4px 12px var(--acc-glow);
+}
+
+.rv-act-btn:active {
+  background: var(--active-overlay);
+  transform: scale(0.96);
+}
+
+.bl-base-actions {
+  display: flex;
+  gap: 10px;
+  padding: 0 16px 20px;
+}
+
+.bl-act-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--acc);
+  border: 1.5px solid var(--acc);
+  background: var(--sf);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.bl-act-btn.acc {
+  background: var(--acc);
+  color: #fff;
+  box-shadow: 0 4px 14px var(--acc-glow);
+}
+
+.bl-act-btn:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+.debug-reset {
+  background: rgba(255, 59, 48, 0.1) !important;
+  border: 1px solid rgba(255, 59, 48, 0.2) !important;
+  margin-left: 8px;
+  padding: 4px 8px !important;
+  font-size: 14px !important;
+  min-width: unset !important;
+  border-radius: 8px !important;
+}
+
+.debug-reset:active {
+  background: rgba(255, 59, 48, 0.3) !important;
+}
