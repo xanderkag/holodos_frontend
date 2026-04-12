@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
+  base: '/',
   build: {
     target: 'es2020',
     rollupOptions: {
@@ -14,6 +14,9 @@ export default defineConfig({
           }
           if (id.includes('node_modules/firebase')) {
             return 'firebase-vendor';
+          }
+          if (id.includes('node_modules/@aws-sdk')) {
+            return 'aws-vendor';
           }
           if (id.includes('node_modules/@dnd-kit')) {
             return 'dnd-vendor';
