@@ -23,175 +23,122 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signingInRef = useRef(false); // prevents onAuthStateChanged null-flash during sign-in
   const { tg, user: tgUser, ready, expand } = useTelegram(); // ready/expand used in TMA path
 
+  // Helper for remote logging of auth errors as requested by Backend team
+  const logAuthError = useCallback((error: any, contextStr: string) => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    console.error(`Auth Error [${contextStr}]:`, error);
+    
+    fetch(`${backendUrl}/api/logs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        level: 'error',
+        module: 'AuthContext',
+        context: contextStr,
+        message: error.message || String(error),
+        code: error.code || error.reason || 'UNKNOWN_AUTH_ERROR',
+        timestamp: Date.now(),
+        ua: navigator.userAgent
+      })
+    }).catch(() => {}); // fire and forget
+  }, []);
+
   useEffect(() => {
     return () => { mountedRef.current = false; };
   }, []);
 
-  const syncTelegramUser = useCallback(async () => {
-    if (!tgUser) return;
-
-    try {
-      let existing: any = await findUserByTelegramId(tgUser.id);
-      const currentUser = auth.currentUser;
-
-      const fullName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
-
-      if (currentUser && !currentUser.isAnonymous) {
-        // CASE A: Already logged in via Google. Link TG → Google account.
-        const tgDocUid = existing?.id || `tg_${tgUser.id}`;
-
-        // Save linkedUid on TG doc so next TG login uses Google's data
-        await saveUserData(tgDocUid, {
-          telegramId: tgUser.id,
-          telegramHandle: tgUser.username,
-          displayName: fullName,
-          photoURL: tgUser.photo_url || null,
-          linkedUid: currentUser.uid,
-        });
-
-        // Update Google account with TG info
-        await saveUserData(currentUser.uid, {
-          telegramId: tgUser.id,
-          telegramHandle: tgUser.username,
-          displayName: fullName,
-          photoURL: tgUser.photo_url || currentUser.photoURL,
-        });
-
-        setUser({
-          ...currentUser,
-          uid: currentUser.uid,
-          email: currentUser.email,
-          displayName: currentUser.displayName || fullName,
-          photoURL: currentUser.photoURL || tgUser.photo_url,
-          isTelegram: true,
-          tgId: tgUser.id,
-          telegramHandle: tgUser.username
-        });
-        console.log("Auth: Linked Telegram to active Firebase account", fullName);
-        return;
-      }
-
-      // CASE B: TG-only login
-      if (existing) {
-        // If this TG account is linked to a Google account — use Google's UID for data
-        const effectiveUid = existing.linkedUid || existing.id;
-        setUser({
-          uid: effectiveUid,
-          email: existing.email || `${tgUser.username || tgUser.id}@telegram`,
-          displayName: fullName,
-          photoURL: tgUser.photo_url || existing.photoURL,
-          isTelegram: true,
-          tgId: tgUser.id,
-          telegramHandle: tgUser.username
-        });
-      } else {
-        const newUid = `tg_${tgUser.id}`;
-        const newUserData = {
-          telegramId: tgUser.id,
-          telegramHandle: tgUser.username,
-          displayName: fullName,
-          photoURL: tgUser.photo_url,
-          email: `${tgUser.username || tgUser.id}@telegram`,
-          createdAt: Date.now()
-        };
-        await saveUserData(newUid, newUserData);
-        setUser({ uid: newUid, ...newUserData, isTelegram: true });
-      }
-    } catch (e: any) {
-      console.error('TMA Auth Error:', e);
-      alert(`Ошибка Telegram: ${e.message || 'Unknown error'}`);
-    } finally {
-      if (mountedRef.current) setLoading(false);
-    }
-  }, [tgUser]);
 
   useEffect(() => {
-    // Telegram MiniApp path
-    if (tg) {
-      ready();
-      expand();
-      document.documentElement.classList.add('telegram-miniapp');
-
-      if (!auth.currentUser) {
-        signInAnonymously(auth).catch((e) => {
-          console.error("Auth: TMA Anonymous sign-in failed", e);
-        });
-      }
-
-      if (tgUser) {
-        console.log("Auth: Syncing TMA User");
-        syncTelegramUser();
-      } else {
-        setLoading(false);
-      }
-      return;
-    }
-
-    // Web path — handle Yandex callback token if present
-    const urlParams = new URLSearchParams(window.location.search);
-    const yandexToken = urlParams.get('yandex_token');
-    const yandexError = urlParams.get('yandex_error');
-    if (yandexToken || yandexError) {
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-
     let unsubscribe: (() => void) | null = null;
+    let initStarted = false;
 
-    const startAuthListener = () => {
-      unsubscribe = onAuthStateChanged(auth, (u) => {
-        if (signingInRef.current) return;
-        setUser(u);
-        if (u) localStorage.setItem('auth_uid', u.uid);
-        setLoading(false);
-        console.log("Auth: State →", u?.uid || 'null');
-      });
-      
-      // AUTO-TIMEOUT: If after 5 seconds we still didn't get a user state,
-      // force loading to false so the user isn't stuck on the splash screen.
-      setTimeout(() => {
-        if (mountedRef.current && loading) {
-          console.warn("Auth: Initialization timed out, forcing UI unlock.");
-          setLoading(false);
+    const initAuthSequence = async () => {
+      if (initStarted) return;
+      initStarted = true;
+
+      console.log("Auth: Starting Unified Initialization Sequence...");
+
+      try {
+        // 1. Handle Yandex token (Priority)
+        const urlParams = new URLSearchParams(window.location.search);
+        const yandexToken = urlParams.get('yandex_token');
+        if (yandexToken) {
+          console.log("Auth: Processing Yandex custom token");
+          window.history.replaceState({}, '', window.location.pathname);
+          signingInRef.current = true;
+          try {
+            const result = await signInWithCustomToken(auth, yandexToken);
+            setUser(result.user);
+            console.log("Auth: Yandex success", result.user.uid);
+          } catch (e) {
+            logAuthError(e, 'YandexTokenInit');
+          } finally {
+            signingInRef.current = false;
+          }
         }
-      }, 5000);
+
+        // 2. Handle Google/Firebase Redirect Result
+        // We wait for this BEFORE removing loading state to prevent flash
+        try {
+          const redirectResult = await getRedirectResult(auth);
+          if (redirectResult) {
+            console.log("Auth: Google Redirect success", redirectResult.user.uid);
+            setUser(redirectResult.user);
+          }
+        } catch (e) {
+          logAuthError(e, 'GoogleRedirectResult');
+        }
+
+        // 3. Handle Telegram Mini App (TMA)
+        if (tg) {
+          ready();
+          expand();
+          document.documentElement.classList.add('telegram-miniapp');
+          
+          if (tgUser) {
+            console.log("Auth: TMA detected, authenticating via backend...");
+            // Instead of anonymous, we use the same custom token flow as the widget
+            try {
+              await loginWithTelegramWidget(tgUser);
+            } catch (e) {
+              logAuthError(e, 'TMA_BackendAuth');
+            }
+          }
+        }
+
+        // 4. Initialize Auth Observer
+        // This will recover the persisted user session
+        unsubscribe = onAuthStateChanged(auth, (u) => {
+          if (signingInRef.current) return;
+          console.log("Auth: Firebase connection established", u?.uid || 'guest');
+          
+          if (mountedRef.current) {
+            setUser(u);
+            if (u) localStorage.setItem('auth_uid', u.uid);
+            setLoading(false); // FINALLY remove the global loading state
+          }
+        });
+
+        // SAFETY VALVE: Force unlock UI if everything takes too long
+        setTimeout(() => {
+          if (mountedRef.current && loading) {
+            console.warn("Auth: Sequence timed out, unlocking UI.");
+            setLoading(false);
+          }
+        }, 8000);
+
+      } catch (err) {
+        logAuthError(err, 'GlobalInitSequence');
+        if (mountedRef.current) setLoading(false);
+      }
     };
 
-    // Handle Redirect Result (Mobile fallback)
-    getRedirectResult(auth).then((result) => {
-      if (result) {
-        console.log("Auth: Redirect success", result.user.uid);
-        setUser(result.user);
-        setLoading(false);
-      }
-    }).catch((e) => {
-      console.error("Auth: Redirect error", e);
-    });
-
-    if (yandexToken) {
-      // Yandex: sign in first, THEN start listener — prevents null flash
-      console.log("Auth: Signing in with Yandex custom token");
-      signingInRef.current = true;
-      signInWithCustomToken(auth, yandexToken)
-        .then((result) => {
-          console.log("Auth: Yandex OK", result.user.uid);
-          setUser(result.user);
-          setLoading(false);
-          signingInRef.current = false;
-          startAuthListener();
-        })
-        .catch((e) => {
-          console.error("Auth: Yandex token failed", e);
-          signingInRef.current = false;
-          startAuthListener();
-        });
-    } else {
-      startAuthListener();
-    }
+    initAuthSequence();
 
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [tg, tgUser, syncTelegramUser]);
+  }, [tg, tgUser, ready, expand, loginWithTelegramWidget, logAuthError]);
 
   useEffect(() => {
     if (tg && tg.themeParams) {
@@ -217,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [tg]);
 
-  const loginWithTelegramWidget = async (tgUserData: any) => {
+  const loginWithTelegramWidget = useCallback(async (tgUserData: any) => {
     setLoading(true);
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
@@ -251,13 +198,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log("Auth: Telegram Login OK", result.user.uid);
     } catch (e: any) {
-      console.error('Widget Auth Error:', e);
+      logAuthError(e, 'TelegramWidgetLogin');
       alert(`Ошибка авторизации Telegram: ${e.message || 'Unknown error'}`);
       throw e;
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
-  };
+  }, [logAuthError]);
 
   const login = async () => {
     signingInRef.current = true;
@@ -265,8 +212,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await loginWithGoogle();
       if (result?.user) {
         setUser(result.user);
-        setLoading(false);
+        if (mountedRef.current) setLoading(false);
       }
+    } catch (e) {
+      logAuthError(e, 'GooglePopupLogin');
     } finally {
       // Allow onAuthStateChanged to resume after popup resolves
       signingInRef.current = false;
