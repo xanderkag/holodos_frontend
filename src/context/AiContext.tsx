@@ -34,7 +34,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [pendingActions, setPendingActions] = useState<AiAction[]>([]);
 
-  const executeActions = useCallback((actions: AiAction[]) => {
+  const executeActions = useCallback((actions: AiAction[], messageId?: string) => {
     let currentList = [...list];
     let currentStock = [...stock];
     let currentBaseline = [...baseline];
@@ -97,6 +97,11 @@ export function AiProvider({ children }: { children: ReactNode }) {
             item.consumedAt = Date.now();
             const hr = new Date().getHours();
             item.mealType = hr < 11 ? 'breakfast' : hr < 16 ? 'lunch' : hr < 21 ? 'dinner' : 'snack';
+            if (messageId) item.chatMessageId = messageId;
+            item.needsClarification = it.needsClarification || false;
+            item.clarificationField = it.clarificationField;
+            item.clarificationHint = it.clarificationHint;
+            item.confidence = it.confidence || 1.0;
           }
           return item;
         });
@@ -123,6 +128,11 @@ export function AiProvider({ children }: { children: ReactNode }) {
             item.consumedAt = Date.now();
             const hr = new Date().getHours();
             item.mealType = hr < 11 ? 'breakfast' : hr < 16 ? 'lunch' : hr < 21 ? 'dinner' : 'snack';
+            if (messageId) item.chatMessageId = messageId;
+            item.needsClarification = it.needsClarification || false;
+            item.clarificationField = it.clarificationField;
+            item.clarificationHint = it.clarificationHint;
+            item.confidence = it.confidence || 1.0;
           }
           return item;
         });
@@ -156,10 +166,11 @@ export function AiProvider({ children }: { children: ReactNode }) {
     };
   }, [list, stock, baseline, diary]);
 
-  const applyActions = useCallback(async (res: AiResponse) => {
+  const applyActions = useCallback(async (res: any) => {
     if (!res) return;
     
     const actions = res.actions || [];
+    const generatedMsgId = uid();
     
     // BULK PROTECT: Force confirmation for sensitive or large operations
     const isSensitive = actions.some(a => 
@@ -195,7 +206,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
       };
     });
 
-    const { summaries, nextList, nextStock, nextBaseline, nextDiary } = executeActions(sanitizedActions);
+    const { summaries, nextList, nextStock, nextBaseline, nextDiary } = executeActions(sanitizedActions, generatedMsgId);
     
     const feedbackStr = typeof res.feedback === 'string' ? res.feedback : "Команда выполнена";
     const detailedFeedback = summaries.length > 0
@@ -205,12 +216,14 @@ export function AiProvider({ children }: { children: ReactNode }) {
     const isDiaryAction = sanitizedActions.some(a => a.target === 'diary' || a.from === 'diary' || a.to === 'diary');
 
     const newAssistantMsg: Message = {
-      id: uid(),
+      id: generatedMsgId,
       role: 'assistant',
       content: detailedFeedback,
       timestamp: Date.now(),
       type: isDiaryAction ? 'diary' : 'ai_vision',
-      isUndoable: summaries.length > 0
+      isUndoable: summaries.length > 0,
+      diaryEntryId: isDiaryAction ? generatedMsgId : undefined,
+      diarySource: isDiaryAction ? (res.source || 'text') : undefined,
     };
 
     setList(nextList);
@@ -277,6 +290,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
         list, stock, diary, baseline, usage.priority
       );
       if (result) {
+        result.source = 'photo';
         incrementStat('image');
         await applyActions(result);
       }
@@ -326,6 +340,9 @@ export function AiProvider({ children }: { children: ReactNode }) {
         history: messages.slice(-5).map(m => ({ role: m.role, content: m.content }))
       });
       logDiagnostic('CHAT: Success received', 'net');
+      if (result) {
+        result.source = 'text';
+      }
       incrementStat(isVoice ? 'voice' : 'chat');
       await applyActions(result);
     } catch (err: any) {

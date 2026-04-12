@@ -4,7 +4,7 @@ import { ClarificationInline } from './ClarificationInline';
 
 interface ChatDiaryMessageProps {
   entryId: string;
-  source: 'voice' | 'photo';
+  source: 'voice' | 'photo' | 'text';
   transcript?: string;
   items: DiaryEntry[];
   onClarify: (itemId: string, quantity: number, unit: string) => void;
@@ -93,7 +93,7 @@ export const ChatDiaryMessage: React.FC<ChatDiaryMessageProps> = ({
     cursor: 'pointer',
   };
 
-  const sourceLabel = source === 'voice' ? '🎙️ Голос' : '📸 Фото';
+  const sourceLabel = source === 'voice' ? '🎙️ Голос' : source === 'photo' ? '📸 Фото' : '💬 Текст';
   const timeStr = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const handleRowClick = (item: DiaryEntry) => {

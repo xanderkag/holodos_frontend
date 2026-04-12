@@ -226,6 +226,10 @@ export const SmartInput: React.FC<SmartInputProps> = ({
             audioBlob, user?.email || 'unknown', user?.uid || 'unknown',
             shoppingList, stock, diary, baseline
           );
+          
+          if (result) {
+            result.source = 'voice';
+          }
 
           if (onVoiceResponse) onVoiceResponse(result);
           triggerHaptic([12, 40, 12]);

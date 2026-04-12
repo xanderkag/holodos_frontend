@@ -217,7 +217,7 @@ export default function App() {
   const { handleAddToDiary, addAiEntries } = useDiaryActions(setDiary, addSystemMessage);
 
   // Diary AI: фото → дневник
-  const handleDiaryPhotoResult = useCallback(async (imageBase64: string) => {
+  const handleDiaryPhotoSelect = useCallback(async (imageBase64: string) => {
     const loadingId = uid();
     setMessages(prev => [...prev, {
       id: loadingId,
@@ -228,52 +228,10 @@ export default function App() {
     }]);
     setCurrentTab('chat');
 
-    try {
-      const result = await apiPost<{
-        items: Array<{
-          name: string;
-          quantity?: number;
-          unit?: string;
-          calories?: number;
-          protein?: number;
-          fat?: number;
-          carbs?: number;
-          needsClarification: boolean;
-          clarificationField?: 'quantity' | 'unit' | 'name' | 'calories';
-          clarificationHint?: string;
-          confidence: number;
-        }>;
-        entryId: string;
-      }>('/diary/analyze-photo', { imageBase64 });
+    await analyzeImage(imageBase64, 'diary');
 
-      addAiEntries(result.items, 'photo', undefined, result.entryId);
-
-      const diaryMsgId = uid();
-      setMessages(prev => [
-        ...prev.filter(m => m.id !== loadingId),
-        {
-          id: diaryMsgId,
-          role: 'assistant' as const,
-          content: `Записал в дневник по фото: ${result.items.map((i: { name: string }) => i.name).join(', ')}`,
-          timestamp: Date.now(),
-          type: 'diary',
-          diaryEntryId: result.entryId,
-          diarySource: 'photo' as const,
-        },
-      ]);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Ошибка';
-      setMessages(prev => [
-        ...prev.filter(m => m.id !== loadingId),
-        {
-          id: uid(),
-          role: 'assistant' as const,
-          content: `❌ Не удалось распознать фото: ${msg}`,
-          timestamp: Date.now(),
-        },
-      ]);
-    }
-  }, [addAiEntries, setMessages, setCurrentTab]);
+    setMessages(prev => prev.filter(m => m.id !== loadingId));
+  }, [setMessages, setCurrentTab, analyzeImage]);
 
   if (authLoading) return (
     <div className="empty" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#1c1c1e' }}>
@@ -331,7 +289,7 @@ export default function App() {
         )}
         {currentTab === 'history' && (
           <DiaryScreen
-            onImageSelect={(base64) => handleDiaryPhotoResult(base64)}
+            onImageSelect={handleDiaryPhotoSelect}
             onGoToChat={() => setCurrentTab('chat')}
           />
         )}
