@@ -6,6 +6,38 @@ import { ChatDiaryMessage } from '../components/Diary/ChatDiaryMessage';
 import { useDiaryActions } from '../hooks/useDiaryActions';
 import './ChatScreen.css';
 
+// Группировка сообщений по датам
+function getDateGroup(timestamp: number | undefined): string {
+  if (!timestamp) return 'Ранее';
+  const now = new Date();
+  const date = new Date(timestamp);
+  
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  
+  const diffDays = Math.floor((startOfToday - startOfDay) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'Сегодня';
+  if (diffDays === 1) return 'Вчера';
+  if (diffDays === 2) return 'Позавчера';
+  
+  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+}
+
+function groupItemsByDate<T>(items: T[], getTimestamp: (item: T) => number | undefined): { date: string, items: T[] }[] {
+  const grouped: { date: string, items: T[] }[] = [];
+  items.forEach(item => {
+    const dateLabel = getDateGroup(getTimestamp(item));
+    let existing = grouped.find(g => g.date === dateLabel);
+    if (!existing) {
+      existing = { date: dateLabel, items: [] };
+      grouped.push(existing);
+    }
+    existing.items.push(item);
+  });
+  return grouped;
+}
+
 export interface ChatScreenProps {
   filter?: 'chat' | 'diary' | 'all' | 'adding';
   onChatTap?: () => void;
@@ -52,22 +84,13 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
     }
   }, [activeMessages, filter, isAiLoading, propIsLoading]);
 
-  // Группировка сообщений по датам (локальная реализация)
-  const groups = useMemo(() => {
-    const grouped: { date: string, items: any[] }[] = [];
-    activeMessages.forEach(m => {
-      const date = new Date(m.timestamp || Date.now()).toLocaleDateString('ru-RU', { 
-        day: 'numeric', month: 'long' 
-      });
-      const existing = grouped.find(g => g.date === date);
-      if (existing) {
-        existing.items.push(m);
-      } else {
-        grouped.push({ date, items: [m] });
-      }
-    });
-    return grouped;
-  }, [activeMessages]);
+  // Группировка сообщений по датам (унифицированная)
+  const groups = useMemo(() => groupItemsByDate(activeMessages, m => m.timestamp || Date.now()), [activeMessages]);
+  
+  // Группировка для всех табов
+  const diaryGroups = useMemo(() => groupItemsByDate(diary.slice().reverse(), d => d.consumedAt), [diary]);
+  const eventsGroups = useMemo(() => groupItemsByDate(events.slice().reverse(), e => e.timestamp), [events]);
+  const addingGroups = useMemo(() => groupItemsByDate(baseline.slice().sort((a,b) => (b.updatedAt || 0) - (a.updatedAt || 0)), b => b.updatedAt), [baseline]);
 
   const renderSuggestions = (msgId: string, suggestions: any[]) => {
     if (!suggestions || !Array.isArray(suggestions)) return null;
@@ -168,6 +191,9 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                     return (
                       <div key={m.id} className={`msg-row system ${m.type || ''}`}>
                         <div className="msg-system" dangerouslySetInnerHTML={{ __html: m.content }} />
+                        {m.timestamp && (
+                          <div className="msg-system-time">{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        )}
                       </div>
                     );
                   }
@@ -225,25 +251,32 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
         )}
 
         {filter === 'diary' && (
-          <div className="tab-list-detailed">
-            {diary.slice().reverse().map(entry => (
-              <div key={entry.id} className="item-detailed-row glass-panel animated-pop">
-                <div className="idr-icon">🍲</div>
-                <div className="idr-main">
-                  <div className="idr-name">{entry.name}</div>
-                  <div className="idr-meta">
-                    {entry.mealType === 'breakfast' && '🍳 Завтрак'}
-                    {entry.mealType === 'lunch' && '🍲 Обед'}
-                    {entry.mealType === 'dinner' && '🍽️ Ужин'}
-                    {entry.mealType === 'snack' && '🍎 Перекус'}
-                  </div>
+          <div className="tab-list-detailed chat-content-wrap">
+            {diaryGroups.map((group, idx) => (
+              <div key={group.date || idx} className="msg-date-group">
+                <div className="msg-date-separator">
+                  <span>{group.date}</span>
                 </div>
-                <div className="idr-side">
-                  <div className="idr-qty">{entry.qty}</div>
-                  <div className="idr-time">
-                    {new Date(entry.consumedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {group.items.map(entry => (
+                  <div key={entry.id} className="item-detailed-row glass-panel animated-pop">
+                    <div className="idr-icon">🍲</div>
+                    <div className="idr-main">
+                      <div className="idr-name">{entry.name}</div>
+                      <div className="idr-meta">
+                        {entry.mealType === 'breakfast' && '🍳 Завтрак'}
+                        {entry.mealType === 'lunch' && '🍲 Обед'}
+                        {entry.mealType === 'dinner' && '🍽️ Ужин'}
+                        {entry.mealType === 'snack' && '🍎 Перекус'}
+                      </div>
+                    </div>
+                    <div className="idr-side">
+                      <div className="idr-qty">{entry.qty}</div>
+                      <div className="idr-time">
+                        {new Date(entry.consumedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
             ))}
             {diary.length === 0 && <div className="empty-state">Дневник пуст</div>}
@@ -251,19 +284,26 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
         )}
 
         {filter === 'all' && (
-          <div className="tab-list-detailed">
-            {events.slice().reverse().map(event => (
-              <div key={event.id} className="item-detailed-row glass-panel animated-pop">
-                <div className="idr-icon">{getEventIcon(event.type)}</div>
-                <div className="idr-main">
-                  <div className="idr-name">{event.text}</div>
-                  <div className="idr-meta">{event.type === 'ai' ? 'ИИ Сигналы' : 'Активность'}</div>
+          <div className="tab-list-detailed chat-content-wrap">
+            {eventsGroups.map((group, idx) => (
+              <div key={group.date || idx} className="msg-date-group">
+                <div className="msg-date-separator">
+                  <span>{group.date}</span>
                 </div>
-                <div className="idr-side">
-                  <div className="idr-time">
-                    {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {group.items.map(event => (
+                  <div key={event.id} className="item-detailed-row glass-panel animated-pop">
+                    <div className="idr-icon">{getEventIcon(event.type)}</div>
+                    <div className="idr-main">
+                      <div className="idr-name">{event.text}</div>
+                      <div className="idr-meta">{event.type === 'ai' ? 'ИИ Сигналы' : 'Активность'}</div>
+                    </div>
+                    <div className="idr-side">
+                      <div className="idr-time">
+                        {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
             ))}
             {events.length === 0 && <div className="empty-state">Событий нет</div>}
@@ -271,17 +311,24 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
         )}
 
         {filter === 'adding' && (
-          <div className="tab-list-detailed">
-            {baseline.map(item => (
-              <div key={item.id} className="item-detailed-row glass-panel animated-pop">
-                <div className="idr-icon">📦</div>
-                <div className="idr-main">
-                  <div className="idr-name">{item.name}</div>
-                  <div className="idr-meta">{item.cat || 'Прочее'}</div>
+          <div className="tab-list-detailed chat-content-wrap">
+            {addingGroups.map((group, idx) => (
+              <div key={group.date || idx} className="msg-date-group">
+                <div className="msg-date-separator">
+                  <span>{group.date}</span>
                 </div>
-                <div className="idr-side">
-                  <div className="idr-qty">{item.qty}</div>
-                </div>
+                {group.items.map(item => (
+                  <div key={item.id} className="item-detailed-row glass-panel animated-pop">
+                    <div className="idr-icon">📦</div>
+                    <div className="idr-main">
+                      <div className="idr-name">{item.name}</div>
+                      <div className="idr-meta">{item.cat || 'Прочее'}</div>
+                    </div>
+                    <div className="idr-side">
+                      <div className="idr-qty">{item.qty}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ))}
             {baseline.length === 0 && <div className="empty-state">Каталог пуст</div>}
