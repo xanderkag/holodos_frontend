@@ -19,12 +19,30 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Legacy Firebase intent filters (keep until smoke-tested) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="holodos-staging-6ff24.web.app" />
                 <data android:scheme="https" android:host="holodos-6ff24.firebaseapp.com" />
+            </intent-filter>
+
+            <!-- Production App Links: return from Yandex / web auth -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="app.holodos.su" />
+                <data android:scheme="https" android:host="app-ru.holodos.su" />
+            </intent-filter>
+
+            <!-- Custom deep link scheme for auth callbacks: holodos://auth?yandex_token=... -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="holodos" android:host="auth" />
             </intent-filter>
         </activity>
 

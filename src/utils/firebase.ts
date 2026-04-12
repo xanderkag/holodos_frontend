@@ -9,6 +9,7 @@ import {
   signInAnonymously,
   signInWithCustomToken,
   signInWithRedirect,
+  signInWithCredential,
   getRedirectResult
 } from 'firebase/auth';
 import { 
@@ -40,24 +41,40 @@ export const auth = getAuth(app);
 // v3.11.0: Reverting to DEFAULTS to fix "hell" and enforcing REDIRECT for all to kill COOP errors.
 export const db = initializeFirestore(app, {});
 
+import { Capacitor } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+
+export const isNativePlatform = Capacitor.isNativePlatform();
+
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export const loginWithGoogle = async () => {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
   try {
-    console.log(`Auth: loginWithGoogle triggered. isMobile=${isMobile}, currentURL=${window.location.href}`);
-    if (isMobile) {
-      console.log('Auth: Starting Google Login (REDIRECT)');
-      return await signInWithRedirect(auth, googleProvider);
+    if (isNativePlatform) {
+      // ─── Native Android / iOS path ───────────────────────────────────────
+      // Uses native Google Sign-In SDK → returns idToken → Firebase credential
+      // Bypasses Firebase authDomain/web-redirect entirely (no unauthorized-domain)
+      console.log('Auth: Starting native Google Sign-In (Capacitor)');
+      const googleUser = await GoogleAuth.signIn();
+      const credential = GoogleAuthProvider.credential(
+        googleUser.authentication.idToken
+      );
+      return signInWithCredential(auth, credential);
     } else {
-      console.log('Auth: Starting Google Login (POPUP)');
-      return await signInWithPopup(auth, googleProvider);
+      // ─── Web path (browser only) ──────────────────────────────────────────
+      const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      console.log(`Auth: loginWithGoogle triggered. isMobileBrowser=${isMobileBrowser}, url=${window.location.href}`);
+      if (isMobileBrowser) {
+        console.log('Auth: Starting Google Login (REDIRECT)');
+        return await signInWithRedirect(auth, googleProvider);
+      } else {
+        console.log('Auth: Starting Google Login (POPUP)');
+        return await signInWithPopup(auth, googleProvider);
+      }
     }
   } catch (error: any) {
     console.error('Auth Error Details:', error.code, error.message);
-    // Note: detailed logging to backend is handled by the caller in AuthContext
     if (error.code === 'auth/popup-blocked') {
       throw new Error('Браузер заблокировал всплывающее окно. Разрешите попапы для этого сайта и попробуйте снова.');
     }

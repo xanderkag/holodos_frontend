@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { auth, loginWithGoogle, logout as firebaseLogout, saveUserData, signInWithCustomToken } from '../utils/firebase';
+import { auth, loginWithGoogle, logout as firebaseLogout, saveUserData, signInWithCustomToken, isNativePlatform } from '../utils/firebase';
 import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
+import { App as CapApp } from '@capacitor/app';
 import { useTelegram } from '../hooks/useTelegram';
 import { mapAuthErrorToMessage } from '../utils/auth';
 
@@ -148,30 +149,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // 2. Handle Google/Firebase Redirect Result
-        try {
-          console.log("Auth: Checking for Google redirect result...");
-          const redirectResult = await getRedirectResult(auth);
-          
-          if (redirectResult) {
-            console.log("Auth: Redirect result FOUND", redirectResult.user.uid);
+        // SKIP on native platform: getRedirectResult is not used on Capacitor Android/iOS.
+        // Native Google auth goes through GoogleAuth.signIn() → signInWithCredential().
+        if (!isNativePlatform) {
+          try {
+            console.log("Auth: Checking for Google redirect result...");
+            const redirectResult = await getRedirectResult(auth);
+            if (redirectResult) {
+              console.log("Auth: Redirect result FOUND", redirectResult.user.uid);
+              logAuthError({ 
+                message: 'Google Redirect Successful', 
+                uid: redirectResult.user.uid,
+                url: window.location.href 
+              }, 'GoogleRedirectSuccess');
+              setUser(redirectResult.user);
+            } else {
+              console.log("Auth: No Google redirect result found (Normal if manual entry or direct link)");
+            }
+          } catch (e: any) {
+            console.error("Auth: Google redirect result error", e);
             logAuthError({ 
-              message: 'Google Redirect Successful', 
-              uid: redirectResult.user.uid,
-              url: window.location.href 
-            }, 'GoogleRedirectSuccess');
-            setUser(redirectResult.user);
-          } else {
-            console.log("Auth: No Google redirect result found (Normal if manual entry or direct link)");
+              message: e.message || String(e),
+              code: e.code,
+              fullError: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+              url: window.location.href
+            }, 'GoogleRedirectResultError');
+            setAuthError(mapAuthErrorToMessage(e));
           }
-        } catch (e: any) {
-          console.error("Auth: Google redirect result error", e);
-          logAuthError({ 
-            message: e.message || String(e),
-            code: e.code,
-            fullError: JSON.stringify(e, Object.getOwnPropertyNames(e)),
-            url: window.location.href
-          }, 'GoogleRedirectResultError');
-          setAuthError(mapAuthErrorToMessage(e));
+        } else {
+          console.log('Auth: Native platform — skipping getRedirectResult');
         }
 
         // 3. Handle Telegram Mini App (TMA)
@@ -260,8 +266,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initAuthSequence();
 
+    // ── App URL Open listener (Android deep links) ──────────────────────────
+    // Handles return from Yandex OAuth when backend redirects to:
+    //   holodos://auth?yandex_token=xxx   (custom scheme, future)
+    //   https://app.holodos.su?yandex_token=xxx  (App Link, current)
+    // Backend Yandex deep link is a separate backend task — not yet implemented.
+    // This listener is ready to receive the callback when backend is updated.
+    let appUrlListener: any = null;
+    if (isNativePlatform) {
+      CapApp.addListener('appUrlOpen', async (event: { url: string }) => {
+        console.log('Auth: appUrlOpen received:', event.url);
+        try {
+          const url = new URL(event.url);
+          const yandexToken = url.searchParams.get('yandex_token');
+          const yandexError = url.searchParams.get('yandex_error');
+
+          if (yandexToken) {
+            console.log('Auth: Processing Yandex token from deep link');
+            signingInRef.current = true;
+            try {
+              const result = await signInWithCustomToken(auth, yandexToken);
+              if (mountedRef.current) setUser(result.user);
+            } catch (e) {
+              logAuthError(e, 'YandexDeepLinkToken');
+              if (mountedRef.current) setAuthError(mapAuthErrorToMessage(e));
+            } finally {
+              signingInRef.current = false;
+            }
+          } else if (yandexError) {
+            console.error('Auth: Yandex error from deep link:', yandexError);
+            if (mountedRef.current) {
+              setAuthError(mapAuthErrorToMessage({ message: 'yandex_error', yandex_error: yandexError }));
+            }
+          }
+        } catch (e) {
+          console.error('Auth: Failed to parse appUrlOpen URL:', e);
+        }
+      }).then((handle: any) => { appUrlListener = handle; });
+    }
+
     return () => {
       if (unsubscribe) unsubscribe();
+      if (appUrlListener) appUrlListener.remove();
     };
   }, [tg, tgUser, ready, expand, loginWithTelegramWidget, logAuthError]);
 
