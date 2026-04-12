@@ -181,12 +181,42 @@ if (result.subscription) {
 ## 📱 Раздел 4. Экраны и Их Механика
 
 ### 1. `AuthScreen` & `Header` (Авторизация и Навигация)
-- **Механика TMA**: Автоматическая авторизация через `initData` от Telegram при запуске в мессенджере.
-- **Production Auth Status**:
-  - `Google` — рабочий web auth flow.
-  - `Yandex` — рабочий backend OAuth flow.
-  - `Telegram Web` — рабочий widget flow через `HolodosAI_bot`.
-  - `Telegram Mini App` — рабочий auth flow внутри Telegram.
+
+#### Production Auth Matrix
+
+| Метод | Платформа | Механика | Статус |
+|-------|-----------|----------|--------|
+| Google | Desktop Web | `signInWithPopup` | ✅ |
+| Google | Mobile Browser | `signInWithRedirect` | ✅ |
+| Google | Android / iOS (native) | `GoogleAuth.signIn()` → `signInWithCredential` | ✅ |
+| Yandex | Web + Android | Backend OAuth → `?yandex_token=` → `signInWithCustomToken` | ✅ |
+| Telegram Widget | Web | Widget flow → `/auth/telegram` → `signInWithCustomToken` | ✅ |
+| Telegram Mini App | TMA | `initData` → `/auth/telegram` → `signInWithCustomToken` | ✅ |
+
+> [!IMPORTANT]
+> **СВЯЩЕННОЕ ПРАВИЛО AUTH (Native Platform):**
+> На Android/iOS (Capacitor) `signInWithRedirect` и `getRedirectResult` **ЗАПРЕЩЕНЫ**.
+> Там `capacitor://localhost` не является авторизованным доменом Firebase → `auth/unauthorized-domain`.
+> Всегда использовать `isNativePlatform` из `src/utils/firebase.ts` для ветвления логики.
+
+#### Native Google Sign-In (Android/iOS)
+- Использует `@codetrix-studio/capacitor-google-auth@3.3.3`
+- `GoogleAuth.signIn()` → возвращает `authentication.idToken`
+- `GoogleAuthProvider.credential(idToken)` → `signInWithCredential(auth, credential)`
+- `getRedirectResult` на native **пропускается** (`if (!isNativePlatform)`)
+- `capacitor.config.ts`: `GoogleAuth.serverClientId` = Web Client ID (не Android Client ID)
+- Отдельный Android OAuth Client ID нужен в Google Cloud Console:
+  - Package: `com.holodos.ai`
+  - SHA-1 debug: `93:12:3B:04:41:F5:57:D4:9E:74:40:44:33:3D:CC:5A:6D:7F:FF:AF`
+
+#### Yandex Deep Link на Android
+- `App.addListener('appUrlOpen', ...)` активен на native платформе
+- Разбирает `?yandex_token=` из callback URL
+- Поддерживает оба формата:
+  - `holodos://auth?yandex_token=...` (custom scheme — backend-задача, ещё не реализована)
+  - `https://app.holodos.su?yandex_token=...` (App Link, текущий)
+- Listener живёт внутри `useEffect` и корректно очищается через `appUrlListener.remove()`
+
 - **Header**: Плашки профиля (UserPill/аватарки) в шапке **запрещены**. Профиль — только в Настройках.
 - **Высота шапки**: Глобальный токен `--hdr-h: 32px`. Это гарантирует корректное прилипание `SubHeader`.
 
@@ -237,6 +267,7 @@ if (result.subscription) {
 5. **Local Verification**: ЗАПРЕЩЕНО делать push в `main` без успешной сборки `npm run build`.
 6. **Limit Source of Truth**: ЗАПРЕЩАЕТСЯ считать локальный `checkUsage` / `stats` финальным арбитром доступа к AI. Только backend.
 7. **Generic AI Error on 403**: ЗАПРЕЩАЕТСЯ показывать "❌ Ошибка ИИ" при `limit_reached`. Это нормальный продуктовый ответ.
+8. **Native Auth Redirect**: ЗАПРЕЩАЕТСЯ использовать `signInWithRedirect` или `getRedirectResult` на native (Capacitor) платформе. Проверять всегда через `isNativePlatform`.
 
 ---
 
@@ -245,16 +276,20 @@ if (result.subscription) {
 | Файл | Ответственность |
 |------|----------------|
 | `src/utils/api.ts` | HTTP методы + `ApiError` class |
+| `src/utils/firebase.ts` | Firebase init, `loginWithGoogle` (native/web branching), `isNativePlatform` |
+| `src/context/AuthContext.tsx` | Авторизация: Google (native/web), Yandex, Telegram, TMA. `appUrlOpen` listener. |
 | `src/context/DataContext.tsx` | Глобальный стейт, Firebase sync, `syncBackendSubscription` |
 | `src/context/AiContext.tsx` | AI orchestration, `analyzeImage`, `sendChatCommand`, `handleLimitError` |
-| `src/context/AuthContext.tsx` | Авторизация (Firebase, Google, Yandex, Telegram) |
 | `src/utils/ai.ts` | Низкоуровневые AI-запросы: `analyzeImageWithContext`, `sendVoiceToN8N` |
 | `src/utils/subscription.ts` | Локальный `checkUsage` (UI hint only) |
-| `src/components/SmartInput.tsx` | Умный ввод, жесты, голосовая запись |
+| `src/components/SmartInput.tsx` | Умный ввод, жесты, голосовая запись, `onLimitError` prop |
 | `src/components/TabBar.tsx` | Навигация, Green Capsule, Red Stop Button |
 | `src/screens/ChatScreen.tsx` | Лента чата, date grouping (`groupItemsByDate`), все 4 вкладки |
 | `src/index.css` | Глобальные токены, TMA overrides |
+| `scripts/patch-google-auth.js` | postinstall: патч `jcenter()→mavenCentral()` + proguard для Gradle 9+ |
+| `android/app/src/main/AndroidManifest.xml` | Intent filters: production domains + `holodos://auth` scheme |
+| `capacitor.config.ts` | Capacitor + GoogleAuth plugin config |
 
 ---
 
-*Документ обновлён автоматически командой Antigravity. Версия: **v3.21.0** (13 апреля 2026). Commit: `7618e75`.*
+*Документ обновлён автоматически командой Antigravity. Версия: **v3.21.0** (13 апреля 2026). Commit: `fb4829e`.*
