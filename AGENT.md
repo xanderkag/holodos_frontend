@@ -113,6 +113,36 @@ if (result.subscription) {
 
 ---
 
+## 🔐 Раздел 1.3. Client-Side Auth Logging (Аудит Авторизации)
+
+Приложение реализует строгий контракт клиентского логирования для синхронизации с backend-аудитом (конкретно метод `POST /api/logs`).
+Фронтенд отправляет логи авторизации через единую утилиту `authLogger.ts`.
+
+> [!IMPORTANT]
+> **ОПЕРАЦИИ С ТОКЕНАМИ В ЛОГАХ КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНЫ**.
+> Функция `logAuthAudit()` автоматически очищает объект `meta`, удаляя `token`, `idToken`, `customToken` и заменяя их на булевые флаги типа `hasToken: true`. В БД должны попадать только факты наличия/отсутствия токена.
+
+### Унифицированные параметры логирования
+Фронтенд обязан оперировать строго определенными наборами (Enum-style):
+
+1. **`provider`**: `google` | `yandex` | `telegram`
+2. **`channel`**: `web` | `android` | `telegram_widget` | `telegram_miniapp`
+3. **`stage`**:
+   - `attempt` — нажатие кнопки или старт нативного flow.
+   - `redirect_start` — уход на `signInWithRedirect` / `popup` / backend URL.
+   - `redirect_result` — получение ответа от веб-редиректа (Google).
+   - `callback_received` — прием токена из `appUrlOpen` или URL (Yandex).
+   - `success` — успешное завершение Firebase Auth.
+   - `failure` — любая ошибка в процессе (`error` level).
+
+### Правила распределения (Firebase Auth & Plugins)
+- **Native Android / Capacitor**:
+  Инициирует `attempt`, получает токен плагином и сразу выдает `success` / `failure`. `getRedirectResult` для native platform **пропускается**.
+- **Web App**:
+  Инициирует `redirect_start`. При последующем монтировании `AuthContext` вызывает `getRedirectResult` и спамит логи с `redirect_result`, затем `success` / `failure`.
+
+---
+
 ## 🎨 Раздел 2. Дизайн-система и UI Компоненты
 
 Приложение использует премиальный стиль **Glassmorphism**.

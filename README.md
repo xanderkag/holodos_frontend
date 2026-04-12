@@ -58,6 +58,12 @@ Telegram (browser)  → Widget flow → /auth/telegram → signInWithCustomToken
 Telegram (TMA)      → initData → /auth/telegram → signInWithCustomToken
 ```
 
+### Client-Side Auth Logging (Аудит)
+Внедрен единый контракт отправки auth-логов на `POST /api/logs` (через `authLogger.ts`).
+- **Стэйт-машина (`stage`)**: `attempt` → `redirect_start` → `redirect_result` / `callback_received` → `success` | `failure`
+- Обязательная привязка к `provider` (`google` | `yandex` | `telegram`) и `channel` (`web` | `android` | `telegram_widget` | `telegram_miniapp`).
+- Любые операции записи токенов в лог строго запрещены (только флаг `hasToken: true`).
+
 ### Google Sign-In на Android
 - Использует `@codetrix-studio/capacitor-google-auth@3.3.3`
 - `isNativePlatform` (из `@capacitor/core`) — определяет платформу
