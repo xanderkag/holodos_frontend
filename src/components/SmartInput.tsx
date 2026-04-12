@@ -353,7 +353,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
               className="si-gesture-ball"
               style={{ 
                 transform: `translateX(${dragOffset}px)`,
-                backgroundColor: activeSide !== 'none' ? 'var(--acc)' : 'rgba(255,255,255,0.2)'
+                backgroundColor: activeSide !== 'none' ? 'var(--acc)' : 'var(--br)'
               }}
             >
               <div className="ball-inner"></div>

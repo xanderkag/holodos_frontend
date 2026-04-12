@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { auth, loginWithGoogle, logout as firebaseLogout, findUserByTelegramId, saveUserData, signInAnonymously, signInWithCustomToken } from '../utils/firebase';
+import { auth, loginWithGoogle, logout as firebaseLogout, saveUserData, signInWithCustomToken } from '../utils/firebase';
 import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { useTelegram } from '../hooks/useTelegram';
 
@@ -46,6 +46,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return () => { mountedRef.current = false; };
   }, []);
+
+  const loginWithTelegramWidget = useCallback(async (tgUserData: any) => {
+    setLoading(true);
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      console.log("Auth: Getting custom token from backend...");
+      
+      const response = await fetch(`${backendUrl}/auth/telegram`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tgUserData),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `Ошибка бэкенда ${response.status}`);
+      }
+
+      const { token } = await response.json();
+      console.log("Auth: Received custom token, signing in...");
+
+      const result = await signInWithCustomToken(auth, token);
+      
+      // Update/Sync profile in Firestore (safely authenticated now)
+      const fullName = tgUserData.first_name + (tgUserData.last_name ? ` ${tgUserData.last_name}` : '');
+      await saveUserData(result.user.uid, {
+        telegramId: tgUserData.id,
+        telegramHandle: tgUserData.username,
+        displayName: fullName,
+        photoURL: tgUserData.photo_url || null,
+        // email is handled by backend or default
+      });
+
+      console.log("Auth: Telegram Login OK", result.user.uid);
+    } catch (e: any) {
+      logAuthError(e, 'TelegramWidgetLogin');
+      alert(`Ошибка авторизации Telegram: ${e.message || 'Unknown error'}`);
+      throw e;
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, [logAuthError]);
 
 
   useEffect(() => {
@@ -95,6 +137,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           expand();
           document.documentElement.classList.add('telegram-miniapp');
           
+          // Theme Sync v3.13.0
+          if (tg.themeParams) {
+            const p = tg.themeParams;
+            const root = document.documentElement;
+            const isDark = tg.colorScheme === 'dark';
+            root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+            if (p.bg_color) {
+              root.style.setProperty('--sf-glass-solid', p.bg_color);
+              root.style.setProperty('--sf', p.bg_color);
+              root.style.setProperty('--sf-glass', p.bg_color);
+              // Adaptive borders: dark in light theme, bright in dark theme
+              root.style.setProperty('--br-glass', isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)');
+              root.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)');
+            }
+            if (p.secondary_bg_color) root.style.setProperty('--bg', p.secondary_bg_color);
+            if (p.text_color) root.style.setProperty('--t1', p.text_color);
+            if (p.hint_color) {
+              root.style.setProperty('--t2', p.hint_color);
+              root.style.setProperty('--t3', p.hint_color);
+            }
+            if (p.button_color) root.style.setProperty('--acc', p.button_color);
+            if (p.header_color) tg.setHeaderColor(p.header_color);
+          }
+          
           if (tgUser) {
             console.log("Auth: TMA detected, authenticating via backend...");
             // Instead of anonymous, we use the same custom token flow as the widget
@@ -140,71 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [tg, tgUser, ready, expand, loginWithTelegramWidget, logAuthError]);
 
-  useEffect(() => {
-    if (tg && tg.themeParams) {
-      const p = tg.themeParams;
-      const root = document.documentElement;
-      if (p.bg_color) {
-        root.style.setProperty('--sf-glass-solid', p.bg_color);
-        root.style.setProperty('--sf', p.bg_color);          // fixes item rows
-        root.style.setProperty('--sf-glass', p.bg_color);
-        root.style.setProperty('--br-glass', 'rgba(255,255,255,0.08)');
-        root.style.setProperty('--border', 'rgba(255,255,255,0.06)');
-      }
-      if (p.secondary_bg_color) root.style.setProperty('--bg', p.secondary_bg_color);
-      if (p.text_color) root.style.setProperty('--t1', p.text_color);
-      if (p.hint_color) {
-        root.style.setProperty('--t2', p.hint_color);
-        root.style.setProperty('--t3', p.hint_color);
-      }
-      if (p.button_color) root.style.setProperty('--acc', p.button_color);
 
-      // Update header color to match
-      if (p.header_color) tg.setHeaderColor(p.header_color);
-    }
-  }, [tg]);
-
-  const loginWithTelegramWidget = useCallback(async (tgUserData: any) => {
-    setLoading(true);
-    try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      console.log("Auth: Getting custom token from backend...");
-      
-      const response = await fetch(`${backendUrl}/auth/telegram`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tgUserData),
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `Ошибка бэкенда ${response.status}`);
-      }
-
-      const { token } = await response.json();
-      console.log("Auth: Received custom token, signing in...");
-
-      const result = await signInWithCustomToken(auth, token);
-      
-      // Update/Sync profile in Firestore (safely authenticated now)
-      const fullName = tgUserData.first_name + (tgUserData.last_name ? ` ${tgUserData.last_name}` : '');
-      await saveUserData(result.user.uid, {
-        telegramId: tgUserData.id,
-        telegramHandle: tgUserData.username,
-        displayName: fullName,
-        photoURL: tgUserData.photo_url || null,
-        // email is handled by backend or default
-      });
-
-      console.log("Auth: Telegram Login OK", result.user.uid);
-    } catch (e: any) {
-      logAuthError(e, 'TelegramWidgetLogin');
-      alert(`Ошибка авторизации Telegram: ${e.message || 'Unknown error'}`);
-      throw e;
-    } finally {
-      if (mountedRef.current) setLoading(false);
-    }
-  }, [logAuthError]);
 
   const login = async () => {
     signingInRef.current = true;

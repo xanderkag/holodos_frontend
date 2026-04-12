@@ -7,10 +7,10 @@
   --sf: #fff;
   --sf-rgb: 255, 255, 255;
   --sf-glass: rgba(255, 255, 255, 0.4);
-  --sf-glass-solid: rgba(255, 255, 255, 0.7);
-  --br: #e5e5ea;
-  --br2: #efeff4;
-  --br-glass: rgba(255, 255, 255, 0.3);
+  --sf-glass-solid: rgba(255, 255, 255, 0.85);
+  --br: rgba(0, 0, 0, 0.08); /* Fixed: unified border for light theme */
+  --br2: rgba(0, 0, 0, 0.04);
+  --br-glass: rgba(0, 0, 0, 0.06);
   --t1: #1c1c1e;
   --t2: #3a3a3c;
   --t3: #8e8e93;
@@ -51,12 +51,12 @@
   --sf: #1c1c1e;
   --sf-rgb: 28, 28, 30;
   --sf-glass: rgba(28, 28, 30, 0.7);
-  --sf-glass-solid: rgba(28, 28, 30, 0.9);
-  --br: #2c2c2e;
-  --br2: #1c1c1e;
-  --br-glass: rgba(255, 255, 255, 0.1);
+  --sf-glass-solid: rgba(28, 28, 30, 0.95);
+  --br: rgba(255, 255, 255, 0.1);
+  --br2: rgba(255, 255, 255, 0.05);
+  --br-glass: rgba(255, 255, 255, 0.12);
   --t1: #ffffff;
-  --t2: #ebebf5;
+  --t2: rgba(255, 255, 255, 0.7);
   --t3: #8e8e93;
   --acc: #007aff; /* Apple Blue for consistency */
   --acc-glow: rgba(0, 122, 255, 0.3);
@@ -390,8 +390,8 @@ input {
 
 .smart-input.focused {
   border-color: var(--acc);
-  box-shadow: 0 0 0 4px var(--acc-glow), 0 10px 30px rgba(0, 0, 0, 0.1);
-  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  background: var(--sf);
   transform: translateY(-2px);
 }
 
@@ -437,10 +437,10 @@ input {
 }
 
 .cbhdr {
-  background: rgba(0, 0, 0, 0.03); /* Faint shadow for light mode */
+  background: var(--br2); /* Subtle contrast */
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   display: flex;
   border-bottom: 1px solid var(--br-glass);
 }
@@ -474,9 +474,9 @@ input {
 
 /* Item Rows */
 .irow {
-  background: var(--sf);
+  background: transparent; /* Fixed: use container bg */
   align-items: center;
-  padding: 14px 16px;
+  padding: 12px 16px;
   display: flex;
   border-top: 1px solid var(--br-glass);
 }
