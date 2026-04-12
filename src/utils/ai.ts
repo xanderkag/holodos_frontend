@@ -137,8 +137,20 @@ export async function sendVoiceToN8N(
     fd.append('priority', priority);
 
     try {
-        const json = await apiPostFormData<any>('/ai/voice', fd);
-        logDiagnostic('Voice: Success received', 'net');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/ai/voice`, {
+            method: 'POST',
+            body: fd
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            logDiagnostic(`Voice: Backend returned error ${response.status}: ${errText}`, 'error');
+            throw new Error(`Бэкенд вернул ошибку ${response.status}`);
+        }
+
+        const json = await response.json();
+        logDiagnostic(`Voice: Success received. Actions: ${json.actions?.length || 0}`, 'net');
+        console.log('Voice Response Body:', JSON.stringify(json));
 
         let itemsCount = 0;
         if (json.actions) {

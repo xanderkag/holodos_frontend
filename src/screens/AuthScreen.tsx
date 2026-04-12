@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { loginWithEmail, registerWithEmail } from '../utils/firebase';
 import { APP_VERSION } from '../constants/version';
 import { useAuth } from '../context/AuthContext';
+import { mapAuthErrorToMessage } from '../utils/auth';
 import { TelegramLogin } from '../components/TelegramLogin';
 import './AuthScreen.css';
 
@@ -18,7 +19,7 @@ export const AuthScreen = () => {
     try {
       await loginWithTelegramWidget(tgUser);
     } catch (e: any) {
-      setError(e.message || 'Ошибка авторизации через Telegram');
+      setError(mapAuthErrorToMessage(e));
       setLoading(false);
     }
   };
@@ -38,12 +39,7 @@ export const AuthScreen = () => {
       await authPromise;
     } catch (e: any) {
       console.error(e);
-      let msg = 'Ошибка авторизации';
-      if (e.code === 'auth/invalid-email') msg = 'Некорректный формат почты';
-      else if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = 'Неверная почта или пароль';
-      else msg = e.message || 'Произошла ошибка';
-      setError(msg);
-      setLoading(true); // Don't turn off if we want to show it, wait... setting to false
+      setError(mapAuthErrorToMessage(e));
       setLoading(false);
     }
   };
@@ -56,7 +52,7 @@ export const AuthScreen = () => {
       await login();
     } catch (e: any) {
       console.error('Google auth error:', e);
-      setError(e.message || 'Ошибка входа через Google.');
+      setError(mapAuthErrorToMessage(e));
       setLoading(false);
     }
   };

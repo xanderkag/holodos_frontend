@@ -81,11 +81,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await signInWithCustomToken(auth, token);
       
       const fullName = tgUserData.first_name + (tgUserData.last_name ? ` ${tgUserData.last_name}` : '');
+      const adminEmails = ['liapustin@gmail.com', 'a.u.lyapustin@yandex.ru'];
+      const currentEmail = result.user.email;
+
       await saveUserData(result.user.uid, {
         telegramId: tgUserData.id,
         telegramHandle: tgUserData.username,
         displayName: fullName,
         photoURL: tgUserData.photo_url || null,
+        // Mark as linked if it's one of the admin identities
+        is_primary_admin: adminEmails.includes(currentEmail) || tgUserData.username === 'xanderkage'
       });
 
       console.log("Auth: Telegram Login OK", result.user.uid);
@@ -107,7 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (initStarted) return;
       initStarted = true;
 
-      console.log("Auth: Starting Unified Initialization Sequence...");
+      // v3.14.1: Enhanced Diagnostics for Google Auth Redirect (The "Fact-Finding" Mission)
+      const currentUrl = window.location.href;
+      const currentReferrer = document.referrer;
+      console.log(`Auth Trace [v3.14.1]: Initializing... URL: ${currentUrl}, Referrer: ${currentReferrer}`);
+      logAuthError({ url: currentUrl, ref: currentReferrer }, 'AuthInitTrace');
 
       try {
         // 1. Handle Yandex token (Priority)
@@ -121,9 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (yandexError) {
-          const msg = `Ошибка Яндекса: ${yandexError}`;
-          setAuthError(mapAuthErrorToMessage({ message: 'yandex_error', reason: yandexError }));
-          logAuthError({ message: msg }, 'YandexErrorInit');
+          const msg = `Error from Yandex redirect: ${yandexError}`;
+          setAuthError(mapAuthErrorToMessage({ message: 'yandex_error', yandex_error: yandexError }));
+          logAuthError({ message: msg, reason: yandexError }, 'YandexAuthRedirect');
         } else if (yandexToken) {
           console.log("Auth: Processing Yandex success flow");
           signingInRef.current = true;
@@ -140,13 +149,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // 2. Handle Google/Firebase Redirect Result
         try {
+          console.log("Auth: Checking for Google redirect result...");
           const redirectResult = await getRedirectResult(auth);
+          
           if (redirectResult) {
+            console.log("Auth: Redirect result FOUND", redirectResult.user.uid);
+            logAuthError({ 
+              message: 'Google Redirect Successful', 
+              uid: redirectResult.user.uid,
+              url: window.location.href 
+            }, 'GoogleRedirectSuccess');
             setUser(redirectResult.user);
+          } else {
+            console.log("Auth: No Google redirect result found (Normal if manual entry or direct link)");
           }
-        } catch (e) {
-          console.error("Auth: Redirect result error", e);
-          logAuthError(e, 'GoogleRedirectResult');
+        } catch (e: any) {
+          console.error("Auth: Google redirect result error", e);
+          logAuthError({ 
+            message: e.message || String(e),
+            code: e.code,
+            fullError: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+            url: window.location.href
+          }, 'GoogleRedirectResultError');
           setAuthError(mapAuthErrorToMessage(e));
         }
 
@@ -265,9 +289,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const botName = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'xanderkage';
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'liapustin@gmail.com';
-  const isAdmin = user?.email === adminEmail || user?.telegramHandle === botName;
+  const adminEmails = ['liapustin@gmail.com', 'a.u.lyapustin@yandex.ru'];
+  const adminHandles = ['xanderkage'];
+  const isAdmin = adminEmails.includes(user?.email) || adminHandles.includes(user?.telegramHandle) || adminHandles.includes(user?.username);
   const isTMA = !!tg;
 
   return (

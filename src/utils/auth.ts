@@ -20,13 +20,18 @@ export const mapAuthErrorToMessage = (error: any): string => {
   if (code === 'auth/unauthorized-domain') return 'Этот домен не разрешен для авторизации Google.';
 
   // Custom Backend Errors
-  if (message.includes('404')) return 'Сервер авторизации временно недоступен (404). Попробуйте позже.';
-  if (message.includes('500')) return 'Внутренняя ошибка сервера (500). Мы уже чиним.';
+  if (message.includes('400') || code === '400') return 'Некорректный запрос (400). Попробуйте позже.';
+  if (message.includes('403') || code === '403') return 'Доступ запрещен (403). Проверьте права доступа.';
+  if (message.includes('404') || code === '404') return 'Сервер авторизации временно недоступен (404).';
+  if (message.includes('500') || code === '500') return 'Внутренняя ошибка сервера (500). Мы уже чиним.';
   
   // Yandex Specifics
-  if (message.includes('yandex_error')) {
-    if (message.includes('access_denied')) return 'Вы отклонили запрос на доступ через Яндекс.';
-    return `Ошибка Яндекса: ${message}`;
+  if (message.includes('yandex_error') || error.yandex_error) {
+    const reason = error.reason || error.yandex_error || message;
+    if (reason.includes('access_denied')) return 'Вы отклонили запрос на доступ через Яндекс.';
+    if (reason.includes('server_error')) return 'Ошибка на стороне сервера Яндекс. Попробуйте позже.';
+    if (reason.includes('no_code')) return 'Яндекс не предоставил код авторизации.';
+    return `Ошибка Яндекса: ${reason}`;
   }
 
   return message || 'Произошла ошибка при входе. Попробуйте другой способ.';

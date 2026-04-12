@@ -1,6 +1,6 @@
-# Frontend Conventions & Standards: HOLODOS AI 🧊🤖
+# HOLODOS AI AGENT: Frontend Conventions & Standards 🧊🤖
 
-This document defines the technical standards, UI/UX patterns, and integration rules for the HOLODOS AI frontend. It serves as the primary onboarding guide for frontend developers and a reference for the product/backend teams.
+This document defines the technical standards, UI/UX patterns, and integration rules for the HOLODOS AI. It serves as the primary system-instruction for the AI Agent and a reference for the product/backend teams.
 
 ---
 
@@ -60,6 +60,8 @@ Refer to [AI_ENDPOINTS.md](file:///Users/alexanderliapustin/Desktop/Antigravity2
 
 > [!CAUTION]
 > **No Backend Mutation**: The frontend is a consumer of the API. Changing request structures, endpoint paths, or JSON schemas without explicit agreement from the backend team is strictly prohibited.
+> 
+> **Sync Protocol**: Any changes requiring synchronization with backend or product tasks MUST be explicitly marked with a large, visible comment in the code and a detailed note in the commit message.
 
 ### Integration Flow:
 1. **State Collection**: Frontend gathers `list`, `stock`, `diary`, and `baseline` from `DataContext`.

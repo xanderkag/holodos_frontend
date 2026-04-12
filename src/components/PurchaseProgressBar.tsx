@@ -17,7 +17,7 @@ export const PurchaseProgressBar: React.FC<PurchaseProgressBarProps> = ({
   const progress = (purchasedCount / totalCount) * 100;
 
   return (
-    <div className="prog-container animated-pop">
+    <div className="prog-container animated-pop" style={{ height: '44px' }}>
       <div className="prog-row">
         <span className="prog-stat">{purchasedCount} из {totalCount}</span>
         <div className="prog-track">

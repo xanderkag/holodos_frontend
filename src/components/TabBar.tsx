@@ -77,64 +77,20 @@ export const TabBar: React.FC<TabBarProps> = ({
             onTouchStart={(e) => {
               if (!isChat) return;
               touchStartXRef.current = e.touches[0].clientX;
-              isDraggingRef.current = false;
-              setDragX(0);
             }}
             onTouchMove={(e) => {
               if (!isChat || touchStartXRef.current === null) return;
               const deltaX = e.touches[0].clientX - touchStartXRef.current;
-              if (Math.abs(deltaX) > 8) {
-                isDraggingRef.current = true;
+              if (Math.abs(deltaX) > 10) {
                 suppressClickRef.current = true;
-                setDragX(deltaX);
-                
-                // Docking logic
-                if (deltaX > CONFIRM_THRESHOLD) {
-                  if (dockedSide !== 'right') {
-                    setDockedSide('right');
-                    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(12);
-                    // Hold-to-record trigger: start recording immediately on docking right
-                    if (!isRecordingRef.current) {
-                      onChatTabSwipe?.('right');
-                      isRecordingRef.current = true;
-                    }
-                  }
-                } else if (deltaX < -CONFIRM_THRESHOLD) {
-                  if (dockedSide !== 'left') {
-                    setDockedSide('left');
-                    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(12);
-                  }
-                } else {
-                  if (dockedSide !== 'none') setDockedSide('none');
-                }
-                
-                e.preventDefault();
               }
             }}
             onTouchEnd={() => {
-              if (!isChat || touchStartXRef.current === null) return;
               touchStartXRef.current = null;
-              setDragX(null);
-              setDockedSide('none');
-              
-              if (isDraggingRef.current) {
-                // If we were recording (hold-to-talk), stop it now
-                if (isRecordingRef.current) {
-                  onChatTabGestureEnd?.();
-                  isRecordingRef.current = false;
-                } else if (dockedSide === 'left') {
-                  // For camera, trigger on release
-                  onChatTabSwipe?.('left');
-                }
-              }
-              isDraggingRef.current = false;
               setTimeout(() => { suppressClickRef.current = false; }, 50);
             }}
             onTouchCancel={() => {
               touchStartXRef.current = null;
-              setDragX(null);
-              isDraggingRef.current = false;
-              if (onChatTabGestureEnd) onChatTabGestureEnd();
             }}
           >
             <div className={`ticon ${isChat ? 'is-main-capsule' : ''} ${isChat && isRecording ? 'is-recording-capsule' : ''} ${isChat && dockedSide === 'left' ? 'docked-left' : ''} ${isChat && dockedSide === 'right' ? 'docked-right' : ''}`} key={displayIcon}>

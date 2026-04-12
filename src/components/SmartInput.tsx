@@ -5,7 +5,7 @@ import type { Item } from '../utils/data';
 import heic2any from 'heic2any';
 import { logDiagnostic, sendVoiceToN8N } from '../utils/ai';
 import { useAuth } from '../context/AuthContext';
-import { compressImage } from '../utils/image';
+import { useTelegram } from '../hooks/useTelegram';
 
 import './SmartInput.css';
 
@@ -32,6 +32,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
   onStateChange,
 }) => {
   const { user } = useAuth();
+  const { disableVerticalSwipes, enableVerticalSwipes } = useTelegram();
 
 
   const [val, setVal] = useState('');
@@ -185,6 +186,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
   const startRecording = async () => {
     try {
+      disableVerticalSwipes();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;
@@ -251,17 +253,26 @@ export const SmartInput: React.FC<SmartInputProps> = ({
   };
 
   const stopRecording = () => {
+    enableVerticalSwipes();
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
     }
+    // Final cleanup in stop handler
+    onStateChange('active');
   };
 
   // ROBUST GESTURE: Catch finger release globally
   useEffect(() => {
-    if (!isRecording) return;
-
+    // We want to catch release if we are recording OR dragging
     const handleGlobalEnd = () => {
-      stopRecording();
+      if (isRecording) {
+        stopRecording();
+      }
+      if (swipeStartX.current !== null) {
+        setDragOffset(0);
+        setActiveSide('none');
+        swipeStartX.current = null;
+      }
     };
 
     window.addEventListener('touchend', handleGlobalEnd);
@@ -290,7 +301,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
       <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} style={{ display: 'none' }} onChange={processFile} />
 
       <div
-        className={`smart-input glass-panel ${isFocused ? 'focused' : ''} ${smartInputState !== 'hidden' ? 'visible' : 'hidden'} ${isRecording ? 'is-recording' : ''} active-side-${activeSide}`}
+        className={`smart-input glass-panel ${isFocused ? 'focused' : ''} ${smartInputState !== 'hidden' ? 'visible' : 'hidden'} ${isRecording ? 'is-recording-active' : ''} active-side-${activeSide}`}
         onTouchStart={(e) => {
           if (isRecording) return;
           const touch = e.touches[0];
@@ -298,6 +309,10 @@ export const SmartInput: React.FC<SmartInputProps> = ({
         }}
         onTouchMove={(e) => {
           if (swipeStartX.current === null || isRecording) return;
+          
+          // Prevent browser gestures (like back navigation) while dragging the ball
+          if (e.cancelable) e.preventDefault();
+          
           const touch = e.touches[0];
           const deltaX = touch.clientX - swipeStartX.current;
           
@@ -344,39 +359,50 @@ export const SmartInput: React.FC<SmartInputProps> = ({
         }}
       >
         <div className="si-controls">
-          <div className={`si-left-icon ${activeSide === 'left' ? 'active' : ''}`}>
-            📸
-          </div>
+          {!isRecording && (
+            <button 
+              className={`si-btn-icon si-left-icon ${activeSide === 'left' ? 'active' : ''}`}
+              onClick={() => { triggerHaptic(15); cameraInputRef.current?.click(); onStateChange('media'); }}
+            >
+              📸
+            </button>
+          )}
 
           <div className="si-center-gesture">
-            <div 
-              className="si-gesture-ball"
-              style={{ 
-                transform: `translateX(${dragOffset}px)`,
-                backgroundColor: activeSide !== 'none' ? 'var(--acc)' : 'var(--br)'
-              }}
-            >
-              <div className="ball-inner"></div>
-            </div>
-            {!isRecording && !dragOffset && (
-               <input
-                 className="si-inp"
-                 ref={textInputRef}
-                 placeholder={placeholder || (isRecording ? "Слушаю..." : "Сообщение...")}
-                 value={val}
-                 onChange={e => setVal(e.target.value)}
-                 onKeyDown={e => e.key === 'Enter' && handleSend()}
-                 onFocus={() => setIsFocused(true)}
-                 disabled={isRecording}
-               />
+            {isRecording ? (
+              <div className="si-recording-center animated-pop">
+                <div className="rec-green-circle">
+                  <button className="rec-stop-btn" onClick={() => { triggerHaptic(20); stopRecording(); }}>
+                    ✕
+                  </button>
+                </div>
+                <div className="si-rec-info">
+                   <span className="rec-time">{formatRecordingTime(recordingDurationMs)}</span>
+                </div>
+              </div>
+            ) : (
+              <input
+                className="si-inp"
+                ref={textInputRef}
+                placeholder={placeholder || "Сообщение..."}
+                value={val}
+                onChange={e => setVal(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                onFocus={() => setIsFocused(true)}
+              />
             )}
           </div>
 
-          <div className={`si-right-icon ${activeSide === 'right' ? 'active' : ''}`}>
-            🎙️
-          </div>
+          {!isRecording && (
+            <button 
+              className={`si-btn-icon si-right-icon ${activeSide === 'right' ? 'active' : ''}`}
+              onClick={() => { triggerHaptic(15); startRecording(); onStateChange('recording'); }}
+            >
+              🎙️
+            </button>
+          )}
           
-          {val.trim() && !isRecording && !dragOffset && (
+          {val.trim() && !isRecording && (
             <div className="si-quick-send">
                <button className="si-action-btn send-btn animated-pop" onClick={() => { triggerHaptic(15); handleSend(); }}>
                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -387,14 +413,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
             </div>
           )}
         </div>
-
-        {isRecording && (
-          <div className="si-recording-indicator animated-fade-in">
-            <div className="rec-wave"></div>
-            <span className="rec-time">{formatRecordingTime(recordingDurationMs)}</span>
-            <span className="rec-label">Запись...</span>
-          </div>
-        )}
       </div>
 
       <ActionSheet

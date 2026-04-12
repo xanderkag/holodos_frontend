@@ -3,7 +3,7 @@
   top: calc(var(--hdr-h) + var(--sat));
   z-index: 100;
   width: 100%;
-  height: 32px; /* Fixed height for sub-header bar */
+  height: 44px; /* Integrated height for progress/capsule */
   display: flex;
   justify-content: center;
   align-items: center;

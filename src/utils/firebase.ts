@@ -47,6 +47,7 @@ export const loginWithGoogle = async () => {
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
   try {
+    console.log(`Auth: loginWithGoogle triggered. isMobile=${isMobile}, currentURL=${window.location.href}`);
     if (isMobile) {
       console.log('Auth: Starting Google Login (REDIRECT)');
       return await signInWithRedirect(auth, googleProvider);
@@ -56,6 +57,7 @@ export const loginWithGoogle = async () => {
     }
   } catch (error: any) {
     console.error('Auth Error Details:', error.code, error.message);
+    // Note: detailed logging to backend is handled by the caller in AuthContext
     if (error.code === 'auth/popup-blocked') {
       throw new Error('Браузер заблокировал всплывающее окно. Разрешите попапы для этого сайта и попробуйте снова.');
     }

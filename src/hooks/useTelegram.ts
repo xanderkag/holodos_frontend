@@ -19,6 +19,8 @@ export const useTelegram = () => {
     ready: () => tg?.ready(),
     // @ts-ignore
     disableVerticalSwipes: () => tg?.isVerticalSwipesEnabled && tg?.disableVerticalSwipes(),
+    // @ts-ignore
+    enableVerticalSwipes: () => !tg?.isVerticalSwipesEnabled && tg?.enableVerticalSwipes(),
     haptics: tg?.HapticFeedback,
     mainButton: tg?.MainButton,
     backButton: tg?.BackButton,
