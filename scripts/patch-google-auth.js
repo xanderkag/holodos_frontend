@@ -4,8 +4,12 @@
 // to replace deprecated jcenter() with mavenCentral() for Gradle 9+ compatibility.
 // Runs automatically via postinstall.
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const gradleFile = path.resolve(
   __dirname,
