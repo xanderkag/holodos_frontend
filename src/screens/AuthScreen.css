@@ -8,7 +8,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top left, #f8faff 0%, #e2e8f0 100%);
+  background: var(--bg);
   padding: calc(20px + var(--sat, 30px)) 20px 40px;
   overflow-y: auto;
 }

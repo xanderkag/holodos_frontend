@@ -1,9 +1,9 @@
 /* Inter font loaded via <link> in index.html for better performance */
 :root {
   /* Classic Light Theme - Clean & High Contrast */
-  --bg: #f8f9ff;
-  --bg-rgb: 248, 249, 255;
-  --bg-gradient: linear-gradient(180deg, #f0f4ff 0%, #ffffff 100%);
+  --bg: #ffffff;
+  --bg-rgb: 255, 255, 255;
+  --bg-gradient: #ffffff;
   --sf: #ffffff;
   --sf-rgb: 255, 255, 255;
   --sf-glass: rgba(255, 255, 255, 0.6);
@@ -563,7 +563,7 @@ input {
 .confirm-btn {
   height: 58px;
   border-radius: 20px;
-  background: linear-gradient(135deg, var(--acc) 0%, #3095ff 100%);
+  background: var(--bg);
   color: #fff;
   border: none;
   font-size: 16px;

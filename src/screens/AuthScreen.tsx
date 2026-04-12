@@ -6,7 +6,7 @@ import { TelegramLogin } from '../components/TelegramLogin';
 import './AuthScreen.css';
 
 export const AuthScreen = () => {
-  const { user, loading: authLoading, login, loginWithTelegramWidget } = useAuth();
+  const { user, loading: authLoading, login, loginWithTelegramWidget, authError, isTMA } = useAuth();
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [loading, setLoading] = useState(false);
@@ -103,7 +103,11 @@ export const AuthScreen = () => {
             </div>
           </div>
 
-          {error && <div className="auth-error-pill">{error}</div>}
+          {(error || authError) && (
+            <div className="auth-error-pill animated-pop">
+              {error || authError}
+            </div>
+          )}
 
           <div className="auth-form">
             <div className="input-group">
@@ -158,6 +162,15 @@ export const AuthScreen = () => {
 
       <div className="auth-footer">
         <p>© 2026 HOLODOS AI • v{APP_VERSION}</p>
+        
+        {/* Diagnostic Labels (Visible in dev/staging) */}
+        {window.location.hostname.includes('localhost') || window.location.hostname.includes('staging') ? (
+          <div style={{ marginTop: '12px', opacity: 0.4, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            Context: {isTMA ? 'Telegram Mini App' : 'Web Browser'} | 
+            {window.location.search.includes('yandex') ? ' Yandex Callback' : ''}
+            {localStorage.getItem('auth_uid') ? ' Persistent Session' : ''}
+          </div>
+        ) : null}
       </div>
     </div>
   );

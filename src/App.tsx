@@ -276,8 +276,8 @@ export default function App() {
   }, [addAiEntries, setMessages, setCurrentTab]);
 
   if (authLoading) return (
-    <div className="empty" style={{ height: '100vh', justifyContent: 'center', textAlign: 'center' }}>
-      <div className="cat-name">Инициализация...</div>
+    <div className="empty" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#1c1c1e' }}>
+      <div className="cat-name" style={{ color: '#1c1c1e', fontWeight: 800 }}>Инициализация...</div>
       <div style={{ fontSize: '12px', opacity: 0.5, marginTop: '8px' }}>v{APP_VERSION} (Checking Auth)</div>
     </div>
   );

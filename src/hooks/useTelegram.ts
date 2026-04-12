@@ -26,6 +26,7 @@ export const useTelegram = () => {
     isDark: tg?.colorScheme === 'dark',
     // @ts-ignore
     isExpanded: tg?.isExpanded,
-    platform: tg?.platform
+    platform: tg?.platform,
+    initData: tg?.initData
   }), [tg]);
 };
