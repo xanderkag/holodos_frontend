@@ -54,12 +54,12 @@
   pointer-events: none;
   background: rgba(0, 122, 255, 0.08);
   border-radius: 31px;
-  width: calc(20% - 4px);
+  width: calc((100% - 20px) / 5);
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   position: absolute;
   top: 4px;
   bottom: 4px;
-  left: 4px;
+  left: 10px;
 }
 
 .tab-indicator.indicator-hidden {

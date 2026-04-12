@@ -174,7 +174,7 @@ export const TabBar: React.FC<TabBarProps> = ({
               {tab.icon}
               {tab.hasBadge && <span className="tab-badge" />}
             </div>
-            {!isChat && <span className="tlabel" key={tab.label}>{tab.label}</span>}
+            {!isChat || tab.label === 'AI' ? <span className="tlabel" key={tab.label}>{tab.label}</span> : null}
           </button>
         );
       })}

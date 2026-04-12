@@ -95,7 +95,7 @@
 .dd-menu {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 0;
   width: 180px;
   background: var(--sf-glass-solid);
   backdrop-filter: blur(40px);

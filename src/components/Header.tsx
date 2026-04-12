@@ -38,11 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ title, stores, currentStore, onS
     <header className="glass-header">
       <div className="hdr-row">
         <div className="hdr-left">
-          <div className="hdr-title">{title}</div>
-        </div>
-        
-        <div className="hdr-right">
-          {showStoreSelector && (
+          {showStoreSelector ? (
             <div className="store-dropdown" ref={dropdownRef}>
               <div className="dd-selected" onClick={() => setIsOpen(!isOpen)}>
                 <span className="dd-sname">
@@ -75,7 +71,13 @@ export const Header: React.FC<HeaderProps> = ({ title, stores, currentStore, onS
                 )}
               </div>
             </div>
+          ) : (
+            <div className="hdr-title">{title}</div>
           )}
+        </div>
+        
+        <div className="hdr-right">
+          {/* Right actions can go here in the future */}
         </div>
       </div>
     </header>
