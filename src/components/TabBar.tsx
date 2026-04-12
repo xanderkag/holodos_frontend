@@ -111,7 +111,7 @@ export const TabBar: React.FC<TabBarProps> = ({
                 e.preventDefault();
               }
             }}
-            onTouchEnd={(e) => {
+            onTouchEnd={() => {
               if (!isChat || touchStartXRef.current === null) return;
               touchStartXRef.current = null;
               setDragX(null);
