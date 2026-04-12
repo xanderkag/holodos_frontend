@@ -120,8 +120,10 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     }
     if (smartInputState === 'recording' && !isRecording) {
       startRecording();
+    } else if (smartInputState !== 'recording' && isRecording) {
+      stopRecording();
     }
-  }, [smartInputState]);
+  }, [smartInputState, isRecording]);
 
   const handleSend = () => {
     if (!val.trim()) return;

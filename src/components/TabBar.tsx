@@ -22,24 +22,25 @@ export const TabBar: React.FC<TabBarProps> = ({
 }) => {
   const touchStartXRef = useRef<number | null>(null);
   const [dragX, setDragX] = useState<number | null>(null);
+  const [dockedSide, setDockedSide] = useState<'none' | 'left' | 'right'>('none');
   const suppressClickRef = useRef(false);
   const isDraggingRef = useRef(false);
-  const CONFIRM_THRESHOLD = 80; // Reduced for easier activation
+  const isRecordingRef = useRef(false);
+  const CONFIRM_THRESHOLD = 80;
 
   return (
-    <nav
-      className="glass-tabbar animated-slide-up"
-      style={
-        dragX !== null && dragX > CONFIRM_THRESHOLD / 2
-          ? { background: `rgba(52, 199, 89, ${Math.min((dragX - CONFIRM_THRESHOLD / 2) / 80, 0.85)})` }
-          : dragX !== null && dragX < -CONFIRM_THRESHOLD / 2
-          ? { background: `rgba(0, 122, 255, ${Math.min((Math.abs(dragX) - CONFIRM_THRESHOLD / 2) / 80, 0.85)})` }
-          : undefined
-      }
+      style={{
+        background: dockedSide === 'right'
+          ? 'rgba(52, 199, 89, 0.85)'
+          : dockedSide === 'left'
+          ? 'rgba(0, 122, 255, 0.85)'
+          : undefined,
+        transition: 'background 0.3s ease'
+      }}
     >
-      {/* Corner hints — только во время свайпа */}
-      <span className={`tabbar-corner-hint left ${dragX !== null ? 'hint-visible' : ''} ${dragX !== null && dragX < -CONFIRM_THRESHOLD ? 'hint-triggered' : ''}`}>📷</span>
-      <span className={`tabbar-corner-hint right ${dragX !== null ? 'hint-visible' : ''} ${dragX !== null && dragX > CONFIRM_THRESHOLD ? 'hint-triggered' : ''}`}>🎙️</span>
+      {/* Corner hints — visible based on swipe distance */}
+      <span className={`tabbar-corner-hint left ${dragX !== null && dragX < -10 ? 'hint-visible' : ''} ${dockedSide === 'left' ? 'hint-triggered' : ''}`}>📷</span>
+      <span className={`tabbar-corner-hint right ${dragX !== null && dragX > 10 ? 'hint-visible' : ''} ${dockedSide === 'right' ? 'hint-triggered' : ''}`}>🎙️</span>
 
       <div
         className="tab-indicator"
@@ -48,21 +49,17 @@ export const TabBar: React.FC<TabBarProps> = ({
       {tabs.map((tab) => {
         const isChat = tab.id === 'chat';
         const isInputActive = smartInputState && smartInputState !== 'hidden';
+        const displayLabel = isChat ? (isInputActive ? 'Чат' : 'Добавить') : tab.label;
+        const displayIcon = isChat ? (isInputActive ? '💬' : 'AI +') : tab.icon;
         
-        const displayLabel = isChat 
-          ? (isInputActive ? 'Чат' : 'Добавить')
-          : tab.label;
-        
-        const displayIcon = isChat
-          ? (isInputActive ? '💬' : 'AI +')
-          : tab.icon;
-
+        const isSwiping = dragX !== null && Math.abs(dragX) > 10;
         const isRecording = smartInputState === 'recording';
 
         return (
           <button
             key={tab.id}
-            className={`tab ${activeTab === tab.id ? 'on' : ''} ${tab.isMain || isChat ? 'tab-chat-main' : ''} ${isChat && isInputActive ? 'is-active-capsule' : ''}`}
+            className={`tab ${activeTab === tab.id ? 'on' : ''} ${tab.isMain || isChat ? 'tab-chat-main' : ''} ${isChat && isInputActive ? 'is-active-capsule' : ''} ${!isChat && isSwiping ? 'quick-hidden' : ''}`}
+            style={isChat && dragX !== null ? { transform: `translateX(${dragX * 0.9}px)`, transition: 'none' } : undefined}
             onClick={() => {
               if (suppressClickRef.current) {
                 suppressClickRef.current = false;
@@ -88,21 +85,45 @@ export const TabBar: React.FC<TabBarProps> = ({
                 isDraggingRef.current = true;
                 suppressClickRef.current = true;
                 setDragX(deltaX);
-                e.preventDefault(); // prevent scroll while swiping
+                
+                // Docking logic
+                if (deltaX > CONFIRM_THRESHOLD) {
+                  if (dockedSide !== 'right') {
+                    setDockedSide('right');
+                    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(12);
+                    // Hold-to-record trigger: start recording immediately on docking right
+                    if (!isRecordingRef.current) {
+                      onChatTabSwipe?.('right');
+                      isRecordingRef.current = true;
+                    }
+                  }
+                } else if (deltaX < -CONFIRM_THRESHOLD) {
+                  if (dockedSide !== 'left') {
+                    setDockedSide('left');
+                    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(12);
+                  }
+                } else {
+                  if (dockedSide !== 'none') setDockedSide('none');
+                }
+                
+                e.preventDefault();
               }
             }}
             onTouchEnd={(e) => {
               if (!isChat || touchStartXRef.current === null) return;
-              const deltaX = (e.changedTouches[0]?.clientX ?? touchStartXRef.current) - touchStartXRef.current;
               touchStartXRef.current = null;
               setDragX(null);
+              setDockedSide('none');
+              
               if (isDraggingRef.current) {
-                if (deltaX > CONFIRM_THRESHOLD) {
-                  onChatTabSwipe?.('right');
-                } else if (deltaX < -CONFIRM_THRESHOLD) {
+                // If we were recording (hold-to-talk), stop it now
+                if (isRecordingRef.current) {
+                  onChatTabGestureEnd?.();
+                  isRecordingRef.current = false;
+                } else if (dockedSide === 'left') {
+                  // For camera, trigger on release
                   onChatTabSwipe?.('left');
                 }
-                if (onChatTabGestureEnd) onChatTabGestureEnd();
               }
               isDraggingRef.current = false;
               setTimeout(() => { suppressClickRef.current = false; }, 50);
@@ -114,7 +135,7 @@ export const TabBar: React.FC<TabBarProps> = ({
               if (onChatTabGestureEnd) onChatTabGestureEnd();
             }}
           >
-            <div className={`ticon ${isChat ? 'is-main-capsule' : ''} ${isChat && isRecording ? 'is-recording-capsule' : ''}`} key={displayIcon}>
+            <div className={`ticon ${isChat ? 'is-main-capsule' : ''} ${isChat && isRecording ? 'is-recording-capsule' : ''} ${isChat && dockedSide === 'left' ? 'docked-left' : ''} ${isChat && dockedSide === 'right' ? 'docked-right' : ''}`} key={displayIcon}>
               {isChat && isRecording ? (
                 <span className="capsule-mic">🎙️</span>
               ) : isChat && !isInputActive ? (

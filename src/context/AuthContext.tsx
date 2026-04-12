@@ -139,12 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const startAuthListener = () => {
       unsubscribe = onAuthStateChanged(auth, (u) => {
-        if (signingInRef.current) return; // skip null flash during active sign-in
-        setUser((prev: any) => {
-          if (prev?.isTelegram && !u) return prev;
-          if (u) localStorage.setItem('auth_uid', u.uid);
-          return u;
-        });
+        if (signingInRef.current) return;
+        setUser(u);
+        if (u) localStorage.setItem('auth_uid', u.uid);
         setLoading(false);
         console.log("Auth: State →", u?.uid || 'null');
       });
@@ -203,61 +200,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithTelegramWidget = async (tgUserData: any) => {
     setLoading(true);
     try {
-      const currentUser = auth.currentUser;
-      if (currentUser && !currentUser.isAnonymous) {
-        // Link TG → existing Google account
-        const existingTg: any = await findUserByTelegramId(tgUserData.id);
-        const tgDocUid = existingTg?.id || `tg_${tgUserData.id}`;
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      console.log("Auth: Getting custom token from backend...");
+      
+      const response = await fetch(`${backendUrl}/auth/telegram`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tgUserData),
+      });
 
-        await saveUserData(tgDocUid, {
-          telegramId: tgUserData.id,
-          telegramHandle: tgUserData.username,
-          photoURL: tgUserData.photo_url || null,
-          linkedUid: currentUser.uid,
-        });
-        await saveUserData(currentUser.uid, {
-          telegramId: tgUserData.id,
-          telegramHandle: tgUserData.username,
-          photoURL: tgUserData.photo_url || null,
-        });
-        setUser({
-          ...(user || {}),
-          tgId: tgUserData.id,
-          telegramHandle: tgUserData.username,
-          photoURL: user?.photoURL || tgUserData.photo_url
-        });
-        return;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || `Ошибка бэкенда ${response.status}`);
       }
 
-      let existing: any = await findUserByTelegramId(tgUserData.id);
-      if (existing) {
-        // Use linked Google UID if available
-        const effectiveUid = existing.linkedUid || existing.id;
-        setUser({
-          uid: effectiveUid,
-          email: existing.email || `${tgUserData.username || tgUserData.id}@telegram`,
-          displayName: tgUserData.first_name + (tgUserData.last_name ? ` ${tgUserData.last_name}` : ''),
-          photoURL: tgUserData.photo_url,
-          isTelegram: true,
-          tgId: tgUserData.id,
-          telegramHandle: tgUserData.username
-        });
-      } else {
-        const newUid = `tg_${tgUserData.id}`;
-        const newUserData = {
-          telegramId: tgUserData.id,
-          telegramHandle: tgUserData.username,
-          displayName: tgUserData.first_name + (tgUserData.last_name ? ` ${tgUserData.last_name}` : ''),
-          photoURL: tgUserData.photo_url,
-          email: `${tgUserData.username || tgUserData.id}@telegram`,
-          createdAt: Date.now()
-        };
-        await saveUserData(newUid, newUserData);
-        setUser({ uid: newUid, ...newUserData, isTelegram: true });
-      }
+      const { token } = await response.json();
+      console.log("Auth: Received custom token, signing in...");
+
+      const result = await signInWithCustomToken(auth, token);
+      
+      // Update/Sync profile in Firestore (safely authenticated now)
+      const fullName = tgUserData.first_name + (tgUserData.last_name ? ` ${tgUserData.last_name}` : '');
+      await saveUserData(result.user.uid, {
+        telegramId: tgUserData.id,
+        telegramHandle: tgUserData.username,
+        displayName: fullName,
+        photoURL: tgUserData.photo_url || null,
+        // email is handled by backend or default
+      });
+
+      console.log("Auth: Telegram Login OK", result.user.uid);
     } catch (e: any) {
       console.error('Widget Auth Error:', e);
-      alert(`Ошибка виджета: ${e.message || 'Unknown error'}`);
+      alert(`Ошибка авторизации Telegram: ${e.message || 'Unknown error'}`);
       throw e;
     } finally {
       setLoading(false);
@@ -279,11 +254,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    if (user?.isTelegram) {
-      setUser(null);
-    } else {
-      await firebaseLogout();
-    }
+    await firebaseLogout();
+    setUser(null);
   };
 
   const botName = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'xanderkage';
