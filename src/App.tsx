@@ -275,7 +275,12 @@ export default function App() {
     }
   }, [addAiEntries, setMessages, setCurrentTab]);
 
-  if (authLoading) return <div className="empty" style={{ height: '100vh', justifyContent: 'center' }}><div className="cat-name">Загрузка...</div></div>;
+  if (authLoading) return (
+    <div className="empty" style={{ height: '100vh', justifyContent: 'center', textAlign: 'center' }}>
+      <div className="cat-name">Инициализация...</div>
+      <div style={{ fontSize: '12px', opacity: 0.5, marginTop: '8px' }}>v{APP_VERSION} (Checking Auth)</div>
+    </div>
+  );
   if (!user) return <AuthScreen />;
 
   const isStaging = window.location.hostname.includes('app-staging');

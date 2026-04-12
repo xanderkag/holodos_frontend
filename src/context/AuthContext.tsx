@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { auth, loginWithGoogle, logout as firebaseLogout, findUserByTelegramId, saveUserData, signInAnonymously, signInWithCustomToken } from '../utils/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { useTelegram } from '../hooks/useTelegram';
 
 interface AuthContextType {
@@ -145,7 +145,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
         console.log("Auth: State →", u?.uid || 'null');
       });
+      
+      // AUTO-TIMEOUT: If after 5 seconds we still didn't get a user state,
+      // force loading to false so the user isn't stuck on the splash screen.
+      setTimeout(() => {
+        if (mountedRef.current && loading) {
+          console.warn("Auth: Initialization timed out, forcing UI unlock.");
+          setLoading(false);
+        }
+      }, 5000);
     };
+
+    // Handle Redirect Result (Mobile fallback)
+    getRedirectResult(auth).then((result) => {
+      if (result) {
+        console.log("Auth: Redirect success", result.user.uid);
+        setUser(result.user);
+        setLoading(false);
+      }
+    }).catch((e) => {
+      console.error("Auth: Redirect error", e);
+    });
 
     if (yandexToken) {
       // Yandex: sign in first, THEN start listener — prevents null flash

@@ -6,9 +6,10 @@ import {
   signOut,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  getRedirectResult,
   signInAnonymously,
-  signInWithCustomToken
+  signInWithCustomToken,
+  signInWithRedirect,
+  getRedirectResult
 } from 'firebase/auth';
 import { 
   doc, 
@@ -43,11 +44,16 @@ export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export const loginWithGoogle = async () => {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
   try {
-    console.log('Auth: Starting Google Login (POPUP)');
-    // v3.13.0: Switched back to signInWithPopup (Firebase 12.x handles COOP via relay).
-    // signInWithRedirect caused redirect loops: getRedirectResult race with onAuthStateChanged.
-    return await signInWithPopup(auth, googleProvider);
+    if (isMobile) {
+      console.log('Auth: Starting Google Login (REDIRECT)');
+      return await signInWithRedirect(auth, googleProvider);
+    } else {
+      console.log('Auth: Starting Google Login (POPUP)');
+      return await signInWithPopup(auth, googleProvider);
+    }
   } catch (error: any) {
     console.error('Auth Error Details:', error.code, error.message);
     if (error.code === 'auth/popup-blocked') {
