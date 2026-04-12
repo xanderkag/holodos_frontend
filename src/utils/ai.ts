@@ -104,6 +104,10 @@ export async function analyzeImage(
           throw fetchErr;
         }
     } catch (error: any) {
+        if (error?.name === 'ApiError' && error.status === 403 && error.code === 'limit_reached') {
+            logDiagnostic(`Vision Limit Reached: ${error.message}`, 'info');
+            throw error;
+        }
         console.error("Assistant Error (image):", error);
         await logAssistantRequest(userEmail, 0, "backend-image-FAILED", error.message);
         throw error;
@@ -137,18 +141,8 @@ export async function sendVoiceToN8N(
     fd.append('priority', priority);
 
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/ai/voice`, {
-            method: 'POST',
-            body: fd
-        });
+        const json = await apiPostFormData<any>('/ai/voice', fd);
 
-        if (!response.ok) {
-            const errText = await response.text();
-            logDiagnostic(`Voice: Backend returned error ${response.status}: ${errText}`, 'error');
-            throw new Error(`Бэкенд вернул ошибку ${response.status}`);
-        }
-
-        const json = await response.json();
         logDiagnostic(`Voice: Success received. Actions: ${json.actions?.length || 0}`, 'net');
         console.log('Voice Response Body:', JSON.stringify(json));
 
@@ -161,9 +155,13 @@ export async function sendVoiceToN8N(
         await logAssistantRequest(userEmail, itemsCount, "backend-voice");
 
         return json;
-    } catch (err: any) {
-        logDiagnostic(`Voice Exception: ${err.message}`, 'error');
-        throw err;
+    } catch (error: any) {
+        if (error?.name === 'ApiError' && error.status === 403 && error.code === 'limit_reached') {
+            logDiagnostic(`Voice Limit Reached: ${error.message}`, 'info');
+            throw error;
+        }
+        logDiagnostic(`Voice Exception: ${error.message}`, 'error');
+        throw error;
     }
 }
 

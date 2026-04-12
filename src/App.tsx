@@ -48,7 +48,7 @@ export default function App() {
   } = useData();
   const { 
     isAiLoading, analyzeImage, sendChatCommand, 
-    applyActions, pendingActions, setPendingActions 
+    applyActions, pendingActions, setPendingActions, handleLimitError
   } = useAi();
 
   const [currentTab, setCurrentTab] = useState('chat');
@@ -344,6 +344,7 @@ export default function App() {
         baseline={baseline}
         onVoiceResponse={applyActions} 
         onImageSelect={analyzeImage}
+        onLimitError={handleLimitError}
         smartInputState={smartInputState}
         onStateChange={handleSmartInputStateChange}
       />

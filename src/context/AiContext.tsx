@@ -18,6 +18,7 @@ interface AiContextType {
   executeOption: (messageId: string, option: any) => Promise<void>;
   pendingActions: AiAction[];
   setPendingActions: (actions: AiAction[]) => void;
+  handleLimitError: (message: string) => void;
 }
 
 const AiContext = createContext<AiContextType | undefined>(undefined);
@@ -33,6 +34,17 @@ export function AiProvider({ children }: { children: ReactNode }) {
 
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [pendingActions, setPendingActions] = useState<AiAction[]>([]);
+
+  const handleLimitError = useCallback((message: string) => {
+    setMessages(prev => [...prev, { 
+      id: Date.now().toString(), 
+      role: 'system', 
+      content: message, 
+      timestamp: Date.now() 
+    }]);
+    addLogEvent(`⚠️ ${message}`, 'ai');
+    showToast(message);
+  }, [setMessages, addLogEvent]);
 
   const executeActions = useCallback((actions: AiAction[], messageId?: string) => {
     let currentList = [...list];
@@ -295,7 +307,12 @@ export function AiProvider({ children }: { children: ReactNode }) {
         await applyActions(result);
       }
     } catch (err: any) {
-      showToast(`❌ Ошибка: ${err.message}`);
+      if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
+        showToast(err.message || "Лимит фото исчерпан");
+        addLogEvent(`⚠️ ${err.message}`, 'ai');
+      } else {
+        showToast(`❌ Ошибка: ${err.message}`);
+      }
     } finally {
       setIsAiLoading(false);
     }
@@ -346,8 +363,18 @@ export function AiProvider({ children }: { children: ReactNode }) {
       incrementStat(isVoice ? 'voice' : 'chat');
       await applyActions(result);
     } catch (err: any) {
-      logDiagnostic(`CHAT Exception: ${err.message}`, 'error');
-      showToast(`❌ Ошибка ИИ: ${err.message}`);
+      if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
+        setMessages(prev => [...prev, { 
+          id: Date.now().toString(), 
+          role: 'system', 
+          content: err.message || "Лимит исчерпан", 
+          timestamp: Date.now() 
+        }]);
+        addLogEvent(`⚠️ ${err.message}`, 'ai');
+      } else {
+        logDiagnostic(`CHAT Exception: ${err.message}`, 'error');
+        showToast(`❌ Ошибка ИИ: ${err.message}`);
+      }
     } finally {
       setIsAiLoading(false);
     }
@@ -356,7 +383,8 @@ export function AiProvider({ children }: { children: ReactNode }) {
   return (
     <AiContext.Provider value={{ 
       isAiLoading, analyzeImage, sendChatCommand, 
-      applyActions, executeOption, pendingActions, setPendingActions 
+      applyActions, executeOption, pendingActions, setPendingActions,
+      handleLimitError 
     }}>
       {children}
     </AiContext.Provider>

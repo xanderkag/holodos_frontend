@@ -1,5 +1,19 @@
 import { auth } from './firebase';
 
+export class ApiError extends Error {
+  public status: number;
+  public code?: string;
+  public data?: any;
+
+  constructor(message: string, status: number, code?: string, data?: any) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+    this.data = data;
+  }
+}
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 async function getIdToken(): Promise<string> {
@@ -22,7 +36,7 @@ export async function apiPost<T>(path: string, body: Record<string, unknown>): P
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(err.message || `Ошибка сервера ${response.status}`);
+    throw new ApiError(err.message || `Ошибка сервера ${response.status}`, response.status, err.code, err);
   }
 
   return response.json();
@@ -42,7 +56,7 @@ export async function apiPatch<T>(path: string, body: Record<string, unknown>): 
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(err.message || `Ошибка сервера ${response.status}`);
+    throw new ApiError(err.message || `Ошибка сервера ${response.status}`, response.status, err.code, err);
   }
 
   return response.json();
@@ -62,7 +76,7 @@ export async function apiPostFormData<T>(path: string, formData: FormData): Prom
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(err.message || `Ошибка сервера ${response.status}`);
+    throw new ApiError(err.message || `Ошибка сервера ${response.status}`, response.status, err.code, err);
   }
 
   return response.json();

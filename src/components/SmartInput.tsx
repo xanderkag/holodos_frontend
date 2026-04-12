@@ -23,6 +23,7 @@ export interface SmartInputProps {
   // New props for hidden smart input
   smartInputState: 'hidden' | 'active' | 'recording' | 'media';
   onStateChange: (state: 'hidden' | 'active' | 'recording' | 'media') => void;
+  onLimitError?: (message: string) => void;
 }
 
 export const SmartInput: React.FC<SmartInputProps> = ({
@@ -31,6 +32,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
   onVoiceResponse,
   smartInputState,
   onStateChange,
+  onLimitError,
 }) => {
   const { user } = useAuth();
   const { disableVerticalSwipes, enableVerticalSwipes } = useTelegram();
@@ -235,7 +237,12 @@ export const SmartInput: React.FC<SmartInputProps> = ({
           triggerHaptic([12, 40, 12]);
           showToast('✨ Готово!');
         } catch (err: any) {
-          showToast(`❌ Ошибка: ${err.message}`);
+          if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
+            if (onLimitError) onLimitError(err.message || 'Лимит голосовых исчерпан');
+            else showToast(err.message || 'Лимит голосовых исчерпан');
+          } else {
+            showToast(`❌ Ошибка: ${err.message}`);
+          }
         }
         stream.getTracks().forEach(track => track.stop());
         onStateChange('active');
