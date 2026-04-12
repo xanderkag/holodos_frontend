@@ -23,7 +23,7 @@ import { APP_VERSION } from './constants/version';
 import { mergeItems, uid, classify } from './utils/data';
 import type { DebugLog } from './components/DebugOverlay';
 import { useDiaryActions } from './hooks/useDiaryActions';
-import { apiPost } from './utils/api';
+
 
 
 
@@ -214,7 +214,7 @@ export default function App() {
     addLogEvent(`РБ: Добавлено в ${targetName}: ${newItems.map(i => i.name).join(', ')}`, 'add');
   };
 
-  const { handleAddToDiary, addAiEntries } = useDiaryActions(setDiary, addSystemMessage);
+  const { handleAddToDiary } = useDiaryActions(setDiary, addSystemMessage);
 
   // Diary AI: фото → дневник
   const handleDiaryPhotoSelect = useCallback(async (imageBase64: string) => {

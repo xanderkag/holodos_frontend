@@ -84,7 +84,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
         const toState = getTargetState(to);
         const itemNames = items.map(i => norm(i.name));
         setTargetState(from, fromState.filter(it => !itemNames.includes(norm(it.name))));
-        const toAdd = items.map(it => {
+        const toAdd = items.map((it: any) => {
           const item = { 
             id: it.id || uid(), 
             name: it.name || '', 
@@ -115,7 +115,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
       let newState = [...state];
 
       if (type === 'add') {
-        const toAdd = items.map(it => {
+        const toAdd = items.map((it: any) => {
           const item = { 
             id: it.id || uid(), 
             name: it.name || '', 
@@ -173,7 +173,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
     const generatedMsgId = uid();
     
     // BULK PROTECT: Force confirmation for sensitive or large operations
-    const isSensitive = actions.some(a => 
+    const isSensitive = actions.some((a: any) => 
       a.type === 'remove_all' || 
       (a.type === 'move' && a.items && a.items.length > 3) ||
       (a.type === 'remove' && a.items && a.items.length > 5)
@@ -185,11 +185,11 @@ export function AiProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const sanitizedActions = (res.actions || []).map(action => {
+    const sanitizedActions = (res.actions || []).map((action: any) => {
       if (!action.items) return action;
       return {
         ...action,
-        items: action.items.map(item => {
+        items: action.items.map((item: any) => {
           let name = item.name || 'Продукт';
           const n = name.toLowerCase();
           const pPatterns = ['упаковка', 'контейнер', 'пластиковая', 'пакет', 'банка', 'коробка'];
@@ -213,7 +213,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
       ? `${feedbackStr}\n\n${summaries.join('.\n')}`
       : feedbackStr;
 
-    const isDiaryAction = sanitizedActions.some(a => a.target === 'diary' || a.from === 'diary' || a.to === 'diary');
+    const isDiaryAction = sanitizedActions.some((a: any) => a.target === 'diary' || a.from === 'diary' || a.to === 'diary');
 
     const newAssistantMsg: Message = {
       id: generatedMsgId,
