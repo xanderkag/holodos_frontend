@@ -29,6 +29,8 @@ export const TabBar: React.FC<TabBarProps> = ({
   const CONFIRM_THRESHOLD = 80;
 
   return (
+    <nav
+      className="glass-tabbar animated-slide-up"
       style={{
         background: dockedSide === 'right'
           ? 'rgba(52, 199, 89, 0.85)'

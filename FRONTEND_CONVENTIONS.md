@@ -56,7 +56,10 @@ The interaction hub consists of the `SmartInput` and `TabBar` components.
 The frontend implements a **Stateless Backend Pattern**.
 
 ### Single Source of Truth:
-Refer to [AI_ENDPOINTS.md](file:///Users/alexanderliapustin/Desktop/Antigravity2/backend/api_contracts/AI_ENDPOINTS.md) for current API contracts.
+Refer to [AI_ENDPOINTS.md](file:///Users/alexanderliapustin/Desktop/Antigravity2/backend/api_contracts/AI_ENDPOINTS.md) and [AUTH_ENDPOINTS.md](file:///Users/alexanderliapustin/Desktop/Antigravity2/backend/api_contracts/AUTH_ENDPOINTS.md) for current API contracts.
+
+> [!CAUTION]
+> **No Backend Mutation**: The frontend is a consumer of the API. Changing request structures, endpoint paths, or JSON schemas without explicit agreement from the backend team is strictly prohibited.
 
 ### Integration Flow:
 1. **State Collection**: Frontend gathers `list`, `stock`, `diary`, and `baseline` from `DataContext`.
@@ -73,11 +76,16 @@ Refer to [AI_ENDPOINTS.md](file:///Users/alexanderliapustin/Desktop/Antigravity2
 
 ---
 
-## 5. Development Workflow
-1. **Components**: Keep components in `src/components`, paired with `<ComponentName>.css`.
-2. **Hooks**: Use custom hooks for complex logic (e.g., `useDiaryActions.ts`).
-3. **Data**: Never mutate state directly; always use functional updates `setList(prev => ...)` to ensure data integrity during atomic saves to Firestore.
-4. **Icons**: Use Emoji for primary icons (Apple style) or simple SVG for controls.
+## 5. Deployment Workflow & "Economy"
+To save resources and prevent broken production builds, we follow a strict pre-push process.
+
+### Mandatory Pre-Push Checklist:
+1.  **Local Verification**: Run `npm run verify` (Build + TypeCheck + Preview) locally.
+2.  **Environment Sync**: Ensure `.env` mirrors all keys in `.env.example`.
+3.  **Bundle Check**: Verify that `index.js` remains at a healthy size (warn if > 500KB).
+
+> [!IMPORTANT]
+> **Bypass Prohibition**: Pushing to the `main` branch before a successful local build is an architecture violation.
 
 ---
 *Created by Antigravity (Frontend Agent). Updated: April 2026.*
