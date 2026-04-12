@@ -588,16 +588,17 @@ input {
 
 .cancel-btn:active { background: rgba(0,0,0,0.06); }
 
-/* TMA Header Adaptation */
-.telegram-miniapp .glass-header {
-  height: calc(var(--sat) + 44px); /* Slightly taller for TMA context */
-  padding-top: calc(var(--sat) + 4px);
-  padding-bottom: 4px;
-}
-
 /* TMA Platform Adaptation */
 .telegram-miniapp {
+  --hdr-h: 44px; /* Ensure uniform header height calculation */
   background: var(--bg); /* Use solid color to prevent background flickering */
+}
+
+/* TMA Header Adaptation */
+.telegram-miniapp .glass-header {
+  height: calc(var(--sat) + var(--hdr-h)); /* Slightly taller for TMA context */
+  padding-top: calc(var(--sat) + 4px);
+  padding-bottom: 4px;
 }
 
 .telegram-miniapp body {

@@ -190,11 +190,10 @@
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
   transition: all 0.2s ease;
   z-index: 100;
-  transform: translateY(-8px);
 }
 
 .recording-stop-btn-large:active {
-  transform: translateY(-8px) scale(0.9);
+  transform: scale(0.9);
   background: #d70015;
 }
 
