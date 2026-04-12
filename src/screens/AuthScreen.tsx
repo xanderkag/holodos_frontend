@@ -4,6 +4,8 @@ import { APP_VERSION } from '../constants/version';
 import { useAuth } from '../context/AuthContext';
 import { mapAuthErrorToMessage } from '../utils/auth';
 import { TelegramLogin } from '../components/TelegramLogin';
+import { logAuthAudit } from '../utils/authLogger';
+import { isNativePlatform } from '../utils/firebase';
 import './AuthScreen.css';
 
 export const AuthScreen = () => {
@@ -15,6 +17,10 @@ export const AuthScreen = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleTelegramWidget = async (tgUser: any) => {
+    logAuthAudit({ 
+      provider: 'telegram', channel: 'telegram_widget', stage: 'attempt', 
+      message: 'Telegram widget button clicked/auth started' 
+    });
     setLoading(true);
     try {
       await loginWithTelegramWidget(tgUser);
@@ -45,6 +51,10 @@ export const AuthScreen = () => {
   };
 
   const handleGoogle = async () => {
+    logAuthAudit({ 
+      provider: 'google', channel: isNativePlatform ? 'android' : 'web', stage: 'attempt', 
+      message: 'Google login button clicked' 
+    });
     setError(null);
     setLoading(true);
     try {
@@ -58,6 +68,10 @@ export const AuthScreen = () => {
   };
 
   const handleYandex = () => {
+    logAuthAudit({ 
+      provider: 'yandex', channel: isNativePlatform ? 'android' : 'web', stage: 'redirect_start', 
+      message: 'Redirecting to backend for Yandex OAuth' 
+    });
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
     window.location.href = `${backendUrl}/auth/yandex`;
   };

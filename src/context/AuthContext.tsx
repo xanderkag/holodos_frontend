@@ -5,6 +5,7 @@ import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { App as CapApp } from '@capacitor/app';
 import { useTelegram } from '../hooks/useTelegram';
 import { mapAuthErrorToMessage } from '../utils/auth';
+import { logAuthAudit } from '../utils/authLogger';
 
 interface AuthContextType {
   user: any; // Using any to support both Firebase User and TG User
@@ -26,30 +27,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const mountedRef = useRef(true);
   const signingInRef = useRef(false); // prevents onAuthStateChanged null-flash during sign-in
   const { tg, user: tgUser, ready, expand, initData } = useTelegram(); // initData exposed v3.15.0
-
-  // Helper for remote logging of auth errors as requested by Backend team
-  const logAuthError = useCallback((error: any, contextStr: string) => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    console.error(`Auth Error [${contextStr}]:`, error);
-    
-    fetch(`${backendUrl}/api/logs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        level: 'error',
-        module: 'AuthContext',
-        context: contextStr,
-        message: error.message || String(error),
-        code: error.code || error.reason || 'UNKNOWN_AUTH_ERROR',
-        timestamp: Date.now(),
-        ua: navigator.userAgent
-      })
-    }).then(res => {
-      if (!res.ok) console.warn(`Auth: Remote log failed (HTTP ${res.status}) for: ${contextStr}`);
-    }).catch(() => {
-      console.warn(`Auth: Remote logging endpoint unavailable for: ${contextStr}`);
-    }); 
-  }, []);
 
   useEffect(() => {
     return () => { mountedRef.current = false; };
@@ -94,15 +71,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         is_primary_admin: (!!currentEmail && adminEmails.includes(currentEmail)) || tgUserData.username === 'xanderkage'
       });
 
+      logAuthAudit({ provider: 'telegram', channel: tgUserData?.hash ? 'telegram_widget' : 'telegram_miniapp', stage: 'success', message: 'Telegram authentication complete' });
       console.log("Auth: Telegram Login OK", result.user.uid);
     } catch (e: any) {
-      logAuthError(e, 'TelegramAuth');
+      logAuthAudit({ provider: 'telegram', channel: tgUserData?.hash ? 'telegram_widget' : 'telegram_miniapp', stage: 'failure', message: e.message || String(e), code: e.code });
       setAuthError(mapAuthErrorToMessage(e));
       throw e;
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [logAuthError, initData]);
+  }, [initData]);
 
 
   useEffect(() => {
@@ -117,7 +95,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentUrl = window.location.href;
       const currentReferrer = document.referrer;
       console.log(`Auth Trace [v3.14.1]: Initializing... URL: ${currentUrl}, Referrer: ${currentReferrer}`);
-      logAuthError({ url: currentUrl, ref: currentReferrer }, 'AuthInitTrace');
 
       try {
         // 1. Handle Yandex token (Priority)
@@ -133,15 +110,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (yandexError) {
           const msg = `Error from Yandex redirect: ${yandexError}`;
           setAuthError(mapAuthErrorToMessage({ message: 'yandex_error', yandex_error: yandexError }));
-          logAuthError({ message: msg, reason: yandexError }, 'YandexAuthRedirect');
+          logAuthAudit({ provider: 'yandex', channel: 'web', stage: 'failure', message: msg, code: yandexError });
         } else if (yandexToken) {
+          logAuthAudit({ provider: 'yandex', channel: 'web', stage: 'callback_received', message: 'Yandex token received via URL' });
           console.log("Auth: Processing Yandex success flow");
           signingInRef.current = true;
           try {
             const result = await signInWithCustomToken(auth, yandexToken);
+            logAuthAudit({ provider: 'yandex', channel: 'web', stage: 'success', message: 'Yandex auth successful' });
             setUser(result.user);
-          } catch (e) {
-            logAuthError(e, 'YandexTokenInit');
+          } catch (e: any) {
+            logAuthAudit({ provider: 'yandex', channel: 'web', stage: 'failure', message: e.message || String(e), code: e.code });
             setAuthError(mapAuthErrorToMessage(e));
           } finally {
             signingInRef.current = false;
@@ -157,23 +136,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const redirectResult = await getRedirectResult(auth);
             if (redirectResult) {
               console.log("Auth: Redirect result FOUND", redirectResult.user.uid);
-              logAuthError({ 
-                message: 'Google Redirect Successful', 
-                uid: redirectResult.user.uid,
-                url: window.location.href 
-              }, 'GoogleRedirectSuccess');
+              logAuthAudit({ provider: 'google', channel: 'web', stage: 'success', message: 'Google Redirect Successful' });
               setUser(redirectResult.user);
             } else {
               console.log("Auth: No Google redirect result found (Normal if manual entry or direct link)");
             }
           } catch (e: any) {
             console.error("Auth: Google redirect result error", e);
-            logAuthError({ 
-              message: e.message || String(e),
-              code: e.code,
-              fullError: JSON.stringify(e, Object.getOwnPropertyNames(e)),
-              url: window.location.href
-            }, 'GoogleRedirectResultError');
+            logAuthAudit({ provider: 'google', channel: 'web', stage: 'failure', message: e.message || String(e), code: e.code });
             setAuthError(mapAuthErrorToMessage(e));
           }
         } else {
@@ -231,8 +201,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Instead of anonymous, we use the same custom token flow as the widget
             try {
               await loginWithTelegramWidget(tgUser);
-            } catch (e) {
-              logAuthError(e, 'TMA_BackendAuth');
+            } catch (e: any) {
+              logAuthAudit({ provider: 'telegram', channel: 'telegram_miniapp', stage: 'failure', message: e.message || String(e), code: e.code });
             }
           }
         }
@@ -258,8 +228,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }, 8000);
 
-      } catch (err) {
-        logAuthError(err, 'GlobalInitSequence');
+      } catch (err: any) {
+        logAuthAudit({ stage: 'failure', message: `Global init error: ${err.message || String(err)}`, code: err.code });
         if (mountedRef.current) setLoading(false);
       }
     };
@@ -285,16 +255,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log('Auth: Processing Yandex token from deep link');
             signingInRef.current = true;
             try {
+              logAuthAudit({ provider: 'yandex', channel: 'android', stage: 'callback_received', message: 'Yandex token received via AppUrlOpen' });
               const result = await signInWithCustomToken(auth, yandexToken);
+              logAuthAudit({ provider: 'yandex', channel: 'android', stage: 'success', message: 'Yandex native auth successful' });
               if (mountedRef.current) setUser(result.user);
-            } catch (e) {
-              logAuthError(e, 'YandexDeepLinkToken');
+            } catch (e: any) {
+              logAuthAudit({ provider: 'yandex', channel: 'android', stage: 'failure', message: e.message || String(e), code: e.code });
               if (mountedRef.current) setAuthError(mapAuthErrorToMessage(e));
             } finally {
               signingInRef.current = false;
             }
           } else if (yandexError) {
             console.error('Auth: Yandex error from deep link:', yandexError);
+            logAuthAudit({ provider: 'yandex', channel: 'android', stage: 'failure', message: `Yandex deep link error: ${yandexError}` });
             if (mountedRef.current) {
               setAuthError(mapAuthErrorToMessage({ message: 'yandex_error', yandex_error: yandexError }));
             }
@@ -309,7 +282,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (unsubscribe) unsubscribe();
       if (appUrlListener) appUrlListener.remove();
     };
-  }, [tg, tgUser, ready, expand, loginWithTelegramWidget, logAuthError]);
+  }, [tg, tgUser, ready, expand, loginWithTelegramWidget]);
 
 
 
@@ -321,8 +294,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result?.user) {
         setUser(result.user);
       }
-    } catch (e) {
-      logAuthError(e, 'GooglePopupLogin');
+    } catch (e: any) {
+      logAuthAudit({ provider: 'google', channel: isNativePlatform ? 'android' : 'web', stage: 'failure', message: e.message || String(e), code: e.code });
       setAuthError(mapAuthErrorToMessage(e));
     } finally {
       signingInRef.current = false;

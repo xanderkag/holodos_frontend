@@ -45,6 +45,7 @@ import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 export const isNativePlatform = Capacitor.isNativePlatform();
+import { logAuthAudit } from './authLogger';
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
@@ -56,25 +57,39 @@ export const loginWithGoogle = async () => {
       // Uses native Google Sign-In SDK → returns idToken → Firebase credential
       // Bypasses Firebase authDomain/web-redirect entirely (no unauthorized-domain)
       console.log('Auth: Starting native Google Sign-In (Capacitor)');
+      logAuthAudit({ provider: 'google', channel: 'android', stage: 'attempt', message: 'Starting native Google Sign-In (Capacitor)' });
       const googleUser = await GoogleAuth.signIn();
       const credential = GoogleAuthProvider.credential(
         googleUser.authentication.idToken
       );
-      return signInWithCredential(auth, credential);
+      const res = await signInWithCredential(auth, credential);
+      logAuthAudit({ provider: 'google', channel: 'android', stage: 'success', message: 'Native Google Sign-In completed successfully' });
+      return res;
     } else {
       // ─── Web path (browser only) ──────────────────────────────────────────
       const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       console.log(`Auth: loginWithGoogle triggered. isMobileBrowser=${isMobileBrowser}, url=${window.location.href}`);
       if (isMobileBrowser) {
         console.log('Auth: Starting Google Login (REDIRECT)');
+        logAuthAudit({ provider: 'google', channel: 'web', stage: 'redirect_start', message: 'Starting web redirect flow' });
         return await signInWithRedirect(auth, googleProvider);
       } else {
         console.log('Auth: Starting Google Login (POPUP)');
-        return await signInWithPopup(auth, googleProvider);
+        logAuthAudit({ provider: 'google', channel: 'web', stage: 'redirect_start', message: 'Starting web popup flow' });
+        const res = await signInWithPopup(auth, googleProvider);
+        logAuthAudit({ provider: 'google', channel: 'web', stage: 'success', message: 'Web popup flow completed successfully' });
+        return res;
       }
     }
   } catch (error: any) {
     console.error('Auth Error Details:', error.code, error.message);
+    logAuthAudit({ 
+      provider: 'google', 
+      channel: isNativePlatform ? 'android' : 'web', 
+      stage: 'failure', 
+      message: error.message || String(error), 
+      code: error.code 
+    });
     if (error.code === 'auth/popup-blocked') {
       throw new Error('Браузер заблокировал всплывающее окно. Разрешите попапы для этого сайта и попробуйте снова.');
     }
