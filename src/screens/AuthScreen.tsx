@@ -65,7 +65,9 @@ export const AuthScreen = () => {
   if (authLoading && !user) {
     return (
       <div className="auth-screen loading-flex">
-        <div className="auth-logo pulse">🧊</div>
+        <div className="auth-logo pulse">
+          <img src="/logo.png" alt="Holodos AI" className="auth-logo-img" />
+        </div>
         <div className="cat-name">HOLODOS AI</div>
         <div className="auth-subtitle">Загрузка вселенной...</div>
       </div>
@@ -76,7 +78,9 @@ export const AuthScreen = () => {
     <div className="auth-screen">
       <div className="auth-card glass-panel animated-pop">
         <div className="auth-header">
-           <div className="auth-logo">🧊</div>
+           <div className="auth-logo">
+             <img src="/logo.png" alt="Holodos AI" className="auth-logo-img" />
+           </div>
            <h1 className="auth-title">HOLODOS AI</h1>
            <p className="auth-subtitle">Умный ассистент для ваших продуктов</p>
         </div>
