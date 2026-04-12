@@ -400,11 +400,6 @@ export default function App() {
         ]} 
         activeTab={currentTab}
         setActiveTab={handleMainTabChange}
-        smartInputState={smartInputState}
-        onChatTabSwipe={(direction) => {
-          setSmartInputState(direction === 'right' ? 'recording' : 'media');
-        }}
-        onChatTabGestureEnd={() => {}}
       />
 
       <div className="global-bottom-blur" />
