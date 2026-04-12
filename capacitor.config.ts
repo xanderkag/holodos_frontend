@@ -14,16 +14,9 @@ const config: CapacitorConfig = {
       serverClientId: '983609791949-041og7lpedat9olfnp3iptgpi7q18rqv.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
     },
-  },
-  /*
-  server: {
-    url: 'https://app.holodos.su',
-    cleartext: true
-  },
-  plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: "#121212",
+      backgroundColor: "#000000",
       showSpinner: false,
       androidScaleType: "CENTER_CROP",
       iosScaleType: "centerAspectFill",
@@ -32,10 +25,9 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: 'DARK',
-      backgroundColor: "#121212",
+      backgroundColor: "#000000",
     },
-  }
-  */
+  },
 };
 
 export default config;

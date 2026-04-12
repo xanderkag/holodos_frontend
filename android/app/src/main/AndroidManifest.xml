@@ -46,9 +46,7 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name="com.google.android.gms.health.HealthConnectClient$Action"
-            android:exported="true">
+        <activity android:name="com.google.android.gms.health.HealthConnectClient$Action" android:exported="true">
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
