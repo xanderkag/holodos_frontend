@@ -152,8 +152,8 @@ body {
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
-  /* Top padding = Header (32) + SubHeader (32) + Safe Area + micro-gap (2) */
-  padding-top: calc(var(--hdr-h) + var(--sat) + 32px + 2px);
+  /* Top padding = Header (32) + Safe Area + micro-gap (2) */
+  padding-top: calc(var(--hdr-h) + var(--sat) + 2px);
   padding-bottom: calc(var(--tab-h) + var(--sab) + 100px);
 }
 
