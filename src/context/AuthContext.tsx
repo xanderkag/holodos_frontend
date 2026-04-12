@@ -145,18 +145,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             root.setAttribute('data-theme', isDark ? 'dark' : 'light');
 
             if (p.bg_color) {
-              root.style.setProperty('--sf-glass-solid', p.bg_color);
-              root.style.setProperty('--sf', p.bg_color);
-              root.style.setProperty('--sf-glass', p.bg_color);
-              // Adaptive borders: dark in light theme, bright in dark theme
-              root.style.setProperty('--br-glass', isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)');
-              root.style.setProperty('--border', isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)');
+              const rootBg = isDark ? p.bg_color : '#f8f9ff'; // Clean light bg
+              root.style.setProperty('--bg', p.secondary_bg_color || rootBg);
+              
+              if (isDark) {
+                root.style.setProperty('--sf-glass-solid', p.bg_color);
+                root.style.setProperty('--sf', p.bg_color);
+                root.style.setProperty('--sf-glass', p.bg_color);
+                root.style.setProperty('--br-glass', 'rgba(255,255,255,0.08)');
+                root.style.setProperty('--border', 'rgba(255,255,255,0.06)');
+              } else {
+                // PURE LIGHT MODE: Whiter than white surfaces
+                root.style.setProperty('--sf-glass-solid', '#ffffff');
+                root.style.setProperty('--sf', '#ffffff');
+                root.style.setProperty('--sf-glass', 'rgba(255, 255, 255, 0.6)');
+                root.style.setProperty('--br-glass', 'rgba(0,0,0,0.05)');
+                root.style.setProperty('--border', 'rgba(0,0,0,0.03)');
+              }
             }
-            if (p.secondary_bg_color) root.style.setProperty('--bg', p.secondary_bg_color);
-            if (p.text_color) root.style.setProperty('--t1', p.text_color);
+            if (p.text_color) {
+              // Enforce high-contrast near-black for light theme text
+              const textColor = isDark ? p.text_color : '#1c1c1e';
+              root.style.setProperty('--t1', textColor);
+            }
             if (p.hint_color) {
-              root.style.setProperty('--t2', p.hint_color);
-              root.style.setProperty('--t3', p.hint_color);
+              const hintColor = isDark ? p.hint_color : '#8e8e93';
+              root.style.setProperty('--t2', hintColor);
+              root.style.setProperty('--t3', hintColor);
             }
             if (p.button_color) root.style.setProperty('--acc', p.button_color);
             if (p.header_color) tg.setHeaderColor(p.header_color);

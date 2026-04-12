@@ -4,13 +4,13 @@
   --bg: #f8f9ff;
   --bg-rgb: 248, 249, 255;
   --bg-gradient: linear-gradient(180deg, #f0f4ff 0%, #ffffff 100%);
-  --sf: #fff;
+  --sf: #ffffff;
   --sf-rgb: 255, 255, 255;
-  --sf-glass: rgba(255, 255, 255, 0.4);
-  --sf-glass-solid: rgba(255, 255, 255, 0.85);
-  --br: rgba(0, 0, 0, 0.08); /* Fixed: unified border for light theme */
-  --br2: rgba(0, 0, 0, 0.04);
-  --br-glass: rgba(0, 0, 0, 0.06);
+  --sf-glass: rgba(255, 255, 255, 0.6);
+  --sf-glass-solid: rgba(255, 255, 255, 0.98);
+  --br: rgba(0, 0, 0, 0.05); 
+  --br2: rgba(0, 0, 0, 0.02);
+  --br-glass: rgba(0, 0, 0, 0.04);
   --t1: #1c1c1e;
   --t2: #3a3a3c;
   --t3: #8e8e93;
@@ -22,10 +22,10 @@
   --red-glow: rgba(255, 59, 48, 0.2);
   --tab-h: 64px;
   --hdr-h: 32px; /* Ultra-Compact content height */
-  --sh-glass: rgba(0, 0, 0, 0.04);
-  --sh-panel: 0 10px 40px rgba(0, 0, 0, 0.04);
-  --sh-card: 0 4px 20px rgba(0, 0, 0, 0.06);
-  --sh-inset: inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  --sh-glass: rgba(0, 0, 0, 0.02);
+  --sh-panel: 0 10px 40px rgba(0, 0, 0, 0.03);
+  --sh-card: 0 4px 20px rgba(0, 0, 0, 0.04);
+  --sh-inset: inset 0 1px 1px rgba(255, 255, 255, 0.8);
 
   /* Visual Density Engine */
   --ui-p: 14px;
