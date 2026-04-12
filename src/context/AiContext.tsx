@@ -304,7 +304,13 @@ export function AiProvider({ children }: { children: ReactNode }) {
       );
       if (result) {
         result.source = 'photo';
-        incrementStat('image');
+        if (result.subscription) {
+          // Backend sent authoritative usage snapshot — use it, skip local increment
+          syncBackendSubscription(result.subscription);
+        } else {
+          // Fallback: backend didn't return subscription data yet, increment locally
+          incrementStat('image');
+        }
         await applyActions(result);
       }
     } catch (err: any) {
@@ -362,10 +368,14 @@ export function AiProvider({ children }: { children: ReactNode }) {
       logDiagnostic('CHAT: Success received', 'net');
       if (result) {
         result.source = 'text';
-        // If backend sends subscription snapshot on success, sync it immediately
-        if (result.subscription) syncBackendSubscription(result.subscription);
+        if (result.subscription) {
+          // Backend sent authoritative usage snapshot — use it, skip local increment
+          syncBackendSubscription(result.subscription);
+        } else {
+          // Fallback: backend didn't return subscription data yet, increment locally
+          incrementStat(isVoice ? 'voice' : 'chat');
+        }
       }
-      incrementStat(isVoice ? 'voice' : 'chat');
       await applyActions(result);
     } catch (err: any) {
       if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {

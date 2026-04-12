@@ -44,7 +44,8 @@ export default function App() {
     messages, setMessages,
     uiSettings, setUiSettings, diary, setDiary,
     stats,
-    resetAll, isDataLoaded, addSystemMessage, addLogEvent 
+    resetAll, isDataLoaded, addSystemMessage, addLogEvent,
+    syncBackendSubscription
   } = useData();
   const { 
     isAiLoading, analyzeImage, sendChatCommand, 
@@ -342,7 +343,11 @@ export default function App() {
         stock={stock}
         diary={diary}
         baseline={baseline}
-        onVoiceResponse={applyActions} 
+        onVoiceResponse={(result) => {
+          // Sync subscription snapshot from voice response before applying actions
+          if (result?.subscription) syncBackendSubscription(result.subscription);
+          applyActions(result);
+        }} 
         onImageSelect={analyzeImage}
         onLimitError={handleLimitError}
         smartInputState={smartInputState}
