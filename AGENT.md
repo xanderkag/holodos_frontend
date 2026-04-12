@@ -43,12 +43,19 @@ The interaction hub consists of the `SmartInput` and `TabBar` components.
 3. `recording`: Voice session active (Wave indicator).
 4. `media`: Image selection (Camera/Gallery) active.
 
-### Gesture System:
-- **TabBar Central Button**:
-    - Click 1: Open SmartInput (`active`).
-    - Click 2: Navigate to Chat (if not there) or Hide (if already in Chat).
-    - Swipe Left/Right: Immediate Mic/Camera activation.
-- **SmartInput Bar**: Parallax horizontal swipe to trigger Media/Voice without clicking.
+### Gesture System & "Sacred" Rules:
+- **TabBar Central Button (The "Add/Chat" Capsule)**:
+    - **Swipe-to-Action**: MUST support left/right swipes with physical drag (`dragX`).
+    - **Visual "Fill" Effect**: Upon swiping, the TabBar background MUST fill with color starting from the center:
+        - **Left Swipe (Camera)**: Fills with **Blue** (`#007aff`).
+        - **Right Swipe (Mic)**: Fills with **Green** (`#34c759`).
+    - **Instant Hints**: Hints (`📷`, `🎙️`) MUST appear **immediately** upon `onTouchMove` to guide the user.
+    - **Dynamic Focus**: All other tabs MUST hide (`quick-hidden`) during any swipe to clear the visual space.
+    - **Threshold Locking**: Actions trigger only upon reaching an 80px threshold (`dockedSide`).
+- **Recording Mode Mechanics**:
+    - **The Green Capsule**: When recording, the central button MUST be replaced by a wide pulsing **Green Capsule** (voice message imitation).
+    - **The Accessibility "X"**: Inside the green capsule, a large, centered **Stop Button** (Red Cross) MUST be rendered for fail-safe accessibility.
+- **SmartInput Bar**: Parallax horizontal swipe to trigger Media/Voice settings.
 
 ---
 
@@ -90,4 +97,10 @@ To save resources and prevent broken production builds, we follow a strict pre-p
 > **Bypass Prohibition**: Pushing to the `main` branch before a successful local build is an architecture violation.
 
 ---
-*Created by Antigravity (Frontend Agent). Updated: April 2026.*
+## 6. Forbidden Actions (The "Never-Ever" List)
+1. **Never remove TabBar swipes**: The gesture-based navigation is the core UX. Simplifying it to "buttons-only" is a regression.
+2. **Never change TabBar background colors**: Blue (Left/Camera) and Green (Right/Mic) transitions are mandatory.
+3. **Never hide the "Stop" button in recording**: It must always be centered and large within the green capsule.
+
+---
+*Created by Antigravity (Frontend Agent). Updated: April 2026 (v3.21.0).*
