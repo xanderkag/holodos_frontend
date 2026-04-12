@@ -5,6 +5,7 @@ import type { Item } from '../utils/data';
 import heic2any from 'heic2any';
 import { logDiagnostic, sendVoiceToN8N } from '../utils/ai';
 import { useAuth } from '../context/AuthContext';
+import { compressImage } from '../utils/image';
 import { useTelegram } from '../hooks/useTelegram';
 
 import './SmartInput.css';

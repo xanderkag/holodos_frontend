@@ -1,38 +1,25 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import './TabBar.css';
 
 interface TabBarProps {
   tabs: { id: string; label: string; icon: string; isMain?: boolean; hasBadge?: boolean }[];
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  onChatTabSwipe?: (direction: 'left' | 'right') => void;
-  smartInputState?: 'hidden' | 'active' | 'recording' | 'media';
+  isRecording?: boolean;
   onChatTabRepeat?: () => void;
-  onChatTabGestureEnd?: () => void;
 }
 
 export const TabBar: React.FC<TabBarProps> = ({
   tabs,
   activeTab,
   setActiveTab,
-  onChatTabSwipe,
-  smartInputState,
-  onChatTabRepeat,
-  onChatTabGestureEnd
+  isRecording = false,
+  onChatTabRepeat
 }) => {
   const touchStartXRef = useRef<number | null>(null);
-  const [dragX, setDragX] = useState<number | null>(null);
-  const [dockedSide, setDockedSide] = useState<'none' | 'left' | 'right'>('none');
   const suppressClickRef = useRef(false);
-  const isDraggingRef = useRef(false);
-  const isRecordingRef = useRef(false);
-  const CONFIRM_THRESHOLD = 80;
 
   return (
-    <nav
-      className="glass-tabbar animated-slide-up"
-      style={{
-        background: dockedSide === 'right'
           ? 'rgba(52, 199, 89, 0.85)'
           : dockedSide === 'left'
           ? 'rgba(0, 122, 255, 0.85)'

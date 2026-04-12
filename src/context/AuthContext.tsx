@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         displayName: fullName,
         photoURL: tgUserData.photo_url || null,
         // Mark as linked if it's one of the admin identities
-        is_primary_admin: adminEmails.includes(currentEmail) || tgUserData.username === 'xanderkage'
+        is_primary_admin: (!!currentEmail && adminEmails.includes(currentEmail)) || tgUserData.username === 'xanderkage'
       });
 
       console.log("Auth: Telegram Login OK", result.user.uid);
