@@ -87,7 +87,20 @@ export class ApiError extends Error {
 
 Вызывается в `AiContext.tsx`:
 1. При ошибке `403 limit_reached` → если `err.data.subscription` присутствует.
-2. При успешном ответе → если `result.subscription` присутствует.
+2. При успешном ответе → если `result.subscription` присутствует (image, text, voice flows).
+
+### Правило: нет двойного учёта (`incrementStat` — только fallback)
+`incrementStat('image' | 'voice' | 'chat')` вызывается **только** если backend **не вернул** `subscription` в ответе:
+
+```typescript
+if (result.subscription) {
+  syncBackendSubscription(result.subscription); // authoritative
+} else {
+  incrementStat('image'); // fallback only
+}
+```
+
+Это исключает двойной учёт: когда бэк прислал точные usage-цифры, локальный +1 не нужен.
 
 ### Тарифные лимиты (текущие):
 | Тариф | Фото в день | Голос в день |
