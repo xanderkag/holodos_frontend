@@ -77,7 +77,7 @@ export const SettingsScreen = ({
           </div>
           
           {/* In TMA: TG handle already shown under name — skip redundant section */}
-          {!user?.isTelegram && (
+          {!(window as any).Telegram?.WebApp?.initData && (
             <div className="s-tg-status">
               {user?.telegramHandle ? (
                 <div className="tg-linked">

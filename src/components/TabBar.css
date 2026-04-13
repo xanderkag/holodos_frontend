@@ -98,7 +98,8 @@
 .is-main-capsule {
   width: 64px;
   height: 64px;
-  background: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(135deg, var(--acc), #00aaff);
+  color: #fff;
   border-radius: 26px;
   display: flex;
   flex-direction: column;
@@ -106,20 +107,19 @@
   justify-content: center;
   transform: translateY(-12px);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 170, 255, 0.3);
   font-size: 28px;
   z-index: 10;
 }
 
 .tab.on .is-main-capsule {
-  background: linear-gradient(135deg, var(--acc), #00aaff);
-  color: #fff;
+  /* Same background to avoid flicker */
   height: 72px;
   width: 72px;
   border-radius: 28px;
   transform: translateY(-20px);
-  box-shadow: 0 10px 30px rgba(0, 122, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 122, 255, 0.4);
 }
 
 .is-main-capsule.docked-left {
