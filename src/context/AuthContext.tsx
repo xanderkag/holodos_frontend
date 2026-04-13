@@ -91,6 +91,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (initStarted) return;
       initStarted = true;
 
+      // Ensure /demo route activates Demo Mode instantly and bypasses Firebase
+      // Imported from demoMocks inline to avoid circular dependencies if any
+      const { isDemoMode, DEMO_USER } = await import('../utils/demoMocks');
+      
+      if (window.location.pathname === '/demo') {
+        localStorage.setItem('demo_mode', 'true');
+        // Clean URL to root but stay in demo mode
+        window.history.replaceState({}, '', '/');
+      } else if (window.location.pathname === '/exit-demo') {
+        localStorage.removeItem('demo_mode');
+        window.location.href = '/';
+        return;
+      }
+
+      if (isDemoMode()) {
+        console.log("Auth Trace [v3.15.x]: DEMO MODE ACTIVE, bypassing real authentication.");
+        setUser(DEMO_USER);
+        setLoading(false);
+        return;
+      }
+
       // v3.14.1: Enhanced Diagnostics for Google Auth Redirect (The "Fact-Finding" Mission)
       const currentUrl = window.location.href;
       const currentReferrer = document.referrer;
@@ -287,6 +308,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   const login = async () => {
+    // If in demo mode and user attempts to login manually, we should clear demo mode
+    const { isDemoMode } = await import('../utils/demoMocks');
+    if (isDemoMode()) {
+      localStorage.removeItem('demo_mode');
+      // Continue to real login, it will overwrite the guest session easily
+    }
+
     signingInRef.current = true;
     setAuthError(null);
     try {

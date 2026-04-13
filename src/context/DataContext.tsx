@@ -5,6 +5,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 import type { Item, Store, Recipe, Message, VoiceLog, UserData, UiSettings, DiaryEntry, LogEvent } from '../types';
 import { BDEMO, STORES, MY_RECIPES_DEMO, uid } from '../utils/data';
+import { DEMO_LIST, DEMO_MESSAGES, DEMO_DIARY } from '../utils/demoMocks';
 
 interface DataContextType {
   list: Item[];
@@ -122,6 +123,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     let isMounted = true;
     console.log("DataContext: Connecting for", user.email);
+
+    if (user.isDemo) {
+      console.log("DataContext: Initializing DEMO mock user");
+      setList(DEMO_LIST); listRef.current = DEMO_LIST;
+      setStock(BDEMO); stockRef.current = BDEMO;
+      setBaseline(BDEMO); baselineRef.current = BDEMO;
+      setStores(STORES); storesRef.current = STORES;
+      setMyRecipes(MY_RECIPES_DEMO); recipesRef.current = MY_RECIPES_DEMO;
+      setMessages(DEMO_MESSAGES); messagesRef.current = DEMO_MESSAGES;
+      setDiary(DEMO_DIARY); diaryRef.current = DEMO_DIARY;
+      
+      setIsSubscribed(true);
+      setSubscriptionStatus('active');
+      setSubscriptionType('pro');
+      
+      setIsDataLoaded(true);
+      return; // Do not fetch from backend, do not establish snapshot
+    }
 
     // 0. Instant Load from LocalStorage (Mastering responsiveness)
     const cached = localStorage.getItem('holodos_cache');
@@ -387,7 +406,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // Debounced Auto-save: Uses REF MIRRORS (listRef, stockRef...) to avoid stale closure bugs
   useEffect(() => {
-    if (user && isDataLoaded) {
+    if (user && !user.isDemo && isDataLoaded) {
       const timer = setTimeout(() => {
         lastSaveTime.current = Date.now();
         saveUserData(user.uid, { 
@@ -417,7 +436,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [list, stock, baseline, stores, myRecipes, messages, voiceLogs, uiSettings, diary, user, isDataLoaded]);
 
   const saveAll = async () => {
-    if (!user) return;
+    if (!user || user.isDemo) return;
     lastSaveTime.current = Date.now();
     await saveUserData(user.uid, { 
       list: listRef.current, 

@@ -17,6 +17,9 @@ export class ApiError extends Error {
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 async function getIdToken(): Promise<string> {
+  const { isDemoMode } = await import('./demoMocks');
+  if (isDemoMode()) return 'demo_token';
+
   const user = auth.currentUser;
   if (!user) throw new Error('Пользователь не авторизован');
   return user.getIdToken();
@@ -24,6 +27,9 @@ async function getIdToken(): Promise<string> {
 
 // JSON запрос к backend
 export async function apiPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
+  const { isDemoMode, mockApiPost } = await import('./demoMocks');
+  if (isDemoMode()) return mockApiPost<T>(path, body);
+
   const token = await getIdToken();
   const response = await fetch(`${BACKEND_URL}${path}`, {
     method: 'POST',
@@ -44,6 +50,9 @@ export async function apiPost<T>(path: string, body: Record<string, unknown>): P
 
 // PATCH запрос к backend
 export async function apiPatch<T>(path: string, body: Record<string, unknown>): Promise<T> {
+  const { isDemoMode, mockApiPost } = await import('./demoMocks');
+  if (isDemoMode()) return mockApiPost<T>(path, body);
+
   const token = await getIdToken();
   const response = await fetch(`${BACKEND_URL}${path}`, {
     method: 'PATCH',
@@ -64,6 +73,12 @@ export async function apiPatch<T>(path: string, body: Record<string, unknown>): 
 
 // Multipart запрос к backend (для файлов)
 export async function apiPostFormData<T>(path: string, formData: FormData): Promise<T> {
+  const { isDemoMode, mockApiPost } = await import('./demoMocks');
+  if (isDemoMode()) {
+    // We convert formData to a record for the mock or pass an empty object
+    return mockApiPost<T>(path, {}); 
+  }
+
   const token = await getIdToken();
   const response = await fetch(`${BACKEND_URL}${path}`, {
     method: 'POST',

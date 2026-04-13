@@ -246,6 +246,31 @@ export default function App() {
 
   return (
     <div className="app-container">
+      {user?.isDemo && (
+        <div 
+          className="demo-badge"
+          style={{
+            position: 'fixed',
+            top: 'env(safe-area-inset-top, 0px)',
+            right: isStaging ? '120px' : '16px',
+            background: '#ff2d55',
+            color: '#fff',
+            fontSize: '10px',
+            fontWeight: 800,
+            padding: '2px 8px',
+            borderRadius: '0 0 10px 10px',
+            zIndex: 9999,
+            pointerEvents: 'auto', // Important so they can click it
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+            cursor: 'pointer'
+          }}
+          onClick={() => window.location.href = '/exit-demo'}
+        >
+          DEMO (ВЫЙТИ)
+        </div>
+      )}
       {isStaging && (
         <div 
           className="staging-badge"

@@ -375,6 +375,38 @@
   letter-spacing: 1px;
 }
 
+.auth-demo-row {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-demo-btn {
+  background: transparent;
+  border: 1.5px dashed var(--br-glass, rgba(0,0,0,0.12));
+  color: var(--t2);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  letter-spacing: 0.2px;
+  opacity: 0.75;
+}
+
+.auth-demo-btn:hover {
+  opacity: 1;
+  border-color: var(--acc);
+  color: var(--acc);
+  background: rgba(0, 122, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+.auth-demo-btn:active {
+  transform: scale(0.97);
+}
+
 .auth-footer {
   margin-top: 40px;
   text-align: center;

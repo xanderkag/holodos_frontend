@@ -171,6 +171,18 @@ export const AuthScreen = () => {
               </svg>
             </button>
           </div>
+
+          <div className="auth-demo-row">
+            <button
+              className="auth-demo-btn"
+              onClick={() => {
+                localStorage.setItem('demo_mode', 'true');
+                window.location.reload();
+              }}
+            >
+              👀 Попробовать без регистрации
+            </button>
+          </div>
         </div>
       </div>
 

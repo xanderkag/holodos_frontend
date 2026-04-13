@@ -1,6 +1,6 @@
-const { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-const fs = require("fs");
-const path = require("path");
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import fs from "fs";
+import path from "path";
 
 const REGION = process.env.VITE_YANDEX_REGION || "ru-central1";
 const BUCKET_NAME = process.env.VITE_YANDEX_BUCKET_NAME || "holodos-app-ru";
@@ -58,7 +58,7 @@ async function uploadFolder(folderPath, baseFolder = "") {
 }
 
 async function run() {
-  const distPath = path.join(__dirname, "../dist");
+  const distPath = path.join(process.cwd(), "dist");
   if (!fs.existsSync(distPath)) {
     console.error("❌ Ошибка: папка dist не найдена. Сначала запусти 'npm run build'!");
     process.exit(1);
