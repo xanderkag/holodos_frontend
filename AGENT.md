@@ -58,6 +58,15 @@ export class ApiError extends Error {
 - `error.code === 'limit_reached'`
 - `error.data.subscription` содержит снимок подписки (план, статус, лимиты, использование)
 
+### HTTP Headers (v3.21.1)
+
+> [!CAUTION]
+> **Использование заголовка `Authorization` запрещено при запросах к нашему бэкенду.** Платформа Yandex Serverless перехватывает его и обрубает запрос до попадания в наш код (генерируя 403).
+
+Для всех авторизованных запросов к API (`apiPost`, `apiPatch`, `apiPostFormData`) используется кастомный заголовок:
+- **Header**: `X-Firebase-Authorization`
+- **Format**: `Bearer <firebase_id_token>`
+
 ### Правило обработки `limit_reached` в `AiContext.tsx`:
 - **НЕ** считать 403 limit_reached падением AI — это валидный продуктовый ответ.
 - **В chat flow** → добавить `system message` с `err.message` прямо в ленту чата.

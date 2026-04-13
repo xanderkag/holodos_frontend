@@ -64,6 +64,10 @@ Telegram (TMA)      → initData → /auth/telegram → signInWithCustomToken
 - Обязательная привязка к `provider` (`google` | `yandex` | `telegram`) и `channel` (`web` | `android` | `telegram_widget` | `telegram_miniapp`).
 - Любые операции записи токенов в лог строго запрещены (только флаг `hasToken: true`).
 
+### HTTP Headers & Backend Proxy
+> [!CAUTION]
+> Для всех запросов к бэкенду (`/ai/*`, `/diary/*`) **обязательно** использование заголовка `X-Firebase-Authorization` вместо стандартного `Authorization`. Это необходимо для обхода фильтрации на уровне Yandex Cloud Serverless.
+
 ### Google Sign-In на Android
 - Использует `@codetrix-studio/capacitor-google-auth@3.3.3`
 - `isNativePlatform` (из `@capacitor/core`) — определяет платформу

@@ -29,7 +29,7 @@ export async function apiPost<T>(path: string, body: Record<string, unknown>): P
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'X-Firebase-Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(body),
   });
@@ -49,7 +49,7 @@ export async function apiPatch<T>(path: string, body: Record<string, unknown>): 
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'X-Firebase-Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(body),
   });
@@ -68,7 +68,7 @@ export async function apiPostFormData<T>(path: string, formData: FormData): Prom
   const response = await fetch(`${BACKEND_URL}${path}`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      'X-Firebase-Authorization': `Bearer ${token}`,
       // Content-Type НЕ выставляем — браузер сам добавит boundary для multipart
     },
     body: formData,
