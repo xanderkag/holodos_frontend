@@ -1,6 +1,6 @@
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
-import { apiPost } from "./api";
+import { apiPost, apiPostFormData } from "./api";
 
 // Оставляем для обратной совместимости — используется в AiContext для логов
 export const N8N_TEXT_WEBHOOK_URL = '[via backend]';
@@ -52,26 +52,25 @@ export async function analyzeImage(
         // Use JSON payload directly to bypass Yandex Gateway multipart/form-data corruption
         const base64Data = base64Image.includes('base64,') ? base64Image : `data:image/jpeg;base64,${base64Image}`;
 
-        const payload = {
-            imageBase64: base64Data,
-            type: 'image',
-            tab,
-            userEmail,
-            userId,
-            appUrl: window.location.origin,
-            currentList,
-            currentStock,
-            currentDiary,
-            currentBaseline,
-            list: currentList,
-            stock: currentStock,
-            priority
-        };
+        const formData = new FormData();
+        formData.append("imageBase64", base64Data);
+        formData.append("type", "image");
+        formData.append("tab", tab);
+        formData.append("userEmail", userEmail);
+        formData.append("userId", userId);
+        formData.append("appUrl", window.location.origin);
+        formData.append("currentList", JSON.stringify(currentList));
+        formData.append("currentStock", JSON.stringify(currentStock));
+        formData.append("currentDiary", JSON.stringify(currentDiary));
+        formData.append("currentBaseline", JSON.stringify(currentBaseline));
+        formData.append("list", JSON.stringify(currentList));
+        formData.append("stock", JSON.stringify(currentStock));
+        formData.append("priority", priority);
 
-        logDiagnostic('Vision: POST /ai/image (JSON)...', 'net');
+        logDiagnostic('Vision: POST /ai/image (FormData Base64)...', 'net');
 
         try {
-          const result = await apiPost<any>('/ai/image', payload);
+          const result = await apiPostFormData<any>('/ai/image', formData);
           logDiagnostic('Vision: Success received', 'net');
 
           let itemsCount = 0;
@@ -118,23 +117,22 @@ export async function sendVoiceToN8N(
         reader.readAsDataURL(audioBlob);
     });
 
-    const payload = {
-        audioBase64: base64Audio,
-        type: 'voice',
-        userEmail,
-        userId,
-        appUrl: window.location.origin,
-        currentList,
-        currentStock,
-        currentDiary,
-        currentBaseline,
-        list: currentList,
-        stock: currentStock,
-        priority
-    };
+    const formData = new FormData();
+    formData.append("audioBase64", base64Audio);
+    formData.append("type", "voice");
+    formData.append("userEmail", userEmail);
+    formData.append("userId", userId);
+    formData.append("appUrl", window.location.origin);
+    formData.append("currentList", JSON.stringify(currentList));
+    formData.append("currentStock", JSON.stringify(currentStock));
+    formData.append("currentDiary", JSON.stringify(currentDiary));
+    formData.append("currentBaseline", JSON.stringify(currentBaseline));
+    formData.append("list", JSON.stringify(currentList));
+    formData.append("stock", JSON.stringify(currentStock));
+    formData.append("priority", priority);
 
     try {
-        const json = await apiPost<any>('/ai/voice', payload);
+        const json = await apiPostFormData<any>('/ai/voice', formData);
 
         logDiagnostic(`Voice: Success received. Actions: ${json.actions?.length || 0}`, 'net');
         console.log('Voice Response Body:', JSON.stringify(json));
