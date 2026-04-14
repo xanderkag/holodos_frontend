@@ -1,6 +1,6 @@
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
-import { apiPostFormData } from "./api";
+import { apiPostFormData, apiPost } from "./api";
 
 // Оставляем для обратной совместимости — используется в AiContext для логов
 export const N8N_TEXT_WEBHOOK_URL = '[via backend]';
@@ -67,27 +67,29 @@ export async function analyzeImage(
     logDiagnostic(`Vision: Preparing payload (~${imgSizeKB} KB)...`, 'info');
 
     try {
-        const blob = await base64ToBlob(base64Image, 'image/jpeg');
+        // Use JSON payload directly to bypass Yandex Gateway multipart/form-data corruption
+        const base64Data = base64Image.includes('base64,') ? base64Image : `data:image/jpeg;base64,${base64Image}`;
 
-        const formData = new FormData();
-        formData.append('data', blob, 'image.jpg');
-        formData.append('type', 'image');
-        formData.append('tab', tab);
-        formData.append('userEmail', userEmail);
-        formData.append('userId', userId);
-        formData.append('appUrl', window.location.origin);
-        formData.append('currentList', JSON.stringify(currentList));
-        formData.append('currentStock', JSON.stringify(currentStock));
-        formData.append('currentDiary', JSON.stringify(currentDiary));
-        formData.append('currentBaseline', JSON.stringify(currentBaseline));
-        formData.append('list', JSON.stringify(currentList));
-        formData.append('stock', JSON.stringify(currentStock));
-        formData.append('priority', priority);
+        const payload = {
+            imageBase64: base64Data,
+            type: 'image',
+            tab,
+            userEmail,
+            userId,
+            appUrl: window.location.origin,
+            currentList,
+            currentStock,
+            currentDiary,
+            currentBaseline,
+            list: currentList,
+            stock: currentStock,
+            priority
+        };
 
-        logDiagnostic('Vision: POST /ai/image...', 'net');
+        logDiagnostic('Vision: POST /ai/image (JSON)...', 'net');
 
         try {
-          const result = await apiPostFormData<any>('/ai/image', formData);
+          const result = await apiPost<any>('/ai/image', payload);
           logDiagnostic('Vision: Success received', 'net');
 
           let itemsCount = 0;
@@ -126,22 +128,31 @@ export async function sendVoiceToN8N(
 ): Promise<any> {
     logDiagnostic(`Voice: Preparing upload (${Math.round(audioBlob.size / 1024)} KB)...`, 'net');
 
-    const fd = new FormData();
-    fd.append('data', audioBlob, 'voice.webm');
-    fd.append('type', 'voice');
-    fd.append('userEmail', userEmail);
-    fd.append('userId', userId);
-    fd.append('appUrl', window.location.origin);
-    fd.append('currentList', JSON.stringify(currentList));
-    fd.append('currentStock', JSON.stringify(currentStock));
-    fd.append('currentDiary', JSON.stringify(currentDiary));
-    fd.append('currentBaseline', JSON.stringify(currentBaseline));
-    fd.append('list', JSON.stringify(currentList));
-    fd.append('stock', JSON.stringify(currentStock));
-    fd.append('priority', priority);
+    // Convert Blob to Base64 to bypass Yandex API Gateway multipart corruption
+    const base64Audio = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(audioBlob);
+    });
+
+    const payload = {
+        audioBase64: base64Audio,
+        type: 'voice',
+        userEmail,
+        userId,
+        appUrl: window.location.origin,
+        currentList,
+        currentStock,
+        currentDiary,
+        currentBaseline,
+        list: currentList,
+        stock: currentStock,
+        priority
+    };
 
     try {
-        const json = await apiPostFormData<any>('/ai/voice', fd);
+        const json = await apiPost<any>('/ai/voice', payload);
 
         logDiagnostic(`Voice: Success received. Actions: ${json.actions?.length || 0}`, 'net');
         console.log('Voice Response Body:', JSON.stringify(json));
