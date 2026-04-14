@@ -307,6 +307,7 @@ if (result.subscription) {
 6. **Limit Source of Truth**: ЗАПРЕЩАЕТСЯ считать локальный `checkUsage` / `stats` финальным арбитром доступа к AI. Только backend.
 7. **Generic AI Error on 403**: ЗАПРЕЩАЕТСЯ показывать "❌ Ошибка ИИ" при `limit_reached`. Это нормальный продуктовый ответ.
 8. **Native Auth Redirect**: ЗАПРЕЩАЕТСЯ использовать `signInWithRedirect` или `getRedirectResult` на native (Capacitor) платформе. Проверять всегда через `isNativePlatform`.
+9. **Commit Versioning (Agent Rule)**: ПРИ КАЖДОМ КОММИТЕ (и push) агент ОБЯЗАН указывать текущую версию программы (из `package.json`) в тексте коммита (например: `fix(ai) [v3.21.2]: revert to binary`). Это нужно для наглядности билдов в Vercel.
 
 ---
 
