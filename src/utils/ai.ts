@@ -34,6 +34,25 @@ async function logAssistantRequest(userEmail: string, productsCount: number, mod
 }
 
 
+async function base64ToBlob(base64: any, mimeType: string): Promise<Blob> {
+  try {
+    if (!base64 || typeof base64 !== 'string') {
+        throw new Error('Данные изображения отсутствуют или повреждены');
+    }
+    const base64Data = base64.split(',')[1] || base64;
+    const byteString = atob(base64Data);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeType });
+  } catch (err: any) {
+    logDiagnostic(`n8n ERROR (Blob): ${err.message}`, 'error');
+    throw new Error('Не удалось подготовить файл для отправки.');
+  }
+}
+
 export async function analyzeImage(
     base64Image: any,
     userEmail: string,
@@ -49,11 +68,11 @@ export async function analyzeImage(
     logDiagnostic(`Vision: Preparing payload (~${imgSizeKB} KB)...`, 'info');
 
     try {
-        // Use JSON payload directly to bypass Yandex Gateway multipart/form-data corruption
-        const base64Data = base64Image.includes('base64,') ? base64Image : `data:image/jpeg;base64,${base64Image}`;
+        // Convert base64 string back to binary Blob to satisfy the backend
+        const blob = await base64ToBlob(base64Image, 'image/jpeg');
 
         const formData = new FormData();
-        formData.append("imageBase64", base64Data);
+        formData.append("data", blob, "image.jpg");
         formData.append("type", "image");
         formData.append("tab", tab);
         formData.append("userEmail", userEmail);
@@ -67,7 +86,7 @@ export async function analyzeImage(
         formData.append("stock", JSON.stringify(currentStock));
         formData.append("priority", priority);
 
-        logDiagnostic('Vision: POST /ai/image (FormData Base64)...', 'net');
+        logDiagnostic('Vision: POST /ai/image (FormData Binary)...', 'net');
 
         try {
           const result = await apiPostFormData<any>('/ai/image', formData);
@@ -109,16 +128,8 @@ export async function sendVoiceToN8N(
 ): Promise<any> {
     logDiagnostic(`Voice: Preparing upload (${Math.round(audioBlob.size / 1024)} KB)...`, 'net');
 
-    // Convert Blob to Base64 to bypass Yandex API Gateway multipart corruption
-    const base64Audio = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(audioBlob);
-    });
-
     const formData = new FormData();
-    formData.append("audioBase64", base64Audio);
+    formData.append("data", audioBlob, "voice.webm");
     formData.append("type", "voice");
     formData.append("userEmail", userEmail);
     formData.append("userId", userId);
