@@ -1,6 +1,6 @@
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
-import { apiPost, apiPostFormData } from "./api";
+import { apiPostFormData } from "./api";
 
 // Оставляем для обратной совместимости — используется в AiContext для логов
 export const N8N_TEXT_WEBHOOK_URL = '[via backend]';
