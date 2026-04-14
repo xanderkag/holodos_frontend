@@ -7,6 +7,7 @@ import { logDiagnostic, sendVoiceToN8N } from '../utils/ai';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/image';
 import { useTelegram } from '../hooks/useTelegram';
+import { logAiAudit } from '../utils/aiLogger';
 
 import './SmartInput.css';
 
@@ -237,7 +238,13 @@ export const SmartInput: React.FC<SmartInputProps> = ({
           triggerHaptic([12, 40, 12]);
           showToast('✨ Готово!');
         } catch (err: any) {
-          if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
+          if (err?.code === 'timeout' || err?.message === 'Failed to fetch') {
+            showToast('⏳ Проблема со связью. Сервер не ответил, попробуйте еще раз');
+            logAiAudit({ message: 'Network error or timeout during voice recording', status: 'timeout', code: err?.code || 'network_error', action: 'sendVoiceToN8N' });
+          } else if (err?.status === 413 || err?.code === 'payload_too_large') {
+            showToast('⚠️ Аудио слишком большое. Попробуйте записать короче');
+            logAiAudit({ message: 'Payload too large', status: '413', action: 'sendVoiceToN8N' });
+          } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
             if (onLimitError) onLimitError(err.message || 'Лимит голосовых исчерпан');
             else showToast(err.message || 'Лимит голосовых исчерпан');
           } else {

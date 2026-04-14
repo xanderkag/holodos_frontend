@@ -4,6 +4,7 @@ import { useData } from './DataContext';
 import { useAuth } from './AuthContext';
 import { analyzeImage as apiAnalyzeImage } from '../utils/ai';
 import { apiPost } from '../utils/api';
+import { logAiAudit } from '../utils/aiLogger';
 import { showToast } from '../components/Toast';
 import { uid, mergeItems, classify, norm } from '../utils/data';
 import { logDiagnostic } from '../utils/ai';
@@ -183,6 +184,13 @@ export function AiProvider({ children }: { children: ReactNode }) {
     if (!res) return;
     
     const actions = res.actions || [];
+    const hasValidActions = Array.isArray(actions) && actions.length > 0;
+    if (!hasValidActions && !res.feedback) {
+      logDiagnostic('CHAT: Empty response from backend, no feedback or actions. Ignored.', 'error');
+      showToast("❌ Сервер вернул пустой ответ");
+      return;
+    }
+    
     const generatedMsgId = uid();
     
     // BULK PROTECT: Force confirmation for sensitive or large operations
@@ -314,7 +322,14 @@ export function AiProvider({ children }: { children: ReactNode }) {
         await applyActions(result);
       }
     } catch (err: any) {
-      if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
+      if (err?.code === 'timeout' || err?.message === 'Failed to fetch') {
+        showToast('⏳ Проблема со связью. Сервер не ответил, попробуйте еще раз');
+        addLogEvent('⚠️ Фото не отправлено из-за обрыва связи', 'ai');
+        logAiAudit({ message: 'Network error or timeout during image analysis', status: 'timeout', code: err?.code || 'network_error', action: 'analyzeImage' });
+      } else if (err?.status === 413 || err?.code === 'payload_too_large') {
+        showToast('⚠️ Файл слишком большой. Попробуйте сжать или обрезать фото');
+        logAiAudit({ message: 'Payload too large', status: '413', action: 'analyzeImage' });
+      } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
         // Sync backend subscription snapshot into local state
         if (err.data?.subscription) syncBackendSubscription(err.data.subscription);
         showToast(err.message || "Лимит фото исчерпан");
@@ -378,7 +393,15 @@ export function AiProvider({ children }: { children: ReactNode }) {
       }
       await applyActions(result);
     } catch (err: any) {
-      if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
+      if (err?.code === 'timeout' || err?.message === 'Failed to fetch') {
+        showToast('⏳ Проблема со связью. Сервер не ответил, попробуйте еще раз');
+        setMessages(prev => [...prev, { id: Date.now().toString(), role: 'system', content: "Сообщение не отправлено из-за обрыва связи", timestamp: Date.now() }]);
+        addLogEvent('⚠️ Текст не отправлен из-за обрыва связи', 'ai');
+        logAiAudit({ message: 'Network error or timeout during text command', status: 'timeout', code: err?.code || 'network_error', action: 'sendChatCommand' });
+      } else if (err?.status === 413 || err?.code === 'payload_too_large') {
+        showToast('⚠️ Текст слишком большой');
+        logAiAudit({ message: 'Payload too large', status: '413', action: 'sendChatCommand' });
+      } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
         // Sync backend subscription snapshot into local state
         if (err.data?.subscription) syncBackendSubscription(err.data.subscription);
         setMessages(prev => [...prev, { 

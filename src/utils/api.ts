@@ -31,21 +31,31 @@ export async function apiPost<T>(path: string, body: Record<string, unknown>): P
   if (isDemoMode()) return mockApiPost<T>(path, body);
 
   const token = await getIdToken();
-  const response = await fetch(`${BACKEND_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Firebase-Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    const response = await fetch(`${BACKEND_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Firebase-Authorization': `Bearer ${token}`,
+      },
+      signal: AbortSignal.timeout(60000),
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ message: response.statusText }));
-    throw new ApiError(err.message || `Ошибка сервера ${response.status}`, response.status, err.code, err);
+    if (!response.ok) {
+      if (response.status === 413) throw new ApiError('Файл слишком большой', 413, 'payload_too_large');
+      const err = await response.json().catch(() => ({ message: response.statusText }));
+      throw new ApiError(err.message || `Ошибка сервера ${response.status}`, response.status, err.code, err);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    if (error.name === 'TimeoutError') {
+      throw new ApiError('Превышено время ожидания ответа от сервера', 408, 'timeout');
+    }
+    if (error.name === 'ApiError') throw error;
+    throw error;
   }
-
-  return response.json();
 }
 
 // PATCH запрос к backend
@@ -54,21 +64,31 @@ export async function apiPatch<T>(path: string, body: Record<string, unknown>): 
   if (isDemoMode()) return mockApiPost<T>(path, body);
 
   const token = await getIdToken();
-  const response = await fetch(`${BACKEND_URL}${path}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Firebase-Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    const response = await fetch(`${BACKEND_URL}${path}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Firebase-Authorization': `Bearer ${token}`,
+      },
+      signal: AbortSignal.timeout(60000),
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ message: response.statusText }));
-    throw new ApiError(err.message || `Ошибка сервера ${response.status}`, response.status, err.code, err);
+    if (!response.ok) {
+      if (response.status === 413) throw new ApiError('Файл слишком большой', 413, 'payload_too_large');
+      const err = await response.json().catch(() => ({ message: response.statusText }));
+      throw new ApiError(err.message || `Ошибка сервера ${response.status}`, response.status, err.code, err);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    if (error.name === 'TimeoutError') {
+      throw new ApiError('Превышено время ожидания ответа от сервера', 408, 'timeout');
+    }
+    if (error.name === 'ApiError') throw error;
+    throw error;
   }
-
-  return response.json();
 }
 
 // Multipart запрос к backend (для файлов)
@@ -80,19 +100,29 @@ export async function apiPostFormData<T>(path: string, formData: FormData): Prom
   }
 
   const token = await getIdToken();
-  const response = await fetch(`${BACKEND_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'X-Firebase-Authorization': `Bearer ${token}`,
-      // Content-Type НЕ выставляем — браузер сам добавит boundary для multipart
-    },
-    body: formData,
-  });
+  try {
+    const response = await fetch(`${BACKEND_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        'X-Firebase-Authorization': `Bearer ${token}`,
+        // Content-Type НЕ выставляем — браузер сам добавит boundary для multipart
+      },
+      signal: AbortSignal.timeout(60000),
+      body: formData,
+    });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ message: response.statusText }));
-    throw new ApiError(err.message || `Ошибка сервера ${response.status}`, response.status, err.code, err);
+    if (!response.ok) {
+      if (response.status === 413) throw new ApiError('Файл слишком большой', 413, 'payload_too_large');
+      const err = await response.json().catch(() => ({ message: response.statusText }));
+      throw new ApiError(err.message || `Ошибка сервера ${response.status}`, response.status, err.code, err);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    if (error.name === 'TimeoutError') {
+      throw new ApiError('Превышено время ожидания ответа от сервера', 408, 'timeout');
+    }
+    if (error.name === 'ApiError') throw error;
+    throw error;
   }
-
-  return response.json();
 }
