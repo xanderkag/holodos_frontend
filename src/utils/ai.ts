@@ -1,6 +1,6 @@
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
-import { apiPostFormData, apiPost } from "./api";
+import { apiPost } from "./api";
 
 // Оставляем для обратной совместимости — используется в AiContext для логов
 export const N8N_TEXT_WEBHOOK_URL = '[via backend]';
@@ -33,24 +33,6 @@ async function logAssistantRequest(userEmail: string, productsCount: number, mod
   }
 }
 
-async function base64ToBlob(base64: any, mimeType: string): Promise<Blob> {
-  try {
-    if (!base64 || typeof base64 !== 'string') {
-        throw new Error('Данные изображения отсутствуют или повреждены');
-    }
-    const base64Data = base64.split(',')[1] || base64;
-    const byteString = atob(base64Data);
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([ab], { type: mimeType });
-  } catch (err: any) {
-    logDiagnostic(`n8n ERROR (Blob): ${err.message}`, 'error');
-    throw new Error('Не удалось подготовить файл для отправки.');
-  }
-}
 
 export async function analyzeImage(
     base64Image: any,
