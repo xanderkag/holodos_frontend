@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/image';
 import { useTelegram } from '../hooks/useTelegram';
 import { logAiAudit } from '../utils/aiLogger';
+import { useData } from '../context/DataContext';
 
 import './SmartInput.css';
 
@@ -36,6 +37,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
   onLimitError,
 }) => {
   const { user } = useAuth();
+  const { addSystemMessage } = useData();
   const { disableVerticalSwipes, enableVerticalSwipes } = useTelegram();
 
 
@@ -176,7 +178,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
         // IMMEDIATE SEND - No preview step
         onImageSelect(compressed);
         triggerHaptic([15, 40, 15]);
-        showToast("✨ Фото отправлено");
         onStateChange('active');
       } catch (err: any) {
         logDiagnostic(`n8n ERROR: ${err.message}`, 'error');
@@ -225,6 +226,9 @@ export const SmartInput: React.FC<SmartInputProps> = ({
           const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
 
           // IMMEDIATE SEND
+          addSystemMessage('🎙️ Отправлено аудио. Расшифровываю...', 'system');
+          showToast('🎙️ Расшифровываю голос...');
+
           const result = await sendVoiceToN8N(
             audioBlob, user?.email || 'unknown', user?.uid || 'unknown',
             shoppingList, stock, diary, baseline
@@ -236,13 +240,14 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
           if (onVoiceResponse) onVoiceResponse(result);
           triggerHaptic([12, 40, 12]);
-          showToast('✨ Готово!');
         } catch (err: any) {
           if (err?.code === 'timeout' || err?.message === 'Failed to fetch') {
             showToast('⏳ Проблема со связью. Сервер не ответил, попробуйте еще раз');
+            addSystemMessage('⚠️ Голосовое сообщение не отправлено из-за обрыва связи', 'system');
             logAiAudit({ message: 'Network error or timeout during voice recording', status: 'timeout', code: err?.code || 'network_error', action: 'sendVoiceToN8N' });
           } else if (err?.status === 413 || err?.code === 'payload_too_large') {
             showToast('⚠️ Аудио слишком большое. Попробуйте записать короче');
+            addSystemMessage('⚠️ Файл слишком большой для отправки', 'system');
             logAiAudit({ message: 'Payload too large', status: '413', action: 'sendVoiceToN8N' });
           } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
             if (onLimitError) onLimitError(err.message || 'Лимит голосовых исчерпан');

@@ -29,7 +29,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
   const { 
     list, setList, stock, setStock, baseline, setBaseline, 
     diary, setDiary, messages, setMessages, incrementStat,
-    addLogEvent, saveAll,
+    addLogEvent, saveAll, addSystemMessage,
     stats, isSubscribed, subscriptionType,
     syncBackendSubscription
   } = useData();
@@ -185,10 +185,16 @@ export function AiProvider({ children }: { children: ReactNode }) {
     
     const actions = res.actions || [];
     const hasValidActions = Array.isArray(actions) && actions.length > 0;
-    if (!hasValidActions && !res.feedback) {
-      logDiagnostic('CHAT: Empty response from backend, no feedback or actions. Ignored.', 'error');
-      showToast("❌ Сервер вернул пустой ответ");
-      return;
+    
+    if (!hasValidActions) {
+      if (res.feedback) {
+        showToast("💬 Получен ответ от ИИ (в чате)");
+      } else {
+        logDiagnostic('CHAT: Empty response from backend, no feedback or actions. Ignored.', 'error');
+        showToast("⚠️ ИИ не смог распознать данные");
+        addSystemMessage("⚠️ ИИ не нашел параметров или продуктов для добавления", "system");
+        return;
+      }
     }
     
     const generatedMsgId = uid();
@@ -262,7 +268,9 @@ export function AiProvider({ children }: { children: ReactNode }) {
       addLogEvent(`🤖 ИИ: ${summaries.join('. ')}`, 'ai');
     }
     
-    showToast("✅ Действие выполнено");
+    if (hasValidActions) {
+      showToast("✅ Действие выполнено");
+    }
     
     // Urgent save to Firebase to prevent data loss on high-latency snapshots
     setTimeout(() => saveAll(), 200);
@@ -304,6 +312,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
     }
 
     setIsAiLoading(true);
+    addSystemMessage('📷 Отправлено фото. Анализирую...', 'system');
     showToast("✨ Анализирую фото...");
     try {
       const result = await apiAnalyzeImage(
@@ -325,9 +334,11 @@ export function AiProvider({ children }: { children: ReactNode }) {
       if (err?.code === 'timeout' || err?.message === 'Failed to fetch') {
         showToast('⏳ Проблема со связью. Сервер не ответил, попробуйте еще раз');
         addLogEvent('⚠️ Фото не отправлено из-за обрыва связи', 'ai');
+        addSystemMessage('⚠️ Фото не было проанализировано из-за обрыва связи', 'system');
         logAiAudit({ message: 'Network error or timeout during image analysis', status: 'timeout', code: err?.code || 'network_error', action: 'analyzeImage' });
       } else if (err?.status === 413 || err?.code === 'payload_too_large') {
         showToast('⚠️ Файл слишком большой. Попробуйте сжать или обрезать фото');
+        addSystemMessage('⚠️ Фото слишком большое для загрузки. Попробуйте обрезать или сжать', 'system');
         logAiAudit({ message: 'Payload too large', status: '413', action: 'analyzeImage' });
       } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
         // Sync backend subscription snapshot into local state
