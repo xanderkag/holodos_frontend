@@ -266,7 +266,10 @@ export default function App() {
             boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
             cursor: 'pointer'
           }}
-          onClick={() => window.location.href = '/exit-demo'}
+          onClick={() => {
+            localStorage.removeItem('demo_mode');
+            window.location.href = '/';
+          }}
         >
           DEMO (ВЫЙТИ)
         </div>
