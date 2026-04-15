@@ -209,20 +209,7 @@ export default function BaselineScreen({ stock, setStock, baseline, setBaseline,
 
         {mode !== 'recipes' ? (
           <>
-            {mode === 'base' && baseline.length > 0 && (
-              <div className="bl-base-actions animated-pop">
-                <button className="bl-act-btn glass-panel" onClick={() => {
-                  baseline.forEach(i => toList(i));
-                  showToast(`+ ${baseline.length} в Покупки`);
-                  addLogEvent(`В список добавлено ${baseline.length} Любимых товаров`, 'add');
-                }}>Добавить всё</button>
-                <button className="bl-act-btn glass-panel acc" onClick={() => {
-                  const missing = baseline.filter(bk => !stock.some(sk => sk.name.toLowerCase() === bk.name.toLowerCase()));
-                  missing.forEach(i => toList(i));
-                  showToast(missing.length > 0 ? `+ ${missing.length} недостающих` : 'Всё уже есть в наличии!');
-                }}>Добавить недостающее</button>
-              </div>
-            )}
+
 
             {sortedCats.length === 0 && (
               <div className="empty" style={{ padding: '60px 0' }}>

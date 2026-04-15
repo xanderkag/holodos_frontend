@@ -1,7 +1,7 @@
 {
   "name": "holodos-ai",
   "private": true,
-  "version": "3.22.15",
+  "version": "3.22.16",
   "description": "Smart Fridge & AI Grocery Assistant",
   "type": "module",
   "scripts": {

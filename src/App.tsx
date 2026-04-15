@@ -10,6 +10,7 @@ import DiaryScreen from './screens/DiaryScreen';
 import EventsScreen from './screens/EventsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { SmartInput } from './components/SmartInput';
+import { SmartHints } from './components/SmartHints';
 import { ToastContainer, showToast } from './components/Toast';
 import { DebugOverlay } from './components/DebugOverlay';
 import { useAuth } from './context/AuthContext';
@@ -363,29 +364,65 @@ export default function App() {
         )}
       </main>
 
-      <SmartInput
-        placeholder={currentTab === 'list' ? "Добавить в список..." : "Пиши команду..."}
-        onSend={(text) => {
-          if (text.startsWith('/')) {
-            sendChatCommand(text);
-          } else {
-            handleSmartSend(text);
-          }
-        }}
-        shoppingList={list} 
-        stock={stock}
-        diary={diary}
-        baseline={baseline}
-        onVoiceResponse={(result) => {
-          // Sync subscription snapshot from voice response before applying actions
-          if (result?.subscription) syncBackendSubscription(result.subscription);
-          applyActions(result);
-        }} 
-        onImageSelect={analyzeImage}
-        onLimitError={handleLimitError}
-        smartInputState={smartInputState}
-        onStateChange={handleSmartInputStateChange}
-      />
+      {/* Computed Smart Hints */}
+      {(() => {
+        let activeHints = null;
+        if (currentTab === 'baseline' && baselineSubMode === 'base' && smartInputState !== 'hidden') {
+          activeHints = (
+            <SmartHints hints={[
+              { 
+                id: 'add-all', 
+                label: 'Добавить всё', 
+                icon: '🛒', 
+                onClick: () => {
+                  baseline.forEach(i => setList(prev => mergeItems(prev, [i])));
+                  showToast(`+ ${baseline.length} в Покупки`);
+                  addSystemMessage(`В список добавлено ${baseline.length} Любимых товаров`);
+                  setSmartInputState('hidden'); // auto-hide
+                }
+              },
+              { 
+                id: 'add-missing', 
+                label: 'Добавить недостающее', 
+                icon: '➕', 
+                onClick: () => {
+                  const missing = baseline.filter(bk => !stock.some(sk => sk.name.toLowerCase() === bk.name.toLowerCase()));
+                  missing.forEach(i => setList(prev => mergeItems(prev, [i])));
+                  showToast(missing.length > 0 ? `+ ${missing.length} недостающих` : 'Всё уже есть в наличии!');
+                  if (missing.length > 0) addSystemMessage(`В список добавлено ${missing.length} недостающих товаров`);
+                  setSmartInputState('hidden'); // auto-hide
+                }
+              }
+            ]} />
+          );
+        }
+
+        return (
+          <SmartInput
+            placeholder={currentTab === 'list' ? "Добавить в список..." : "Пиши команду..."}
+            onSend={(text) => {
+              if (text.startsWith('/')) {
+                sendChatCommand(text);
+              } else {
+                handleSmartSend(text);
+              }
+            }}
+            shoppingList={list} 
+            stock={stock}
+            diary={diary}
+            baseline={baseline}
+            onVoiceResponse={(result) => {
+              if (result?.subscription) syncBackendSubscription(result.subscription);
+              applyActions(result);
+            }} 
+            onImageSelect={analyzeImage}
+            onLimitError={handleLimitError}
+            smartInputState={smartInputState}
+            onStateChange={handleSmartInputStateChange}
+            hints={activeHints}
+          />
+        );
+      })()}
 
       <TabBar 
         tabs={[

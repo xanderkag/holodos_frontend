@@ -26,6 +26,7 @@ export interface SmartInputProps {
   smartInputState: 'hidden' | 'active' | 'recording' | 'media';
   onStateChange: (state: 'hidden' | 'active' | 'recording' | 'media') => void;
   onLimitError?: (message: string) => void;
+  hints?: React.ReactNode;
 }
 
 export const SmartInput: React.FC<SmartInputProps> = ({
@@ -35,6 +36,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
   smartInputState,
   onStateChange,
   onLimitError,
+  hints,
 }) => {
   const { user } = useAuth();
   const { addSystemMessage } = useData();
@@ -310,6 +312,10 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     >
       <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={processFile} />
       <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} style={{ display: 'none' }} onChange={processFile} />
+
+      {hints && (smartInputState === 'active' || smartInputState === 'recording' || smartInputState === 'media') && (
+        hints
+      )}
 
       <div
         className={`smart-input glass-panel ${isFocused ? 'focused' : ''} ${smartInputState === 'active' || smartInputState === 'media' ? 'visible' : 'hidden'} active-side-${activeSide}`}
