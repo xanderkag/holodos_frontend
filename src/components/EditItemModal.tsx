@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { GROUP_ORDER, areUnitsCompatible, mapBackendCategory } from '../utils/data';
 import type { Category, Item } from '../utils/data';
-import { GLOBAL_CATALOG } from '../utils/catalogData';
+
 import { CatalogSearch } from './CatalogSearch';
 import './EditItemModal.css';
 
