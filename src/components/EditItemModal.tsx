@@ -77,6 +77,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
   
   // Swipe Handling (v2.84.0)
   const touchStart = useRef<number | null>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
 
   const canDeduct = areUnitsCompatible(unit, portionUnit);
 
@@ -227,7 +228,6 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
     setSuggestions([]);
   };
 
-  const searchTimeoutRef = useRef<number | null>(null);
 
   const handleNameChange = (val: string) => {
     setName(val);
