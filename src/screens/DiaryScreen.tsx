@@ -5,6 +5,7 @@ import { logDiagnostic } from '../utils/ai';
 import { DiaryMacrosSummary } from '../components/Diary/DiaryMacrosSummary';
 import { DiaryMealGroup } from '../components/Diary/DiaryMealGroup';
 import { EditItemModal } from '../components/EditItemModal';
+import { SubHeader } from '../components/SubHeader';
 import { useData } from '../context/DataContext';
 import { useDiaryActions } from '../hooks/useDiaryActions';
 import { useHealthSync } from '../hooks/useHealthSync';
@@ -126,13 +127,12 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
 
   return (
     <div className="screen scrollable diary-screen">
-      <div style={{ flex: '0 0 80px', height: 80 }} />
-      
-      {/* Header (Compact v2.82) */}
-      <div className="diary-header" style={{padding: '0 20px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'}}>
-        <h2 style={{fontSize: '22px', fontWeight: '800', margin: 0}}>Дневник</h2>
-        <div className="diary-date" style={{fontSize: '13px', fontWeight: '500', color: 'var(--t2)', opacity: 0.7}}>{today}</div>
-      </div>
+      <SubHeader>
+        <div className="diary-header-content" style={{display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center'}}>
+          <h2 style={{fontSize: '14px', fontWeight: '800', margin: 0, color: 'var(--t1)', textTransform: 'uppercase'}}>Дневник</h2>
+          <div style={{fontSize: '12px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '1px'}}>{today}</div>
+        </div>
+      </SubHeader>
 
       {/* Subscription & Limits Info (v2.90.0) */}
       <div className="subscription-limits-bar" style={{padding: '0 20px', marginBottom: '12px'}}>
