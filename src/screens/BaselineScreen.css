@@ -10,9 +10,10 @@
 
 .bl-subtabs { 
   display: flex; 
-  padding: 0 16px 16px; 
+  padding: 8px 16px 16px; 
   gap: 12px; 
   align-items: center;
+  justify-content: center;
 }
 
 .bl-st-left {
@@ -21,7 +22,7 @@
   border-radius: 20px;
   padding: 4px;
   gap: 4px;
-  flex: 1;
+  width: 200px;
   height: 40px;
 }
 
@@ -29,7 +30,7 @@
   flex: 1; 
   height: 32px; 
   border-radius: 16px; 
-  font-size: 13px; 
+  font-size: 12px; 
   font-weight: 600; 
   color: var(--t2); 
   border: none;
