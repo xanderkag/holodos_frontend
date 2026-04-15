@@ -14,10 +14,10 @@ const CATEGORIES = [
   { id: 'Мясо и птица', label: 'Мясо', icon: '🥩' },
   { id: 'Рыба и морепродукты', label: 'Рыба', icon: '🐟' },
   { id: 'Овощи', label: 'Овощи', icon: '🥦' },
-  { id: 'Фрукты и ягоды', label: 'Фрукты', icon: '🍎' },
+  { id: 'Фрукты', label: 'Фрукты', icon: '🍎' },
   { id: 'Макароны и крупы', label: 'Крупы', icon: '🌾' },
-  { id: 'Орехи и семена', label: 'Орехи', icon: '🥜' },
-  { id: 'Сладости и десерты', label: 'Сладости', icon: '🍫' }
+  { id: 'Снеки и орехи', label: 'Орехи', icon: '🥜' },
+  { id: 'Сладости', label: 'Сладости', icon: '🍫' }
 ];
 
 export const CatalogSearch: React.FC<CatalogSearchProps> = ({ onBack, onSelect, initialQuery = '' }) => {
