@@ -18,37 +18,50 @@
 .bl-st-left {
   display: flex;
   background: var(--active-overlay);
-  border-radius: 12px;
+  border-radius: 20px;
   padding: 4px;
   gap: 4px;
   flex: 1;
+  height: 40px;
 }
 
 .bl-subtab { 
   flex: 1; 
   height: 32px; 
-  border-radius: 9px; 
-  font-size: 12px; 
+  border-radius: 16px; 
+  font-size: 13px; 
   font-weight: 600; 
   color: var(--t2); 
   border: none;
   background: transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .bl-subtab.active { 
   background: var(--sf);
   color: var(--acc); 
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* Softer, modern shadow */
 }
 
 .bl-st-add {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: var(--sf);
-  color: var(--acc);
-  font-size: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid var(--br-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--acc);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  box-shadow: 0 4px 12px var(--acc-glow);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bl-st-add:active {
+  transform: scale(0.92);
+  opacity: 0.9;
 }
 
 .rv-save-btn {
