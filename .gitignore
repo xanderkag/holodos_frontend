@@ -31,3 +31,4 @@ backup_*/
 js_sample.txt
 *.tmp
 .vercel
+.env*.local
