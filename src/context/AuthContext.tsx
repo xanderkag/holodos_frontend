@@ -39,10 +39,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       console.log("Auth: Getting custom token via telegram backend...");
       
-      // New Contract v3.15.x: Nested data to prevent hash invalidation + optional origin
-      const payload = tgUserData.hash 
-        ? tgUserData   // <-- HOTFIX: Send flat data for Telegram Widget to satisfy backend (hash, id at root)
-        : { source: 'tma', origin: window.location.origin, initData, user: tgUserData }; // TMA (secure)
+      // Bulletproof Payload Logic (v3.15.2):
+      // The backend expects `{ source, origin, initData, data }`.
+      // It also STRICTLY checks `data.hash` and `data.id` to prevent 400 Bad Request.
+      // 1. If it's a widget, `tgUserData` IS EXACTLY what backend needs in `data`.
+      // 2. If it's TMA, `tgUserData` is `user`, so we must manually provide `hash` and `id` in `data`.
+      const isWidget = !!tgUserData.hash;
+      let safeData = null;
+
+      if (isWidget) {
+        safeData = tgUserData; // pass verbatim so signature isn't broken
+      } else {
+        const unsafe = window.Telegram?.WebApp?.initDataUnsafe || {};
+        safeData = { id: unsafe.user?.id || tgUserData?.id, hash: unsafe.hash, ...unsafe };
+      }
+
+      const payload = {
+        source: isWidget ? 'widget' : 'tma',
+        origin: window.location.origin, // Crucial for app-ru to resolve Russian Bot Token
+        initData: isWidget ? undefined : window.Telegram?.WebApp?.initData,
+        data: safeData
+      };
 
       const response = await fetch(`${backendUrl}/auth/telegram`, {
         method: 'POST',
