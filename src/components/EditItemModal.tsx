@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { GROUP_ORDER, areUnitsCompatible } from '../utils/data';
+import { GROUP_ORDER, areUnitsCompatible, mapBackendCategory } from '../utils/data';
 import type { Category, Item } from '../utils/data';
 import { GLOBAL_CATALOG } from '../utils/catalogData';
 import { CatalogSearch } from './CatalogSearch';
@@ -204,28 +204,55 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
   };
 
   const onSelectFromCatalog = (item: any) => {
-    setName(item.name);
-    setCategory(item.cat || 'Другое');
-    setKcal(String(item.kcal || 0));
-    setProtein(String(item.protein || 0));
-    setFat(String(item.fat || 0));
-    setCarbs(String(item.carbs || 0));
+    setName(item.canonical_name || item.name);
+    setCategory(mapBackendCategory(item.category || item.cat));
+    
+    const k = item.per_100g?.kcal ?? item.kcal ?? 0;
+    const p = item.per_100g?.protein ?? item.protein ?? 0;
+    const f = item.per_100g?.fat ?? item.fat ?? 0;
+    const c = item.per_100g?.carbs ?? item.carbs ?? 0;
+
+    setKcal(String(k));
+    setProtein(String(p));
+    setFat(String(f));
+    setCarbs(String(c));
+    
+    if (item.default_portion_g) {
+      setPortion(item.default_portion_g);
+      setPortionUnit('г');
+    }
+
     setIsLinked(true);
     setView('edit');
     setSuggestions([]);
   };
 
+  const searchTimeoutRef = useRef<number | null>(null);
+
   const handleNameChange = (val: string) => {
     setName(val);
+    
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
     if (val.length < 2) {
       setSuggestions([]);
       return;
     }
-    const searchLower = val.toLowerCase();
-    const catalogMatches = (GLOBAL_CATALOG || [])
-      .filter(i => i.name.toLowerCase().includes(searchLower))
-      .slice(0, 8);
-    setSuggestions(catalogMatches);
+
+    searchTimeoutRef.current = window.setTimeout(async () => {
+      try {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+        const res = await fetch(`${backendUrl}/api/catalog/search?q=${encodeURIComponent(val)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data.results || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch catalog", err);
+      }
+    }, 400); // 400ms debounce
   };
 
   const handleCategoryChange = (val: string) => {
@@ -284,6 +311,14 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                 <div className="eim-sec">
                   <div className="eim-lbl">Название</div>
                   <input className="eim-tinp-large" type="text" value={name} onChange={e => handleNameChange(e.target.value)} placeholder="Молоко" />
+                  
+                  <div className={`eim-chips-scroll ${suggestions.length > 0 ? 'visible' : ''}`}>
+                    {suggestions.map((s, idx) => (
+                      <button key={idx} className="eim-chip" onClick={() => onSelectFromCatalog(s)}>
+                        {s.canonical_name || s.name} <span className="eim-chip-sub">{s.per_100g?.kcal ?? s.kcal} ккал</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="eim-row">
@@ -372,7 +407,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   <div className={`eim-chips-scroll ${suggestions.length > 0 ? 'visible' : ''}`}>
                     {suggestions.map((s, idx) => (
                       <button key={idx} className="eim-chip" onClick={() => onSelectFromCatalog(s)}>
-                        {s.name} <span className="eim-chip-sub">{s.kcal} ккал</span>
+                        {s.canonical_name || s.name} <span className="eim-chip-sub">{s.per_100g?.kcal ?? s.kcal} ккал</span>
                       </button>
                     ))}
                   </div>

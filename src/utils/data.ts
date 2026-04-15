@@ -366,6 +366,35 @@ export function classify(name: string): Partial<Item> {
   return { cat };
 }
 
+export function mapBackendCategory(cat: string): Category {
+  if (!cat) return 'Другое';
+  const cLower = cat.toLowerCase();
+  if (GROUP_ORDER.includes(cat as Category)) return cat as Category;
+  
+  const map: Record<string, Category> = {
+    'dairy': 'Молочные продукты',
+    'meat': 'Мясо и птица',
+    'vegetables': 'Овощи',
+    'fruits': 'Фрукты',
+    'bakery': 'Хлеб и выпечка',
+    'sweets': 'Сладости',
+    'drinks': 'Напитки',
+    'fish': 'Рыба и морепродукты',
+    'cereals': 'Макароны и крупы',
+    'grocery': 'Бакалея',
+    'sauces': 'Масла и соусы',
+    'snacks': 'Снеки и орехи',
+    'cheese': 'Сыры',
+    'eggs': 'Яйца',
+    'tea_coffee': 'Чай и кофе',
+    'prepared': 'Готовая еда',
+    'frozen': 'Заморозка',
+    'baby': 'Детское питание',
+    'default': 'Другое'
+  };
+  return map[cLower] || 'Другое';
+}
+
 export function incrementQty(oldQty: string | null | undefined, newQty: string | null | undefined): string {
   const parse = (s: any) => {
     const str = String(s || '').trim();
