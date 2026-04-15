@@ -2,7 +2,7 @@
   position: sticky;
   top: 16px; /* Bulletproof fallback */
   top: calc(var(--sat) + 16px);
-  z-index: 100;
+  z-index: 1001; /* Выше чем Header (1000), чтобы капсула не пряталась под стекло */
   width: 100%;
   height: 44px; /* Integrated height for progress/capsule */
   display: flex;
