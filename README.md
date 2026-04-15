@@ -268,4 +268,4 @@ Google Cloud Console → OAuth 2.0 → Authorized JavaScript origins:
 
 ## 📌 Текущая версия
 
-**v3.21.0** | Commit: `fb4829e` | 13 апреля 2026
+**v3.21.2** | 15 апреля 2026

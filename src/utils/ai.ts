@@ -70,6 +70,7 @@ export async function analyzeImage(
     try {
         // Convert base64 string back to binary Blob to satisfy the backend
         const blob = await base64ToBlob(base64Image, 'image/jpeg');
+        logDiagnostic(`Vision: Blob created size=${Math.round(blob.size / 1024)} KB, type=${blob.type}`, 'net');
 
         const formData = new FormData();
         formData.append("data", blob, "image.jpg");

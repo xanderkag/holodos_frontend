@@ -36,9 +36,11 @@
   --ui-f-base: 15px;
   --ui-f-sec: 13px;
 
-  /* Safe Area Insets */
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
+  /* Safe Area Variables with iOS zero-bug fallback */
+  --sat-force: 0px;
+  --sab-force: 0px;
+  --sat: max(env(safe-area-inset-top, 0px), var(--sat-force));
+  --sab: max(env(safe-area-inset-bottom, 0px), var(--sab-force));
   --skip: rgba(0, 0, 0, 0.4);
   --active-overlay: rgba(0, 0, 0, 0.05); /* Light mode click effect */
 }
@@ -152,13 +154,12 @@ body {
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
-  /* Top padding = Header (32) + Safe Area + micro-gap (2) */
-  padding-top: calc(var(--hdr-h) + var(--sat) + 2px);
+  padding-top: calc(var(--sat) + 50px);
   padding-bottom: calc(var(--tab-h) + var(--sab) + 100px);
 }
 
 .screen.chat-screen {
-  padding-top: calc(var(--hdr-h) + var(--sat) + 32px + 2px); 
+  padding-top: calc(var(--sat) + 94px); 
   padding-bottom: 0; 
   overflow: hidden;
 }

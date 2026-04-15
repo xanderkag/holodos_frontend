@@ -55,5 +55,16 @@
 	<string>Нам нужен доступ к данным о шагах и весе для автоматического заполнения вашего дневника и анализа активности.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Нам нужен доступ к записи данных о здоровье для синхронизации ваших достижений и веса.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.983609791949-ho327kctfrajfiniitgbsk2m89foodgu</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

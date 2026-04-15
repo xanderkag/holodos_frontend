@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
     GoogleAuth: {
       scopes: ['profile', 'email'],
       serverClientId: '983609791949-041og7lpedat9olfnp3iptgpi7q18rqv.apps.googleusercontent.com',
+      iosClientId: '983609791949-ho327kctfrajfiniitgbsk2m89foodgu.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
     },
     SplashScreen: {

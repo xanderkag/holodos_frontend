@@ -96,6 +96,11 @@ export default function App() {
     const startupTimeout = setTimeout(() => {
       if (Capacitor.isNativePlatform()) {
         logDiagnostic('NATIVE: Finalizing handshake', 'info');
+        if (Capacitor.getPlatform() === 'ios') {
+          // Force apply iOS safe area fallbacks in case 'env' calculates to 0px
+          document.documentElement.style.setProperty('--sat-force', '47px');
+          document.documentElement.style.setProperty('--sab-force', '34px');
+        }
         StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
         SplashScreen.hide().catch(() => {});
       }

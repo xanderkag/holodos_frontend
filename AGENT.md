@@ -29,13 +29,14 @@
 > Мы (Frontend) **НЕ ИМЕЕМ ПРАВА** вносить изменения в интеграцию с backend'ом. Схемы данных (`AiAction`, payload-запросы к `/ai/text`, `/ai/voice`, `/ai/image`), контракты и общая логика взаимодействия с API — неприкасаемы. Любые изменения формата обмена данными требуют строжайшего согласования с backend-отделом.
 
 > [!IMPORTANT]
-> **Актуальный Production Contract (13 апреля 2026):**
+> **Актуальный Production Contract (15 апреля 2026):**
 > - Основной продуктовый AI-flow идет через `text / voice / image`.
 > - Маршруты `/diary/analyze-photo` и `/diary/analyze-voice` считаются legacy transition shim и **не используются**.
 > - Source tagging (`photo` / `voice` / `text`) выполняется на стороне frontend **в `AiContext.tsx` и `SmartInput.tsx`**, строго перед вызовом `applyActions()`:
 >   - `analyzeImage()` → `result.source = 'photo'`
 >   - `sendChatCommand()` → `result.source = 'text'`
 >   - Voice recording в `SmartInput` → `result.source = 'voice'`
+> - **Multipart Uploads (Blob Strategy)**: Из-за специфики парсера Multer на Yandex Gateway, медиафайлы перед отправкой преобразуются из `base64` в бинарный `Blob` (`base64ToBlob`) и добавляются в `FormData` как файл (например, `"image.jpg"`, `"voice.webm"`). Передача сырых base64 строк напрямую запрещена.
 
 ---
 
@@ -162,6 +163,12 @@ if (result.subscription) {
 - **Плотность (`data-density`)**: Обязательная поддержка `comfortable` и `compact`.
 - Ключевые классы контейнеров: `.glass-panel`, `.glass-pill`.
 
+### Нативные отступы (iOS Safe Area Polyfill)
+В Capacitor на iOS системные переменные `env(safe-area-inset-top)` иногда отдают `0px` из-за багов WebKit.
+- Фронтенд использует CSS fallback через `max()`: `max(env(safe-area-inset-top, 0px), var(--sat-force))`.
+- В `App.tsx` JS принудительно устанавливает `--sat-force: 47px` и `--sab-force: 34px` (только для iOS).
+- Это гарантирует, что `Dynamic Island` или нижняя панель на iPhone не будут перекрывать контент приложения.
+
 ### Глобальные Компоненты
 1. **`ActionSheet` & `Modal`**:
     - Плавное появление (класс `.animated-pop`). Модалки поверх всего контента.
@@ -213,7 +220,7 @@ if (result.subscription) {
 
 **Механика "Green Capsule"**: При переходе в `recording`, вся TabBar становится «Зелёной Капсулой». Сам `SmartInput` **строго скрывается**. Таймер и кнопка стоп рендерятся только внутри `TabBar.tsx` в компоненте `recording-mode-capsule`.
 
-**Красный Крестик (Fail-Safe Stop Button)**: Во время записи (`recording` state) внутри зелёной капсулы **ВСЕГДА** должен быть красный стоп-кружок (`.recording-stop-btn-large`, `background: #ff3b30`, `border-radius: 50%`, `56x56px`). Это accessibility fail-safe — её нельзя убирать.
+**Красный Крестик (Fail-Safe Stop Button)**: Во время записи (`recording` state) внутри зелёной капсулы **ВСЕГДА** должен быть красный стоп-кружок (`.recording-stop-btn-large`). Это accessibility fail-safe. Кнопка строго отцентрована (`position: absolute`), имеет белый фон и красную рамку для премиального контраста.
 
 ---
 
@@ -332,4 +339,4 @@ if (result.subscription) {
 
 ---
 
-*Документ обновлён автоматически командой Antigravity. Версия: **v3.21.0** (13 апреля 2026). Commit: `fb4829e`.*
+*Документ обновлён автоматически командой Antigravity. Версия: **v3.21.2** (15 апреля 2026).*

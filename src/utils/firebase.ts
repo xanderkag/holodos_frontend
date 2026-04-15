@@ -57,6 +57,7 @@ export const loginWithGoogle = async () => {
       // Uses native Google Sign-In SDK → returns idToken → Firebase credential
       // Bypasses Firebase authDomain/web-redirect entirely (no unauthorized-domain)
       console.log('Auth: Starting native Google Sign-In (Capacitor)');
+      try { await GoogleAuth.initialize(); } catch (e) { console.log('Init error:', e); }
       logAuthAudit({ provider: 'google', channel: 'android', stage: 'attempt', message: 'Starting native Google Sign-In (Capacitor)' });
       const googleUser = await GoogleAuth.signIn();
       const credential = GoogleAuthProvider.credential(
