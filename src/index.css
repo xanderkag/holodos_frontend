@@ -440,7 +440,7 @@ input {
   background: var(--br2); /* Subtle contrast */
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 8px 14px;
   display: flex;
   border-bottom: 1px solid var(--br-glass);
 }
@@ -454,16 +454,16 @@ input {
   letter-spacing: 0.8px;
   color: var(--t2);
   flex: 1;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 }
 
 .cat-badge {
-  background: var(--bg);
-  color: var(--t3);
-  font-size: 11px;
-  font-weight: 800;
-  padding: 1px 6px;
+  color: var(--t2);
+  font-weight: 700;
+  font-size: 10px;
+  background: var(--br);
+  padding: 2px 8px;
   border-radius: 8px;
 }
 
@@ -476,7 +476,7 @@ input {
 .irow {
   background: transparent; /* Fixed: use container bg */
   align-items: center;
-  padding: 12px 16px;
+  padding: 8px 16px;
   display: flex;
   border-top: 1px solid var(--br-glass);
 }
@@ -487,8 +487,8 @@ input {
   flex-shrink: 0;
   justify-content: center;
   align-items: center;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: flex;
   margin-right: 12px;
 }
@@ -501,7 +501,7 @@ input {
 .iname {
   color: var(--t1);
   flex: 1;
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -702,6 +702,15 @@ input {
   background: transparent;
   border-bottom: 2px solid var(--br2);
   border-radius: 0;
+}
+
+[data-theme="simple"] .cat-name {
+  color: var(--t1);
+  font-weight: 800;
+  flex: 1;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 [data-theme="simple"] .ui-pill {
