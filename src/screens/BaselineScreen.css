@@ -173,23 +173,36 @@
 }
 
 .bl-base-actions {
+  position: fixed;
+  bottom: calc(var(--tab-h) + var(--sab) + 32px);
+  left: 0;
+  right: 0;
+  z-index: 105;
   display: flex;
-  gap: 10px;
-  padding: 0 16px 20px;
+  gap: 12px;
+  padding: 16px;
+  background: transparent;
+  pointer-events: none;
+  justify-content: center;
 }
 
 .bl-act-btn {
+  pointer-events: auto;
   flex: 1;
-  height: 48px;
-  border-radius: 14px;
+  max-width: 200px;
+  height: 52px;
+  border-radius: 26px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--acc);
-  border: 1.5px solid var(--acc);
-  background: var(--sf);
-  transition: all 0.2s;
+  background: var(--sf-glass-solid);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--br-glass);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.7);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -199,12 +212,12 @@
 .bl-act-btn.acc {
   background: var(--acc);
   color: #fff;
-  box-shadow: 0 4px 14px var(--acc-glow);
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 12px 30px var(--acc-glow), inset 0 1px 1px rgba(255,255,255,0.3);
 }
 
 .bl-act-btn:active {
-  transform: scale(0.97);
-  opacity: 0.9;
+  transform: scale(0.95) translateY(4px);
 }
 
 .debug-reset {

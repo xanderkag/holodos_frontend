@@ -3,11 +3,11 @@
   top: 0;
   left: 0;
   right: 0;
-  height: calc(var(--sat) + 48px);
+  height: calc(max(var(--sat), 47px) + 48px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sat) 16px 0;
+  padding: max(var(--sat), 47px) 16px 0;
   background: var(--sf-glass-solid);
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);

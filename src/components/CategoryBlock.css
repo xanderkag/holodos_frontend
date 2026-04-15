@@ -1,34 +1,15 @@
 .cat-block {
-  margin: 0 var(--ui-px) 4px; /* Reduced from 12px for maximum compactness */
+  margin: 0;
+  margin-bottom: 24px;
   background: transparent;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.cb-capsule {
-  background: var(--sf);
-  border-radius: 12px; /* Thinner, more modern look */
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.03);
-}
-
-.cb-marker {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px; /* Subtle line */
-  z-index: 5;
 }
 
 .cb-hdr {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px 7px 14px;
-  background: rgba(0,0,0,0.01);
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  padding: 0 16px 8px;
   width: 100%;
 }
 
@@ -74,7 +55,11 @@
 }
 
 .cat-body {
-  background: transparent;
-  padding: 0;
+  background: var(--sf);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+  margin: 0 16px;
+  border: 1px solid var(--br-glass);
 }
 

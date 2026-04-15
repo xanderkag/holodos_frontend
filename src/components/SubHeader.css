@@ -1,6 +1,6 @@
 .sub-header {
   position: sticky;
-  top: calc(var(--sat) + 48px);
+  top: calc(max(var(--sat), 47px) + 48px);
   z-index: 100;
   width: 100%;
   height: 44px; /* Integrated height for progress/capsule */
