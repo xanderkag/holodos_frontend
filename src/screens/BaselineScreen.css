@@ -172,7 +172,7 @@
 
 .bl-base-actions {
   position: fixed;
-  bottom: calc(var(--tab-h) + var(--sab) + 32px);
+  bottom: calc(var(--tab-h) + var(--sab) + 90px);
   left: 0;
   right: 0;
   z-index: 105;
