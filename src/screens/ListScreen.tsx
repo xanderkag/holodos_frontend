@@ -185,6 +185,7 @@ export default function ListScreen({ list, setList, toStock, categoryOrder, setC
   };
 
 
+  return (
     <div className="screen list-screen">
       <SubHeader>
         <PurchaseProgressBar 
