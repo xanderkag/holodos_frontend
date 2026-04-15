@@ -1,7 +1,7 @@
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
-import { apiPostFormData } from "./api";
-
+import { apiPostFormData, apiPost } from "./api";
+import { Capacitor } from '@capacitor/core';
 // Оставляем для обратной совместимости — используется в AiContext для логов
 export const N8N_TEXT_WEBHOOK_URL = '[via backend]';
 
@@ -33,6 +33,14 @@ async function logAssistantRequest(userEmail: string, productsCount: number, mod
   }
 }
 
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
 
 async function base64ToBlob(base64: any, mimeType: string): Promise<Blob> {
   try {
@@ -72,40 +80,59 @@ export async function analyzeImage(
         const blob = await base64ToBlob(base64Image, 'image/jpeg');
         logDiagnostic(`Vision: Blob created size=${Math.round(blob.size / 1024)} KB, type=${blob.type}`, 'net');
 
-        const formData = new FormData();
-        formData.append("data", blob, "image.jpg");
-        formData.append("type", "image");
-        formData.append("tab", tab);
-        formData.append("userEmail", userEmail);
-        formData.append("userId", userId);
-        formData.append("appUrl", window.location.origin);
-        formData.append("currentList", JSON.stringify(currentList));
-        formData.append("currentStock", JSON.stringify(currentStock));
-        formData.append("currentDiary", JSON.stringify(currentDiary));
-        formData.append("currentBaseline", JSON.stringify(currentBaseline));
-        formData.append("list", JSON.stringify(currentList));
-        formData.append("stock", JSON.stringify(currentStock));
-        formData.append("priority", priority);
+        let result;
+        if (Capacitor.isNativePlatform()) {
+            logDiagnostic('Vision: POST /ai/image (JSON Base64 Hybrid)...', 'net');
+            const rawB64 = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
+            const finalBase64 = `data:image/jpeg;base64,${rawB64}`;
 
-        logDiagnostic('Vision: POST /ai/image (FormData Binary)...', 'net');
+            const payload = {
+                imageBase64: finalBase64,
+                type: "image",
+                tab: tab,
+                userEmail: userEmail,
+                userId: userId,
+                appUrl: window.location.origin,
+                currentList: currentList,
+                currentStock: currentStock,
+                currentDiary: currentDiary,
+                currentBaseline: currentBaseline,
+                list: currentList,
+                stock: currentStock,
+                priority: priority
+            };
+            result = await apiPost<any>('/ai/image', payload);
+        } else {
+            const formData = new FormData();
+            formData.append("data", blob, "image.jpg");
+            formData.append("type", "image");
+            formData.append("tab", tab);
+            formData.append("userEmail", userEmail);
+            formData.append("userId", userId);
+            formData.append("appUrl", window.location.origin);
+            formData.append("currentList", JSON.stringify(currentList));
+            formData.append("currentStock", JSON.stringify(currentStock));
+            formData.append("currentDiary", JSON.stringify(currentDiary));
+            formData.append("currentBaseline", JSON.stringify(currentBaseline));
+            formData.append("list", JSON.stringify(currentList));
+            formData.append("stock", JSON.stringify(currentStock));
+            formData.append("priority", priority);
 
-        try {
-          const result = await apiPostFormData<any>('/ai/image', formData);
-          logDiagnostic('Vision: Success received', 'net');
-
-          let itemsCount = 0;
-          if (result.actions) {
-              result.actions.forEach((a: any) => {
-                  if (a.items) itemsCount += a.items.length;
-              });
-          }
-
-          await logAssistantRequest(userEmail, itemsCount, "backend-image");
-          return result;
-        } catch (fetchErr: any) {
-          logDiagnostic(`Vision Exception: ${fetchErr.message}`, 'error');
-          throw fetchErr;
+            logDiagnostic('Vision: POST /ai/image (FormData Binary)...', 'net');
+            result = await apiPostFormData<any>('/ai/image', formData);
         }
+
+        logDiagnostic('Vision: Success received', 'net');
+
+        let itemsCount = 0;
+        if (result.actions) {
+            result.actions.forEach((a: any) => {
+                if (a.items) itemsCount += a.items.length;
+            });
+        }
+
+        await logAssistantRequest(userEmail, itemsCount, "backend-image");
+        return result;
     } catch (error: any) {
         if (error?.name === 'ApiError' && error.status === 403 && error.code === 'limit_reached') {
             logDiagnostic(`Vision Limit Reached: ${error.message}`, 'info');
@@ -129,22 +156,48 @@ export async function sendVoiceToN8N(
 ): Promise<any> {
     logDiagnostic(`Voice: Preparing upload (${Math.round(audioBlob.size / 1024)} KB)...`, 'net');
 
-    const formData = new FormData();
-    formData.append("data", audioBlob, "voice.webm");
-    formData.append("type", "voice");
-    formData.append("userEmail", userEmail);
-    formData.append("userId", userId);
-    formData.append("appUrl", window.location.origin);
-    formData.append("currentList", JSON.stringify(currentList));
-    formData.append("currentStock", JSON.stringify(currentStock));
-    formData.append("currentDiary", JSON.stringify(currentDiary));
-    formData.append("currentBaseline", JSON.stringify(currentBaseline));
-    formData.append("list", JSON.stringify(currentList));
-    formData.append("stock", JSON.stringify(currentStock));
-    formData.append("priority", priority);
-
+    let json;
     try {
-        const json = await apiPostFormData<any>('/ai/voice', formData);
+        if (Capacitor.isNativePlatform()) {
+            logDiagnostic(`Voice: POST /ai/voice (JSON Base64 Hybrid)...`, 'net');
+            // If the Blob type is empty, enforce 'audio/webm' in the prefix to avoid broken base64
+            let b64 = await blobToBase64(audioBlob);
+            if (!b64.includes('data:audio/webm;base64,')) {
+                b64 = `data:audio/webm;base64,${b64.split(',')[1]}`;
+            }
+
+            const payload = {
+                audioBase64: b64,
+                type: "voice",
+                userEmail: userEmail,
+                userId: userId,
+                appUrl: window.location.origin,
+                currentList: currentList,
+                currentStock: currentStock,
+                currentDiary: currentDiary,
+                currentBaseline: currentBaseline,
+                list: currentList,
+                stock: currentStock,
+                priority: priority
+            };
+            json = await apiPost<any>('/ai/voice', payload);
+        } else {
+            const formData = new FormData();
+            formData.append("data", audioBlob, "voice.webm");
+            formData.append("type", "voice");
+            formData.append("userEmail", userEmail);
+            formData.append("userId", userId);
+            formData.append("appUrl", window.location.origin);
+            formData.append("currentList", JSON.stringify(currentList));
+            formData.append("currentStock", JSON.stringify(currentStock));
+            formData.append("currentDiary", JSON.stringify(currentDiary));
+            formData.append("currentBaseline", JSON.stringify(currentBaseline));
+            formData.append("list", JSON.stringify(currentList));
+            formData.append("stock", JSON.stringify(currentStock));
+            formData.append("priority", priority);
+
+            json = await apiPostFormData<any>('/ai/voice', formData);
+        }
 
         logDiagnostic(`Voice: Success received. Actions: ${json.actions?.length || 0}`, 'net');
         console.log('Voice Response Body:', JSON.stringify(json));
