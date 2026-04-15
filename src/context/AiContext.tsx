@@ -21,6 +21,7 @@ interface AiContextType {
   setPendingActions: (actions: AiAction[]) => void;
   activeUndos: string[];
   undoAction: (msgId: string) => void;
+  handleLimitError: (message: string) => void;
 }
 
 const AiContext = createContext<AiContextType | undefined>(undefined);
