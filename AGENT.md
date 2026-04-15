@@ -36,7 +36,9 @@
 >   - `analyzeImage()` → `result.source = 'photo'`
 >   - `sendChatCommand()` → `result.source = 'text'`
 >   - Voice recording в `SmartInput` → `result.source = 'voice'`
-> - **Multipart Uploads (Blob Strategy)**: Из-за специфики парсера Multer на Yandex Gateway, медиафайлы перед отправкой преобразуются из `base64` в бинарный `Blob` (`base64ToBlob`) и добавляются в `FormData` как файл (например, `"image.jpg"`, `"voice.webm"`). Передача сырых base64 строк напрямую запрещена.
+> - **Гибридная загрузка медиа (Hybrid Media Uploads)**: В связи с архитектурным багом Yandex API Gateway (обрыв соединения при получении boundary multipart/form-data потоков мобильным Capacitor), система работает в гибридном режиме:
+>   - **PWA/Веб**: Использует стандартный `FormData` через преобразование `base64ToBlob`.
+>   - **Native (iOS/Android Capacitor)**: Игнорирует FormData! Строго конвертирует медиа обратно в строку Base64 (через FileReader) с нужным MIME-префиксом (`data:image/jpeg;base64,...`) и отправляет в виде чистого JSON-объекта (`application/json`) для прямого проброса в n8n в обход зависаний Multer'а.
 
 ---
 
