@@ -39,10 +39,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       console.log("Auth: Getting custom token via telegram backend...");
       
-      // New Contract v3.15.0: Supporting source and raw initData
+      // New Contract v3.15.x: Nested data to prevent hash invalidation + optional origin
       const payload = tgUserData.hash 
-        ? tgUserData // Widget (classic)
-        : { source: 'tma', initData, user: tgUserData }; // TMA (secure)
+        ? { source: 'widget', origin: window.location.origin, data: tgUserData } 
+        : { source: 'tma', origin: window.location.origin, initData, user: tgUserData }; // TMA (secure)
 
       const response = await fetch(`${backendUrl}/auth/telegram`, {
         method: 'POST',
@@ -117,6 +117,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentReferrer = document.referrer;
       console.log(`Auth Trace [v3.14.1]: Initializing... URL: ${currentUrl}, Referrer: ${currentReferrer}`);
 
+      // SAFETY VALVE: Force unlock UI if everything takes too long or Firebase hangs
+      const safetyValve = setTimeout(() => {
+        if (mountedRef.current && loading) {
+          console.warn("Auth: Sequence timed out (Safety Valve), unlocking UI.");
+          setLoading(false);
+        }
+      }, 5000);
+
       try {
         // 1. Handle Yandex token (Priority)
         const urlParams = new URLSearchParams(window.location.search);
@@ -154,7 +162,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isNativePlatform) {
           try {
             console.log("Auth: Checking for Google redirect result...");
-            const redirectResult = await getRedirectResult(auth);
+            // Use Promise.race to prevent Safari from hanging forever on getRedirectResult
+            const redirectResult = await Promise.race([
+              getRedirectResult(auth),
+              new Promise<null>((resolve) => setTimeout(() => resolve(null), 3500))
+            ]);
+            
             if (redirectResult) {
               console.log("Auth: Redirect result FOUND", redirectResult.user.uid);
               logAuthAudit({ provider: 'google', channel: 'web', stage: 'success', message: 'Google Redirect Successful' });
@@ -237,18 +250,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (mountedRef.current) {
             setUser(u);
             if (u) localStorage.setItem('auth_uid', u.uid);
+            clearTimeout(safetyValve); // Remove safety valve if React/Auth naturally resolves
             setLoading(false); // FINALLY remove the global loading state
           }
         });
-
-        // SAFETY VALVE: Force unlock UI if everything takes too long
-        setTimeout(() => {
-          if (mountedRef.current && loading) {
-            console.warn("Auth: Sequence timed out, unlocking UI.");
-            setLoading(false);
-          }
-        }, 8000);
-
       } catch (err: any) {
         logAuthAudit({ stage: 'failure', message: `Global init error: ${err.message || String(err)}`, code: err.code });
         if (mountedRef.current) setLoading(false);

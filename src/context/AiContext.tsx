@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useData } from './DataContext';
 import { useAuth } from './AuthContext';
@@ -19,7 +19,8 @@ interface AiContextType {
   executeOption: (messageId: string, option: any) => Promise<void>;
   pendingActions: AiAction[];
   setPendingActions: (actions: AiAction[]) => void;
-  handleLimitError: (message: string) => void;
+  activeUndos: string[];
+  undoAction: (msgId: string) => void;
 }
 
 const AiContext = createContext<AiContextType | undefined>(undefined);
@@ -36,6 +37,10 @@ export function AiProvider({ children }: { children: ReactNode }) {
 
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [pendingActions, setPendingActions] = useState<AiAction[]>([]);
+  
+  // Undo System States
+  const [activeUndos, setActiveUndos] = useState<string[]>([]);
+  const undoBackups = useRef<Map<string, { list: any[]; stock: any[]; baseline: any[]; diary: any[] }>>(new Map());
 
   const handleLimitError = useCallback((message: string) => {
     setMessages(prev => [...prev, { 
@@ -47,6 +52,30 @@ export function AiProvider({ children }: { children: ReactNode }) {
     addLogEvent(`⚠️ ${message}`, 'ai');
     showToast(message);
   }, [setMessages, addLogEvent]);
+
+  const undoAction = useCallback((msgId: string) => {
+    const backup = undoBackups.current.get(msgId);
+    if (!backup) return;
+    
+    // Restore states
+    setList(backup.list);
+    setStock(backup.stock);
+    setBaseline(backup.baseline);
+    if (setDiary) setDiary(backup.diary);
+    
+    // Modify message to show it was undone
+    setMessages(prev => prev.map(m => 
+      m.id === msgId ? { ...m, content: '❌ Действие отменено пользователем', type_info: 'undo', isUndoable: false, actions: [] } : m
+    ));
+    
+    // Clear from active undos
+    setActiveUndos(prev => prev.filter(id => id !== msgId));
+    undoBackups.current.delete(msgId);
+    
+    showToast("Отменено");
+    addLogEvent("Пользователь отменил действие ИИ", "remove");
+    setTimeout(() => saveAll(), 200);
+  }, [setList, setStock, setBaseline, setDiary, setMessages, saveAll, addLogEvent]);
 
   const executeActions = useCallback((actions: AiAction[], messageId?: string) => {
     let currentList = [...list];
@@ -199,6 +228,14 @@ export function AiProvider({ children }: { children: ReactNode }) {
     
     const generatedMsgId = uid();
     
+    // Snapshot for Undo mechanism
+    const backupState = {
+      list: [...list],
+      stock: [...stock],
+      baseline: [...baseline],
+      diary: [...(diary || [])]
+    };
+    
     // BULK PROTECT: Force confirmation for sensitive or large operations
     const isSensitive = actions.some((a: any) => 
       a.type === 'remove_all' || 
@@ -266,6 +303,14 @@ export function AiProvider({ children }: { children: ReactNode }) {
 
     if (summaries.length > 0) {
       addLogEvent(`🤖 ИИ: ${summaries.join('. ')}`, 'ai');
+      
+      // Register Undo timeout
+      undoBackups.current.set(generatedMsgId, backupState);
+      setActiveUndos(prev => [...prev, generatedMsgId]);
+      setTimeout(() => {
+        setActiveUndos(prev => prev.filter(id => id !== generatedMsgId));
+        undoBackups.current.delete(generatedMsgId);
+      }, 15000);
     }
     
     if (hasValidActions) {
@@ -435,7 +480,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
     <AiContext.Provider value={{ 
       isAiLoading, analyzeImage, sendChatCommand, 
       applyActions, executeOption, pendingActions, setPendingActions,
-      handleLimitError 
+      handleLimitError, activeUndos, undoAction
     }}>
       {children}
     </AiContext.Provider>

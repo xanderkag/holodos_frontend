@@ -234,26 +234,44 @@
 }
 
 
-.msg-undo-btn {
-  display: block;
-  width: 100%;
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: rgba(0, 122, 255, 0.08);
-  border: 1px solid rgba(0, 122, 255, 0.15);
+.msg-undo-wrap {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-start;
+  animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-undo {
+  padding: 8px 16px;
+  background: rgba(255, 59, 48, 0.1);
+  border: 1px solid rgba(255, 59, 48, 0.2);
   border-radius: 12px;
-  color: var(--acc);
+  color: #ff3b30;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.msg-undo-btn:active {
-  background: rgba(0, 122, 255, 0.15);
+.btn-undo:active {
+  background: rgba(255, 59, 48, 0.2);
   transform: scale(0.96);
 }
+
+.msg-undo-state .msg-bubble {
+  opacity: 0.6;
+  filter: grayscale(1);
+  border: 1px dashed var(--br-glass);
+}
+
 
 .msg-actions-report {
   margin-top: 12px;

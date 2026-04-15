@@ -51,6 +51,7 @@ async function uploadFolder(folderPath, baseFolder = "") {
           Key: relativePath.replace(/\\/g, "/"), // Ensure S3 uses forward slashes
           Body: fileContent,
           ContentType: contentType,
+          ACL: "public-read", // Важно для Yandex Object Storage (лечит AccessDenied)
         })
       );
     }

@@ -73,7 +73,10 @@ export const AuthScreen = () => {
       message: 'Redirecting to backend for Yandex OAuth' 
     });
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    window.location.href = `${backendUrl}/auth/yandex`;
+    // Для нативных мобильных приложений (Android/iOS) мы подменяем origin на нашу deep-link схему, 
+    // чтобы бэкенд перенаправил нас не в браузер, а обратно в приложение.
+    const currentOrigin = isNativePlatform ? 'holodos://auth' : window.location.origin;
+    window.location.href = `${backendUrl}/auth/yandex?origin=${encodeURIComponent(currentOrigin)}`;
   };
 
   if (authLoading && !user) {

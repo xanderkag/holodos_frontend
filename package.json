@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "verify": "npm run build && vite preview --host",
     "cap:sync": "npm run build && npx cap sync",
+    "build:ru": "vite build --mode ru",
     "cap:open:android": "npx cap open android",
     "cap:open:ios": "npx cap open ios",
     "mobile:prepare": "npm run build && (npx cap sync ios && npx cap sync android)",

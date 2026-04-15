@@ -62,7 +62,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
     setDiary,
   } = useData();
 
-  const { isAiLoading, executeOption } = useAi();
+  const { isAiLoading, executeOption, activeUndos, undoAction } = useAi();
   const { clarifyDiaryItem } = useDiaryActions(setDiary);
   
   const [filter, setFilter] = useState<'chat' | 'diary' | 'all' | 'adding'>(externalFilter || 'chat');
@@ -218,18 +218,35 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                             clarifyDiaryItem(itemId, { needsClarification: false });
                           }}
                         />
+                        {activeUndos?.includes(m.id) && (
+                          <div className="msg-undo-wrap">
+                            <button className="btn-undo animated-pop" onClick={() => undoAction(m.id)}>
+                              ↩ Отменить
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   }
 
                   return (
-                    <div key={m.id} className={`msg-row ${m.role}`}>
+                    <div key={m.id} className={`msg-row ${m.role} ${m.type_info === 'undo' ? 'msg-undo-state' : ''}`}>
                       <div className={`msg-bubble ${m.role}`}>
                         <div className="msg-content">{m.content}</div>
                         {m.timestamp && (
                           <div className="msg-time">{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                         )}
                         {m.role === 'assistant' && m.suggestions && renderSuggestions(m.id, m.suggestions)}
+                        {m.role === 'assistant' && activeUndos?.includes(m.id) && (
+                          <div className="msg-undo-wrap">
+                            <button className="btn-undo animated-pop" onClick={(e) => {
+                              e.stopPropagation();
+                              undoAction(m.id);
+                            }}>
+                              ↩ Отменить
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
