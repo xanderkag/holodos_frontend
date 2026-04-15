@@ -17,9 +17,6 @@
   flex-direction: column;
   gap: 16px;
   -webkit-overflow-scrolling: touch;
-  /* Плавное растворение сообщений только снизу (120px) */
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 120px), transparent 100%);
-  mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 120px), transparent 100%);
 }
 
 .msg-date-group {
