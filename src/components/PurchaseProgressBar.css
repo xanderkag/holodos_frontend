@@ -3,61 +3,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 4px 2px 8px; /* High-density padding */
-  border-radius: 12px;
+  gap: 12px;
+  height: 28px; /* 30% smaller height as requested */
+  padding: 0 14px;
+  border-radius: 14px;
   background: var(--sf-glass-solid);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--br-glass);
-}
-
-.prog-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 22px; /* Minimum ergonomic height */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Floating effect */
 }
 
 .prog-stat {
-  font-size: 9px; /* Reduced from 10px */
-  font-weight: 800;
-  color: var(--t2);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--t1);
   white-space: nowrap;
-}
-
-.finish-shopping-btn-slim {
-  background: var(--grn);
-  color: #fff;
-  border-radius: 8px;
-  padding: 3px 6px; /* Ultra-slim button */
-  font-size: 9px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  white-space: nowrap;
-  box-shadow: 0 4px 10px var(--grn-glow);
-}
-
-.finish-shopping-btn-slim:active {
-  transform: scale(0.95);
-  opacity: 0.9;
 }
 
 .prog-track {
-  flex: 1;
-  height: 2px;
-  background: var(--br-glass);
-  border-radius: 1px;
+  width: 140px; /* Visually long stripe */
+  height: 6px;
+  background: var(--br);
+  border-radius: 3px;
+  position: relative;
   overflow: hidden;
-  max-width: 80px; /* Keep it compact */
 }
 
 .prog-fill {
-  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
   background: var(--grn);
-  border-radius: 1px;
+  border-radius: 3px;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }

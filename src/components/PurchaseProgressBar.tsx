@@ -16,12 +16,11 @@ export const PurchaseProgressBar: React.FC<PurchaseProgressBarProps> = ({
 
   return (
     <div className="prog-container animated-pop">
-      <div className="prog-row">
-        <span className="prog-stat">Куплено {purchasedCount} из {totalCount}</span>
-      </div>
+      <span className="prog-stat">{purchasedCount} из {totalCount}</span>
       <div className="prog-track">
         <div className="prog-fill" style={{ width: `${progress}%` }} />
       </div>
     </div>
   );
 };
+
