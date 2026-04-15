@@ -300,6 +300,11 @@ export default function ListScreen({ list, setList, toStock, categoryOrder, setC
         )}
 
         <div className="list-footer-actions">
+          {checkedItems.length > 0 && (
+            <button className="finish-shopping-btn" onClick={handleFinishShopping}>
+              В Холодос 🧊 (Куплено: {checkedItems.length})
+            </button>
+          )}
           <button className="clear-all-btn" onClick={() => {
             if (window.confirm('Вы точно хотите полностью очистить список покупок?')) {
               setList([]);
