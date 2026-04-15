@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // New Contract v3.15.x: Nested data to prevent hash invalidation + optional origin
       const payload = tgUserData.hash 
-        ? { source: 'widget', origin: window.location.origin, data: tgUserData } 
+        ? tgUserData   // <-- HOTFIX: Send flat data for Telegram Widget to satisfy backend (hash, id at root)
         : { source: 'tma', origin: window.location.origin, initData, user: tgUserData }; // TMA (secure)
 
       const response = await fetch(`${backendUrl}/auth/telegram`, {
@@ -162,11 +162,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isNativePlatform) {
           try {
             console.log("Auth: Checking for Google redirect result...");
-            // Use Promise.race to prevent Safari from hanging forever on getRedirectResult
-            const redirectResult = await Promise.race([
-              getRedirectResult(auth),
-              new Promise<null>((resolve) => setTimeout(() => resolve(null), 3500))
-            ]);
+            // Removed 3.5s Promise.race trap because Firebase takes longer on some mobile connections to return auth redirect state.
+            const redirectResult = await getRedirectResult(auth);
             
             if (redirectResult) {
               console.log("Auth: Redirect result FOUND", redirectResult.user.uid);
