@@ -14,7 +14,7 @@
 }
 
 .cat-name {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--cat-color);
   letter-spacing: 0.6px;
@@ -33,7 +33,7 @@
 }
 
 .cat-cnt {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--t2);
   background: rgba(0, 0, 0, 0.06);

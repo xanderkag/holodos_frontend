@@ -9,7 +9,7 @@
 }
 
 .diary-date {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--t3);
   text-transform: uppercase;
@@ -17,7 +17,7 @@
 }
 
 .diary-title {
-  font-size: 32px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--t1);
   margin-top: 4px;
@@ -54,13 +54,13 @@
 }
 
 .kcal-val {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--acc);
 }
 
 .kcal-lbl {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--t3);
   text-transform: uppercase;
@@ -80,13 +80,13 @@
 }
 
 .stat-val {
-  font-size: 24px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--t1);
 }
 
 .stat-lbl {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--t3);
 }
@@ -138,7 +138,7 @@
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--t1);
   margin-bottom: 16px;
@@ -267,7 +267,7 @@
   border: 2px solid #4D96FF;
   background: rgba(77, 150, 255, 0.05);
   color: #4D96FF;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
@@ -305,7 +305,7 @@
 }
 
 .card-val {
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--t1);
 }
@@ -348,7 +348,7 @@
   border: none;
   background: transparent;
   font-family: inherit;
-  font-size: 15px;
+  font-size: 12px;
   color: var(--t1);
   resize: none;
 }
@@ -395,7 +395,7 @@
 }
 
 .vh-text {
-  font-size: 15px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--t1);
   font-weight: 500;
@@ -409,7 +409,7 @@
   color: #fff;
   border: none;
   border-radius: 18px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -463,7 +463,7 @@
 }
 
 .hsc-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--t1);
   text-transform: uppercase;
@@ -489,7 +489,7 @@
 }
 
 .hsc-val {
-  font-size: 24px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--t1);
   line-height: 1;

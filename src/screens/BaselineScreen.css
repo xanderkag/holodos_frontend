@@ -28,7 +28,7 @@
   flex: 1; 
   height: 32px; 
   border-radius: 9px; 
-  font-size: 13px; 
+  font-size: 12px; 
   font-weight: 600; 
   color: var(--t2); 
   border: none;
@@ -72,8 +72,8 @@
 
 .bl-hc-left { display: flex; align-items: center; gap: 12px; }
 .bl-hc-icon { font-size: 24px; background: rgba(0,0,0,0.03); padding: 8px; border-radius: 12px; }
-.bl-hc-title { font-size: 18px; font-weight: 800; color: var(--t1); }
-.bl-hc-cnt { font-size: 13px; color: var(--t3); font-weight: 500; }
+.bl-hc-title { font-size: 14px; font-weight: 800; color: var(--t1); }
+.bl-hc-cnt { font-size: 12px; color: var(--t3); font-weight: 500; }
 .bl-hc-btn { 
   background: var(--acc); 
   color: #fff; 
@@ -95,7 +95,7 @@
 .r-item-header { display: flex; align-items: center; padding: 14px 16px; cursor: pointer; gap: 12px; }
 .ric-emoji-box { font-size: 28px; background: rgba(0,0,0,0.03); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 16px; }
 .ric-info { flex: 1; cursor: pointer; }
-.ric-name { font-size: 13px; font-weight: 800; color: var(--t2); letter-spacing: 0.5px; }
+.ric-name { font-size: 12px; font-weight: 800; color: var(--t2); letter-spacing: 0.5px; }
 .ric-meta { font-size: 12px; color: var(--t3); margin-top: 2px; }
 
 .ric-actions {
@@ -131,7 +131,7 @@
 .ric-arrow.up { transform: rotate(180deg); }
 
 .ric-body { padding: 16px; background: rgba(0,0,0,0.015); border-top: 1px solid var(--br-glass); }
-.rv-label { font-size: 13px; font-weight: 700; color: var(--acc); margin-bottom: 12px; text-transform: uppercase; }
+.rv-label { font-size: 14px; font-weight: 700; color: var(--acc); margin-bottom: 12px; text-transform: uppercase; }
 .rv-ings { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
 .rv-actions-row {
   display: flex;
@@ -143,7 +143,7 @@
   flex: 1;
   height: 44px;
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -191,7 +191,7 @@
   max-width: 160px;
   height: 40px;
   border-radius: 20px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;

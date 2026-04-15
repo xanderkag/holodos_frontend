@@ -209,7 +209,7 @@
 }
 
 .item-kcal-tag {
-  font-size: 10px;
+  font-size: 11px;
   color: #ff9500;
   background: rgba(255,149,0,0.1);
   padding: 1px 6px;
@@ -217,7 +217,7 @@
 }
 
 .item-qty-pill-tag {
-  font-size: 10px;
+  font-size: 11px;
   color: #007aff;
   background: rgba(0,122,255,0.1);
   padding: 1px 6px;
@@ -225,7 +225,7 @@
 }
 
 .item-notes-pill {
-  font-size: 10px; /* Smaller notes */
+  font-size: 11px; /* Smaller notes */
   color: var(--t2);
   margin-top: 1px;
   opacity: 0.6;

@@ -454,14 +454,14 @@ input {
   letter-spacing: 0.8px;
   color: var(--t2);
   flex: 1;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .cat-badge {
   color: var(--t2);
   font-weight: 700;
-  font-size: 10px;
+  font-size: 12px;
   background: var(--br);
   padding: 2px 8px;
   border-radius: 8px;
@@ -708,7 +708,7 @@ input {
   color: var(--t1);
   font-weight: 800;
   flex: 1;
-  font-size: 10px;
+  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
