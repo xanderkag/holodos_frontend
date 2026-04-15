@@ -159,7 +159,7 @@ body {
 }
 
 .screen.chat-screen {
-  padding-top: calc(var(--sat) + 100px);
+  padding-top: calc(var(--sat) + 58px);
   padding-bottom: 0; 
   overflow: hidden;
 }
