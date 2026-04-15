@@ -39,8 +39,8 @@
   /* Safe Area Variables with pure env() fallback */
   --sat-force: 0px;
   --sab-force: 0px;
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
+  --sat: max(env(safe-area-inset-top, 0px), var(--sat-force));
+  --sab: max(env(safe-area-inset-bottom, 0px), var(--sab-force));
   --skip: rgba(0, 0, 0, 0.4);
   --active-overlay: rgba(0, 0, 0, 0.05); /* Light mode click effect */
 }
@@ -590,15 +590,7 @@ input {
 
 /* TMA Platform Adaptation */
 .telegram-miniapp {
-  --hdr-h: 10px; /* Ensure uniform header height calculation */
   background: var(--bg); /* Use solid color to prevent background flickering */
-}
-
-/* TMA Header Adaptation */
-.telegram-miniapp .glass-header {
-  height: calc(var(--sat) + var(--hdr-h)); /* Slightly taller for TMA context */
-  padding-top: calc(var(--sat) + 4px);
-  padding-bottom: 4px;
 }
 
 .telegram-miniapp body {
