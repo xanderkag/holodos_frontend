@@ -177,20 +177,21 @@
   right: 0;
   z-index: 105;
   display: flex;
-  gap: 12px;
-  padding: 16px;
+  gap: 8px;
+  padding: 12px 16px;
   background: transparent;
   pointer-events: none;
   justify-content: center;
+  align-items: center;
 }
 
 .bl-act-btn {
   pointer-events: auto;
   flex: 1;
-  max-width: 200px;
-  height: 52px;
-  border-radius: 26px;
-  font-size: 11px;
+  max-width: 160px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -199,23 +200,25 @@
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--br-glass);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.7);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.7);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  line-height: 1.1;
+  padding: 0 10px;
 }
 
 .bl-act-btn.acc {
   background: var(--acc);
   color: #fff;
   border: 1px solid rgba(0,0,0,0.1);
-  box-shadow: 0 12px 30px var(--acc-glow), inset 0 1px 1px rgba(255,255,255,0.3);
+  box-shadow: 0 8px 20px var(--acc-glow), inset 0 1px 1px rgba(255,255,255,0.3);
 }
 
 .bl-act-btn:active {
-  transform: scale(0.95) translateY(4px);
+  transform: scale(0.95) translateY(2px);
 }
 
 .debug-reset {

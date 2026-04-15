@@ -154,12 +154,12 @@ body {
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
-  padding-top: calc(var(--sat) + 58px);
+  padding-top: calc(var(--sat) + 64px);
   padding-bottom: calc(var(--tab-h) + var(--sab) + 16px);
 }
 
 .screen.chat-screen {
-  padding-top: calc(var(--sat) + 100px);
+  padding-top: calc(var(--sat) + 106px);
   padding-bottom: 0; 
   overflow: hidden;
 }
