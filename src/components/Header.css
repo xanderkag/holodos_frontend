@@ -3,17 +3,24 @@
   top: 0;
   left: 0;
   right: 0;
-  height: calc(max(var(--sat), 47px) + 60px);
+  height: calc(var(--sat) + 56px); /* 15-20% taller than 48px */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: max(var(--sat), 47px) 16px 0;
+  padding: var(--sat) 16px 0;
   background: var(--sf-glass-solid);
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
   border-bottom: 1px solid var(--br-glass);
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.hdr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .hdr-left {

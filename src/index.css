@@ -154,12 +154,12 @@ body {
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
-  padding-top: calc(max(var(--sat), 47px) + 62px);
+  padding-top: calc(var(--sat) + 58px);
   padding-bottom: calc(var(--tab-h) + var(--sab) + 100px);
 }
 
 .screen.chat-screen {
-  padding-top: calc(max(var(--sat), 47px) + 106px); 
+  padding-top: calc(var(--sat) + 100px); 
   padding-bottom: 0; 
   overflow: hidden;
 }
@@ -248,11 +248,7 @@ input {
 /* Floating Header */
 /* Header is now fully styled in Header.css to avoid conflicts */
 
-.hdr-row {
-  justify-content: space-between;
-  align-items: center;
-  display: flex;
-}
+
 
 .hdr-title {
   letter-spacing: -0.4px;
