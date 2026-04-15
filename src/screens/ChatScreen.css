@@ -46,14 +46,13 @@
   color: var(--t3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  backdrop-filter: blur(10px);
   border: 1px solid var(--br-glass);
 }
 
 .chat-instructions-trigger {
   align-self: center;
   color: #007aff;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   padding: 10px 20px;
   margin-top: 10px;
@@ -83,7 +82,7 @@
   padding: 12px 16px;
   border-radius: 20px;
   position: relative;
-  font-size: 15px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -105,7 +104,7 @@
 }
 
 .msg-time {
-  font-size: 10px;
+  font-size: 11px;
   opacity: 0.6;
   margin-top: 4px;
   text-align: right;
@@ -252,7 +251,7 @@
   border: 1px solid rgba(255, 59, 48, 0.2);
   border-radius: 12px;
   color: #ff3b30;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -302,12 +301,12 @@
 
 .skip-name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 12px;
   color: var(--text);
 }
 
 .skip-reason {
-  font-size: 0.8rem;
+  font-size: 11px;
   opacity: 0.6;
 }
 
@@ -370,7 +369,7 @@
 }
 
 .suggestion-text {
-  font-size: 0.9rem;
+  font-size: 12px;
   opacity: 0.8;
   padding-left: 2px;
 }
@@ -384,7 +383,7 @@
 .suggestion-chip {
   padding: 8px 16px;
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 12px;
   font-weight: 500;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s ease;
@@ -451,13 +450,13 @@
 }
 
 .idr-name {
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--t1);
 }
 
 .idr-meta {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--t2);
   opacity: 0.6;
 }
@@ -491,6 +490,6 @@
   text-align: center;
   padding: 40px 20px;
   color: var(--t3);
-  font-size: 14px;
+  font-size: 12px;
   font-style: italic;
 }

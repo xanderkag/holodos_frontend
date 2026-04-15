@@ -653,7 +653,7 @@ input {
   border: none;
   background: transparent;
   color: var(--t2);
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
