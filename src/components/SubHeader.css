@@ -1,5 +1,6 @@
 .sub-header {
   position: sticky;
+  top: 56px; /* Bulletproof fallback */
   top: calc(var(--sat) + 56px);
   z-index: 100;
   width: 100%;
