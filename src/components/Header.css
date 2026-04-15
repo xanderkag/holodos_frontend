@@ -3,12 +3,10 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 56px; /* Bulletproof fallback */
-  height: calc(var(--sat) + 56px); /* 15-20% taller than 48px */
+  height: calc(var(--sat) + 56px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px 0; /* Bulletproof fallback */
   padding: var(--sat) 16px 0;
   background: var(--sf-glass-solid);
   backdrop-filter: blur(32px);

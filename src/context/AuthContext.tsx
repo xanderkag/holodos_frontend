@@ -56,9 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const payload = {
         source: isWidget ? 'widget' : 'tma',
-        origin: window.location.origin, // Crucial for app-ru to resolve Russian Bot Token
         initData: isWidget ? undefined : window.Telegram?.WebApp?.initData,
-        data: safeData
+        ...safeData
       };
 
       const response = await fetch(`${backendUrl}/auth/telegram`, {

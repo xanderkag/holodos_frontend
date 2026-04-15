@@ -9,7 +9,6 @@ interface SubHeaderProps {
 export const SubHeader: React.FC<SubHeaderProps> = ({ children, className = '' }) => {
   return (
     <div className={`sub-header ${className}`}>
-      <div className="sub-header-blur" />
       <div className="sub-header-content">
         {children}
       </div>

@@ -154,15 +154,12 @@ body {
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
-  padding-top: 58px; /* Bulletproof fallback */
   padding-top: calc(var(--sat) + 58px);
-  padding-bottom: 172px; /* Bulletproof fallback */
-  padding-bottom: calc(var(--tab-h) + var(--sab) + 100px);
+  padding-bottom: calc(var(--tab-h) + var(--sab) + 16px);
 }
 
 .screen.chat-screen {
-  padding-top: 100px; /* Bulletproof fallback */
-  padding-top: calc(var(--sat) + 100px); 
+  padding-top: calc(var(--sat) + 100px);
   padding-bottom: 0; 
   overflow: hidden;
 }
@@ -296,20 +293,23 @@ input {
 
 /* Floating Tab Bar */
 .glass-tabbar {
-  height: var(--tab-h);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tab-h) + var(--sab));
+  padding-bottom: var(--sab);
   z-index: 100;
   background: var(--sf-glass-solid);
   -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
-  border: 1px solid var(--br-glass);
-  border-radius: 35px;
+  border-top: 1px solid var(--br-glass);
+  border-radius: 35px 35px 0 0;
   align-items: stretch;
-  padding: 4px;
+  padding-top: 4px;
+  padding-left: 4px;
+  padding-right: 4px;
   display: flex;
-  position: absolute;
-  bottom: calc(16px + var(--sab, 0px));
-  left: 16px;
-  right: 16px;
   box-shadow: var(--sh-panel), var(--sh-inset);
 }
 

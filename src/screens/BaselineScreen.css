@@ -6,8 +6,6 @@
 
 .bl-content { 
   padding-top: 4px; 
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20px, black calc(100% - 120px), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, black 20px, black calc(100% - 120px), transparent 100%);
 }
 
 .bl-subtabs { 
