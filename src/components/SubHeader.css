@@ -1,7 +1,7 @@
 .sub-header {
   position: sticky;
-  top: 26px; /* Bulletproof fallback */
-  top: calc(var(--sat) + 26px);
+  top: 16px; /* Bulletproof fallback */
+  top: calc(var(--sat) + 16px);
   z-index: 100;
   width: 100%;
   height: 44px; /* Integrated height for progress/capsule */
