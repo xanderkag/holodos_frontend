@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const REGION = process.env.VITE_YANDEX_REGION || "ru-central1";
-const BUCKET_NAME = process.env.VITE_YANDEX_BUCKET_NAME || "holodos-app-ru";
+const BUCKET_NAME = process.env.VITE_YANDEX_BUCKET_NAME || "app-ru.holodos.su";
 
 const s3Client = new S3Client({
   region: REGION,
