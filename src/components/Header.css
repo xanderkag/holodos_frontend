@@ -3,7 +3,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: calc(var(--sat) + 56px);
+  height: calc(var(--sat) + 30px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -12,8 +12,8 @@
   padding-left: 16px;
   padding-right: 16px;
   background: var(--sf-glass-solid);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--br-glass);
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
