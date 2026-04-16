@@ -107,6 +107,11 @@ export const SmartInput: React.FC<SmartInputProps> = ({
         return;
       }
       
+      // Do not interrupt the user if they are currently recording a voice message
+      if (smartInputState === 'recording') {
+        return;
+      }
+      
       onStateChange('hidden');
     };
     
@@ -116,7 +121,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [onStateChange]);
+  }, [onStateChange, smartInputState]);
 
   useEffect(() => {
     if (smartInputState === 'active') {

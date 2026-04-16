@@ -171,7 +171,9 @@ export const TabBar: React.FC<TabBarProps> = ({
             }}
           >
             <div className={`ticon ${isChat ? 'is-main-capsule' : ''} ${isChat && dockedSide !== 'none' ? `docked-${dockedSide}` : ''}`} key={tab.icon}>
-              {tab.icon}
+              {isChat && <span className="mc-arrow left">‹</span>}
+              <span className="mc-center">{tab.icon}</span>
+              {isChat && <span className="mc-arrow right">›</span>}
               {tab.hasBadge && <span className="tab-badge" />}
             </div>
             {!isChat || tab.label === 'AI' ? <span className="tlabel" key={tab.label}>{tab.label}</span> : null}

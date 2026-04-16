@@ -76,10 +76,6 @@ export async function analyzeImage(
     logDiagnostic(`Vision: Preparing payload (~${imgSizeKB} KB)...`, 'info');
 
     try {
-        // Convert base64 string back to binary Blob to satisfy the backend
-        const blob = await base64ToBlob(base64Image, 'image/jpeg');
-        logDiagnostic(`Vision: Blob created size=${Math.round(blob.size / 1024)} KB, type=${blob.type}`, 'net');
-
         let result;
         if (Capacitor.isNativePlatform()) {
             logDiagnostic('Vision: POST /ai/image (JSON Base64 Hybrid)...', 'net');
@@ -93,16 +89,20 @@ export async function analyzeImage(
                 userEmail: userEmail,
                 userId: userId,
                 appUrl: window.location.origin,
-                currentList: currentList,
-                currentStock: currentStock,
-                currentDiary: currentDiary,
-                currentBaseline: currentBaseline,
-                list: currentList,
-                stock: currentStock,
+                currentList: JSON.stringify(currentList),
+                currentStock: JSON.stringify(currentStock),
+                currentDiary: JSON.stringify(currentDiary),
+                currentBaseline: JSON.stringify(currentBaseline),
+                list: JSON.stringify(currentList),
+                stock: JSON.stringify(currentStock),
                 priority: priority
             };
             result = await apiPost<any>('/ai/image', payload);
         } else {
+            // Convert base64 string back to binary Blob to satisfy the backend
+            const blob = await base64ToBlob(base64Image, 'image/jpeg');
+            logDiagnostic(`Vision: Blob created size=${Math.round(blob.size / 1024)} KB, type=${blob.type}`, 'net');
+
             const formData = new FormData();
             formData.append("data", blob, "image.jpg");
             formData.append("type", "image");
@@ -131,7 +131,7 @@ export async function analyzeImage(
             });
         }
 
-        await logAssistantRequest(userEmail, itemsCount, "backend-image");
+        logAssistantRequest(userEmail, itemsCount, "backend-image");
         return result;
     } catch (error: any) {
         if (error?.name === 'ApiError' && error.status === 403 && error.code === 'limit_reached') {
@@ -139,7 +139,7 @@ export async function analyzeImage(
             throw error;
         }
         console.error("Assistant Error (image):", error);
-        await logAssistantRequest(userEmail, 0, "backend-image-FAILED", error.message);
+        logAssistantRequest(userEmail, 0, "backend-image-FAILED", error.message);
         throw error;
     }
 }
@@ -172,12 +172,12 @@ export async function sendVoiceToN8N(
                 userEmail: userEmail,
                 userId: userId,
                 appUrl: window.location.origin,
-                currentList: currentList,
-                currentStock: currentStock,
-                currentDiary: currentDiary,
-                currentBaseline: currentBaseline,
-                list: currentList,
-                stock: currentStock,
+                currentList: JSON.stringify(currentList),
+                currentStock: JSON.stringify(currentStock),
+                currentDiary: JSON.stringify(currentDiary),
+                currentBaseline: JSON.stringify(currentBaseline),
+                list: JSON.stringify(currentList),
+                stock: JSON.stringify(currentStock),
                 priority: priority
             };
             json = await apiPost<any>('/ai/voice', payload);
@@ -208,7 +208,8 @@ export async function sendVoiceToN8N(
                 if (a.items) itemsCount += a.items.length;
             });
         }
-        await logAssistantRequest(userEmail, itemsCount, "backend-voice");
+        // DO NOT AWAIT! Firestore promises hang infinitely if offline
+        logAssistantRequest(userEmail, itemsCount, "backend-voice");
 
         return json;
     } catch (error: any) {

@@ -73,7 +73,9 @@ export default function App() {
         setSmartInputState('active');
       } else {
         // Second click: Input is already open
-        if (currentTab !== 'chat') {
+        if (smartInputState === 'recording') {
+          setSmartInputState('active'); // Stop recording without switching tabs
+        } else if (currentTab !== 'chat') {
           // If we were on another tab, NOW transfer to chat
           setCurrentTab('chat');
         } else {
@@ -101,6 +103,9 @@ export default function App() {
           // Force apply iOS safe area fallbacks in case 'env' calculates to 0px
           document.documentElement.style.setProperty('--sat-force', '47px');
           document.documentElement.style.setProperty('--sab-force', '34px');
+        } else if (Capacitor.getPlatform() === 'android') {
+          // Fallback for Android status bar which often reports 0px for env(safe-area-inset-top)
+          document.documentElement.style.setProperty('--sat-force', '36px');
         }
         StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
         SplashScreen.hide().catch(() => {});

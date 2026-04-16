@@ -310,7 +310,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
               <div className={`eim-panel ${mode === 'tovar' ? 'active' : ''}`}>
                 <div className="eim-sec">
                   <div className="eim-lbl">Название</div>
-                  <input className="eim-tinp-large" type="text" value={name} onChange={e => handleNameChange(e.target.value)} placeholder="Молоко" />
+                  <input className="eim-tinp-large" type="text" autoComplete="off" autoCorrect="off" spellCheck={false} value={name} onChange={e => handleNameChange(e.target.value)} placeholder="Молоко" />
                   
                   <div className={`eim-chips-scroll ${suggestions.length > 0 ? 'visible' : ''}`}>
                     {suggestions.map((s, idx) => (
@@ -324,7 +324,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                 <div className="eim-row">
                   <div className="eim-sec" style={{flex: 1.2, position: 'relative'}}>
                     <div className="eim-lbl">Категория</div>
-                    <input className="eim-inp" type="text" value={category} onChange={e => handleCategoryChange(e.target.value)} placeholder="Категория" />
+                    <input className="eim-inp" type="text" autoComplete="off" autoCorrect="off" spellCheck={false} value={category} onChange={e => handleCategoryChange(e.target.value)} placeholder="Категория" />
                     {catSuggestions.length > 0 && (
                       <div className="eim-cat-chips">
                         {catSuggestions.map(c => (
@@ -398,6 +398,9 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   <div className="eim-lbl">Продукт</div>
                   <input 
                     className="eim-tinp-large" 
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
                     autoFocus={!initialName}
                     placeholder="Что съели?"
                     value={name} 

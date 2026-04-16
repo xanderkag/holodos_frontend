@@ -5,6 +5,9 @@ const config: CapacitorConfig = {
   appName: 'HOLODOS AI',
   webDir: 'dist',
   plugins: {
+    CapacitorHttp: {
+      enabled: true,
+    },
     // Native Google Sign-In plugin (@codetrix-studio/capacitor-google-auth)
     // serverClientId = Web Client ID (used to exchange native token with Firebase)
     // Android OAuth Client ID must be registered separately in Google Cloud Console

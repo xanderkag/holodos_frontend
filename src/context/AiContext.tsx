@@ -166,6 +166,10 @@ export function AiProvider({ children }: { children: ReactNode }) {
             cat: it.cat || (classify(it.name || '')).cat || 'Другое', 
             isChecked: it.isChecked || false, 
             qty: it.qty || '1',
+            kcal: it.kcal !== undefined ? it.kcal : it.calories,
+            protein: it.protein,
+            fat: it.fat,
+            carbs: it.carbs,
             updatedAt: Date.now()
           } as any;
           if (target === 'diary') {
@@ -180,7 +184,11 @@ export function AiProvider({ children }: { children: ReactNode }) {
           }
           return item;
         });
-        newState = mergeItems(newState, toAdd);
+        if (target === 'diary') {
+          newState = [...newState, ...toAdd];
+        } else {
+          newState = mergeItems(newState, toAdd);
+        }
         summaries.push(`+ ${items.map(i => i.name).join(', ')} в "${getTargetName(target)}"`);
       } else if (type === 'remove') {
         const lowerNames = items.map(n => n.name?.toLowerCase());
@@ -189,6 +197,27 @@ export function AiProvider({ children }: { children: ReactNode }) {
       } else if (type === 'check') {
         const lowerNames = items.map(n => n.name?.toLowerCase());
         newState = newState.map(it => lowerNames.includes(it.name.toLowerCase()) ? { ...it, isChecked: true } : it);
+        
+        // ADD MISSING ITEMS AUTOMATICALLY
+        const existingNames = newState.map(it => it.name.toLowerCase());
+        const missingItems = items.filter(n => !n.name || !existingNames.includes(n.name.toLowerCase()));
+        
+        if (missingItems.length > 0) {
+          const toAdd = missingItems.map((it: any) => ({
+            id: it.id || uid(), 
+            name: it.name || '', 
+            cat: it.cat || (classify(it.name || '')).cat || 'Другое', 
+            isChecked: true, // checked immediately
+            qty: it.qty || '1',
+            kcal: it.kcal !== undefined ? it.kcal : it.calories,
+            protein: it.protein,
+            fat: it.fat,
+            carbs: it.carbs,
+            updatedAt: Date.now()
+          } as any));
+          newState = [...toAdd, ...newState];
+        }
+        
         summaries.push(`Отметил ${items.map(n => n.name).join(', ')} как купленное`);
       } else if (type === 'uncheck') {
         const lowerNames = items.map(n => n.name?.toLowerCase());
@@ -213,21 +242,22 @@ export function AiProvider({ children }: { children: ReactNode }) {
   const applyActions = useCallback(async (res: any) => {
     if (!res) return;
     
-    const actions = res.actions || [];
-    const hasValidActions = Array.isArray(actions) && actions.length > 0;
-    
-    if (!hasValidActions) {
-      if (res.feedback) {
-        showToast("💬 Получен ответ от ИИ (в чате)");
-      } else {
-        logDiagnostic('CHAT: Empty response from backend, no feedback or actions. Ignored.', 'error');
-        showToast("⚠️ ИИ не смог распознать данные");
-        addSystemMessage("⚠️ ИИ не нашел параметров или продуктов для добавления", "system");
-        return;
+    try {
+      const actions = res.actions || [];
+      const hasValidActions = Array.isArray(actions) && actions.length > 0;
+      
+      if (!hasValidActions) {
+        if (res.feedback) {
+          showToast("💬 Получен ответ от ИИ (в чате)");
+        } else {
+          logDiagnostic('CHAT: Empty response from backend, no feedback or actions. Ignored.', 'error');
+          showToast("⚠️ ИИ не смог распознать данные");
+          addSystemMessage("⚠️ ИИ не нашел параметров или продуктов для добавления", "system");
+          return;
+        }
       }
-    }
-    
-    const generatedMsgId = uid();
+      
+      const generatedMsgId = uid();
     
     // Snapshot for Undo mechanism
     const backupState = {
@@ -314,12 +344,17 @@ export function AiProvider({ children }: { children: ReactNode }) {
       }, 15000);
     }
     
-    if (hasValidActions) {
-      showToast("✅ Действие выполнено");
+      if (hasValidActions) {
+        showToast("✅ Действие выполнено");
+      }
+      
+      // Urgent save to Firebase to prevent data loss on high-latency snapshots
+      setTimeout(() => saveAll(), 200);
+    } catch (err: any) {
+      logDiagnostic(`CHAT CRASH (applyActions): ${err.message}`, 'error');
+      console.error(err);
+      showToast("❌ Ошибка обработки ответа: " + err.message);
     }
-    
-    // Urgent save to Firebase to prevent data loss on high-latency snapshots
-    setTimeout(() => saveAll(), 200);
   }, [executeActions, setBaseline, setList, setMessages, setStock, setDiary, saveAll, addLogEvent]);
 
   const executeOption = useCallback(async (messageId: string, option: any) => {

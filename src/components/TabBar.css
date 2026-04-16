@@ -111,6 +111,31 @@
   box-shadow: 0 8px 24px rgba(0, 170, 255, 0.3);
   font-size: 28px;
   z-index: 10;
+  position: relative;
+}
+
+.mc-center {
+  z-index: 2;
+  position: relative;
+}
+
+.mc-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  opacity: 0.5;
+  pointer-events: none;
+  font-weight: 300;
+  transition: opacity 0.2s ease;
+}
+
+.mc-arrow.left { left: 8px; }
+.mc-arrow.right { right: 8px; }
+
+.is-main-capsule.docked-left .mc-arrow,
+.is-main-capsule.docked-right .mc-arrow {
+  opacity: 0;
 }
 
 .tab.on .is-main-capsule {

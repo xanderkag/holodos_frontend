@@ -1,5 +1,6 @@
 .diary-screen {
-  padding: 0 16px 120px;
+  padding-left: 16px;
+  padding-right: 16px;
   background: var(--bg);
 }
 

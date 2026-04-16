@@ -70,7 +70,7 @@
 /* Scroll body */
 .eim-sbody {
   flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  min-height: 480px; /* v2.83.0: Stabilize height between tabs */
+  height: 520px;
 }
 .eim-sbody::-webkit-scrollbar { display: none; }
 

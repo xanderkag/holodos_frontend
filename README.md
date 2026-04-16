@@ -42,6 +42,7 @@ npm run verify     # build + preview
 | DB | Firestore |
 | Media | Yandex Cloud Object Storage (S3-compatible) |
 | AI | Backend n8n → `/ai/text`, `/ai/voice`, `/ai/image` |
+| Native Http | `CapacitorHttp` для обхода браузерных CORS preflight на Yandex Gateway |
 
 ---
 
@@ -149,7 +150,13 @@ if (result.subscription) {
 
 - Source tagging устанавливается на фронте в `AiContext.tsx` и `SmartInput.tsx`
 - Backend возвращает `AiResponse` с `actions[]`, `feedback`, `requiresConfirmation`
-- `applyActions()` в `AiContext.tsx` применяет все actions к глобальному стейту
+- `applyActions()` в `AiContext.tsx` применяет все actions к глобальному стейту. Примечания:
+  - Сущности для Дневника (`target: 'diary'`) добавляются **прямым пушем**, чтобы сохранить уникальные ключи `chatMessageId`.
+  - Поля пищевой ценности (`kcal`, `protein`, `fat`, `carbs`) переносятся один к одному из AI payload в State.
+  - Если приходит action `type: "check"`, `target: "list"`, а товара нет в списке — фронтенд **сам** добавит его и отметит выполненным.
+
+### Гибридная загрузка медиа
+Из-за проблем Yandex API Gateway с прерыванием соединений `multipart/form-data` на стороне WebView/Capacitor, передача медиа (аудио/фото) с мобильных клиентов происходит в виде чистого JSON-объекта (base64 string). PWA и Web продолжают использовать стандартную `FormData`.
 
 ### ApiError
 ```typescript
@@ -274,4 +281,4 @@ Google Cloud Console → OAuth 2.0 → Authorized JavaScript origins:
 
 ## 📌 Текущая версия
 
-**v3.22.6** | 15 апреля 2026
+**v3.22.19** | 16 апреля 2026

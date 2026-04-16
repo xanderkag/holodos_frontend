@@ -128,8 +128,7 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
   return (
     <div className="screen scrollable diary-screen">
       <SubHeader>
-        <div className="diary-header-content" style={{display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center'}}>
-          <h2 style={{fontSize: '14px', fontWeight: '800', margin: 0, color: 'var(--t1)', textTransform: 'uppercase'}}>Дневник</h2>
+        <div style={{display: 'flex', justifyContent: 'center', width: '100%', alignItems: 'center'}}>
           <div style={{fontSize: '12px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '1px'}}>{today}</div>
         </div>
       </SubHeader>

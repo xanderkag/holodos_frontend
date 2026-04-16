@@ -22,7 +22,8 @@
    - `POST /ai/voice`
    - `POST /ai/image`
 3. **Action Application**: Backend возвращает единый `AiResponse` с `feedback`, `requiresConfirmation` и `actions[]`. `AiContext.tsx` парсит эти действия и применяет их к глобальному состоянию.
-4. **Diary Binding**: Если в ответе присутствуют diary-actions (`target === 'diary'` или `to === 'diary'`), frontend сам связывает diary items с rich chat card через `chatMessageId`.
+4. **Diary Binding**: Если в ответе присутствуют diary-actions (`target === 'diary'`), frontend ДОЛЖЕН добавлять их прямым пушем (`newState = [...newState, ...toAdd]`), а не мёржить. Мёрж по имени уничтожает уникальные привязки `chatMessageId`, что ломает отображение rich карточек в ленте чата.
+5. **Nutrition Mapping**: Приложение обязано сохранять поля `kcal`, `protein`, `fat`, `carbs` в State из AI-ответа (с фолбеком `kcal: it.kcal !== undefined ? it.kcal : it.calories`).
 
 > [!CAUTION]
 > **СТРОГОЕ ПРАВИЛО ИНТЕГРАЦИИ (НЕПРИКОСНОВЕННОСТЬ БЭКЕНДА):**
@@ -37,8 +38,9 @@
 >   - `sendChatCommand()` → `result.source = 'text'`
 >   - Voice recording в `SmartInput` → `result.source = 'voice'`
 > - **Гибридная загрузка медиа (Hybrid Media Uploads)**: В связи с архитектурным багом Yandex API Gateway (обрыв соединения при получении boundary multipart/form-data потоков мобильным Capacitor), система работает в гибридном режиме:
->   - **PWA/Веб**: Использует стандартный `FormData` через преобразование `base64ToBlob`.
->   - **Native (iOS/Android Capacitor)**: Игнорирует FormData! Строго конвертирует медиа обратно в строку Base64 (через FileReader) с нужным MIME-префиксом (`data:image/jpeg;base64,...`) и отправляет в виде чистого JSON-объекта (`application/json`) для прямого проброса в n8n в обход зависаний Multer'а.
+>   - **Native (iOS/Android Capacitor)**: Игнорирует FormData! Строго конвертирует медиа обратно в строку Base64 (через FileReader) с нужным MIME-префиксом (`data:image/jpeg;base64,...`) и отправляет в виде чистого JSON-объекта (`application/json` + stringified JSON массивы) для прямого проброса в n8n в обход зависаний Multer'а.
+> - **Native CORS & CapacitorHttp**: Мы используем нативный HTTP Engine Capacitor (`CapacitorHttp`) для обхода браузерных preflight CORS ошибок (OPTIONS) на Yandex API Gateway.
+> - **Non-blocking logging**: Все вызовы Firebase-аналитики или базы, выполняемые сразу после сетевых запросов (например, логирование чата), категорически нельзя вызывать с `await`. При offline-ошибке (`code=unavailable`) асинхронный вызов заблокирует главный UI-поток и подвесит экран приложения.
 
 ---
 
@@ -181,11 +183,11 @@ if (result.subscription) {
 - **Плотность (`data-density`)**: Обязательная поддержка `comfortable` и `compact`.
 - Ключевые классы контейнеров: `.glass-panel`, `.glass-pill`.
 
-### Нативные отступы (iOS Safe Area Polyfill)
-В Capacitor на iOS системные переменные `env(safe-area-inset-top)` иногда отдают `0px` из-за багов WebKit.
+### Нативные отступы (iOS & Android Safe Area Polyfill)
+В мобильном Capacitor системные переменные `env(safe-area-inset-top)` иногда отдают `0px` из-за особенностей WebView (особенно на Android).
 - Фронтенд использует CSS fallback через `max()`: `max(env(safe-area-inset-top, 0px), var(--sat-force))`.
-- В `App.tsx` JS принудительно устанавливает `--sat-force: 47px` и `--sab-force: 34px` (только для iOS).
-- Это гарантирует, что `Dynamic Island` или нижняя панель на iPhone не будут перекрывать контент приложения.
+- В `App.tsx` JS принудительно устанавливает `--sat-force: 47px` (iOS) и `--sat-force: 36px` (Android).
+- Это гарантирует, что `Dynamic Island`, `Android System StatusBar` или нижняя панель не будут перекрывать контент приложения.
 
 ### Глобальные Компоненты
 1. **`ActionSheet` & `Modal`**:
@@ -303,6 +305,7 @@ if (result.subscription) {
 
 ### 3. `ListScreen` (Список покупок)
 - **Разделение**: Некупленное (`activeItems`) и Купленное (`checkedItems`).
+- **Авто-добавление покупок**: Когда AI присылает `type: "check"`, `target: "list"`, а товара нет в списке — фронт автоматически **создает** его и ставит `isChecked: true`. Товар не теряется, а ложится в лоток "Куплено".
 - **Капсула "Куплено"**: Выполненные сворачиваются в стеклянный блок снизу.
 - **DND**: `@dnd-kit`, порог пересечения 25% высоты контейнера.
 - **`handleFinishShopping`**: Все `isChecked` удаляются из Списка и переносятся в `BaselineScreen`.
