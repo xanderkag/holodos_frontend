@@ -45,20 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 1. If it's a widget, `tgUserData` IS EXACTLY what backend needs in `data`.
       // 2. If it's TMA, `tgUserData` is `user`, so we must manually provide `hash` and `id` in `data`.
       const isWidget = !!tgUserData.hash;
-      let safeData = null;
-
+      let payload;
       if (isWidget) {
-        safeData = tgUserData; // pass verbatim so signature isn't broken
+        payload = tgUserData; // pass verbatim so signature isn't broken
       } else {
         const unsafe = window.Telegram?.WebApp?.initDataUnsafe || {};
-        safeData = { id: unsafe.user?.id || tgUserData?.id, hash: unsafe.hash, ...unsafe };
+        const safeData = { id: unsafe.user?.id || tgUserData?.id, hash: unsafe.hash, ...unsafe };
+        payload = {
+          source: 'tma',
+          initData: window.Telegram?.WebApp?.initData,
+          ...safeData
+        };
       }
-
-      const payload = {
-        source: isWidget ? 'widget' : 'tma',
-        initData: isWidget ? undefined : window.Telegram?.WebApp?.initData,
-        ...safeData
-      };
 
       const response = await fetch(`${backendUrl}/auth/telegram`, {
         method: 'POST',
