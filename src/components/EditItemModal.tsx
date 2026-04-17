@@ -380,9 +380,6 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   <div className="eim-lbl">Примечания</div>
                   <textarea className="eim-inp" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Бренд, жирность, упаковка..." />
                 </div>
-
-                </div>
-
                 <div className="eim-div" />
                 <div className="eim-actions">
                   <button className="eim-btn eim-b-save" onClick={handleSaveItem}>Сохранить</button>
