@@ -18,7 +18,8 @@
     "mobile:prepare": "npm run build && (npx cap sync ios && npx cap sync android)",
     "mobile:ios": "npm run build && npx cap copy ios && npx cap open ios",
     "mobile:android": "npm run build && npx cap copy android && npx cap open android",
-    "deploy": "node scripts/deploy-yandex.js"
+    "deploy": "node scripts/deploy-yandex.js",
+    "deploy:apk": "chmod +x scripts/deploy-apk.sh && bash scripts/deploy-apk.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1028.0",
