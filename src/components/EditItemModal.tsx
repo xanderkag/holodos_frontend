@@ -67,7 +67,6 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
   // Diary Edit States
   const [mealType, setMealType] = useState<'breakfast'|'lunch'|'dinner'|'snack'>('lunch');
   const [logDate, setLogDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [logTime, setLogTime] = useState<string>(new Date().toTimeString().substring(0,5));
   const [portion, setPortion] = useState<number>(100);
   const [portionUnit, setPortionUnit] = useState<string>('г');
   const [deductFromStock, setDeductFromStock] = useState(true);
@@ -113,10 +112,8 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
       if (initialConsumedAt) {
         const d = new Date(initialConsumedAt);
         setLogDate(d.toISOString().split('T')[0]);
-        setLogTime(d.toTimeString().substring(0,5));
       } else {
         setLogDate(new Date().toISOString().split('T')[0]);
-        setLogTime(new Date().toTimeString().substring(0,5));
       }
       
       if (initialMealType) {
@@ -191,7 +188,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
 
       onLogDiary({
         mealType,
-        consumedAt: new Date(`${logDate}T${logTime}`).getTime(),
+        consumedAt: new Date(logDate).getTime(),
         portionQty: portion || 0,
         portionUnit,
         kcal: Math.round(pKcal),
@@ -349,8 +346,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   )}
                 </div>
 
-                <div style={{ display: isNameFocused ? 'none' : 'block', animation: 'fadeIn 0.2s ease' }}>
-                  <div className="eim-row">
+                <div className="eim-row">
                   <div className="eim-sec" style={{flex: 1.2, position: 'relative'}}>
                     <div className="eim-lbl">Категория</div>
                     <input className="eim-inp" type="text" autoComplete="off" autoCorrect="off" spellCheck={false} value={category} onChange={e => handleCategoryChange(e.target.value)} placeholder="Категория" />
@@ -389,8 +385,6 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
 
                 <div className="eim-div" />
                 <div className="eim-actions">
-                  <button className="eim-btn eim-b-cancel" onClick={onClose}>Отмена</button>
-                  {onDelete && <button className="eim-btn eim-b-delete" onClick={onDelete}>Удалить</button>}
                   <button className="eim-btn eim-b-save" onClick={handleSaveItem}>Сохранить</button>
                 </div>
               </div>
@@ -440,9 +434,13 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   )}
                 </div>
 
-                <div style={{ display: isNameFocused ? 'none' : 'block', animation: 'fadeIn 0.2s ease' }}>
-                  <div className="eim-row" style={{marginBottom: 12}}>
-                  <div className="eim-sec" style={{flex: 1.5, paddingBottom: 0}}>
+                <div className="eim-row" style={{marginTop: 12, marginBottom: 12}}>
+                  <div className="eim-sec" style={{flex: 1, paddingBottom: 0, paddingRight: 6}}>
+                    <div className="eim-date-row compact">
+                      <input className="eim-date-inp" type="date" value={logDate} onChange={e=>setLogDate(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="eim-sec" style={{flex: 1.5, paddingBottom: 0, paddingLeft: 6}}>
                     <div className="eim-meal-tabs">
                       <button className={`eim-mtab ${mealType==='breakfast'?'active':''}`} onClick={()=>setMealType('breakfast')}>Завтрак</button>
                       <button className={`eim-mtab ${mealType==='lunch'?'active':''}`} onClick={()=>setMealType('lunch')}>Обед</button>
@@ -454,7 +452,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
 
                 <div className="eim-sec" style={{marginBottom: 4}}>
                   <div className="eim-lbl">Порция</div>
-                  <div className="eim-portion-frame" style={{height: 58}}>
+                  <div className="eim-portion-frame" style={{height: 48}}>
                     <input 
                       className="eim-portion-val" 
                       type="number" 
@@ -464,20 +462,11 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                     <div className="eim-portion-toggle">
                       <button className={`eim-pu-btn ${portionUnit==='г'?'active':''}`} onClick={()=>setPortionUnit('г')}>г</button>
                       <button className={`eim-pu-btn ${portionUnit==='мл'?'active':''}`} onClick={()=>setPortionUnit('мл')}>мл</button>
-                      {/* Removed 'шт' as requested (v2.84.0) */}
                     </div>
                   </div>
                 </div>
 
-                <div className="eim-sec" style={{marginBottom: 16}}>
-                  <div className="eim-date-row">
-                    <span className="eim-date-lbl">Когда:</span>
-                    <input className="eim-date-inp" type="date" value={logDate} onChange={e=>setLogDate(e.target.value)} />
-                    <input className="eim-date-inp" style={{textAlign: 'right'}} type="time" value={logTime} onChange={e=>setLogTime(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="eim-sec" style={{marginTop: 8}}>
+                <div className="eim-sec" style={{marginTop: 12}}>
                   <div className="eim-kribbon glass-panel">
                     <div className="eim-krib-main">
                       <div className="eim-krib-kcal">{isLinked ? calcKcal : '—'}</div>
@@ -492,21 +481,16 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   </div>
                 </div>
 
-                </div>
-
                 <div className="eim-divider-mini" style={{margin: '12px 0'}} />
 
                 <div className="eim-sec">
-                  <div className="eim-deduct-smart-toggle-wrap">
+                  <div className="eim-deduct-compact-wrap">
                     <div 
-                      className={`eim-deduct-smart-toggle glass-panel ${!canDeduct ? 'disabled' : ''} ${deductFromStock ? 'active' : ''}`} 
+                      className={`eim-deduct-smart-toggle compact glass-panel ${!canDeduct ? 'disabled' : ''} ${deductFromStock ? 'active' : ''}`} 
                       onClick={() => canDeduct && setDeductFromStock(!deductFromStock)}
                     >
-                      <div className="edst-icon-wrap">
-                        <span className="edst-icon">{deductFromStock ? '🧊' : '❄️'}</span>
-                      </div>
-                      <div className="edst-info">
-                        <div className="edst-title">{deductFromStock ? 'Списать из холодильника' : 'Оставить в наличии'}</div>
+                      <div className="edst-info compact">
+                        <div className="edst-title">Списать из холодильника</div>
                       </div>
                       <div className={`edst-switch ${deductFromStock ? 'on' : ''}`}>
                         <div className="edst-switch-knob" />
@@ -520,12 +504,11 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   </div>
                 </div>
 
-                <div className="eim-actions" style={{marginTop: 20}}>
+                <div className="eim-actions" style={{marginTop: 16}}>
                   <button className="eim-btn eim-b-cancel" style={{flex: .65}} onClick={onClose}>Отмена</button>
                   <button className="eim-btn eim-b-log" onClick={handleLogDiary}>✓ Записать в дневник</button>
                 </div>
               </div>
-
             </div>
       </div>
     </>

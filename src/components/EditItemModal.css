@@ -520,6 +520,9 @@ textarea.eim-inp { resize: none; min-height: 64px; line-height: 1.5; font-size: 
 .eim-deduct-smart-toggle-wrap {
   margin-top: 8px;
 }
+.eim-deduct-compact-wrap {
+  margin-top: 4px;
+}
 .eim-deduct-smart-toggle {
   display: flex;
   align-items: center;
@@ -531,6 +534,11 @@ textarea.eim-inp { resize: none; min-height: 64px; line-height: 1.5; font-size: 
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.eim-deduct-smart-toggle.compact {
+  padding: 12px 14px;
+  border-radius: 12px;
+  gap: 10px;
 }
 .eim-deduct-smart-toggle.active {
   background: var(--sf);
@@ -569,6 +577,18 @@ textarea.eim-inp { resize: none; min-height: 64px; line-height: 1.5; font-size: 
   font-weight: 500;
   color: var(--t3);
   margin-top: 2px;
+}
+
+/* Compact specific */
+.eim-date-row.compact {
+  padding: 8px 12px;
+  margin-top: 0;
+  height: 36px;
+  justify-content: center;
+}
+.eim-date-row.compact .eim-date-inp {
+  text-align: center;
+  font-size: 14px;
 }
 
 .edst-switch {
