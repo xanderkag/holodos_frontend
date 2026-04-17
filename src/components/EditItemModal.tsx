@@ -382,6 +382,8 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                 </div>
                 <div className="eim-div" />
                 <div className="eim-actions">
+                  <button className="eim-btn eim-b-cancel" onClick={onClose}>Отмена</button>
+                  {onDelete && <button className="eim-btn eim-b-delete" onClick={onDelete}>Удалить</button>}
                   <button className="eim-btn eim-b-save" onClick={handleSaveItem}>Сохранить</button>
                 </div>
               </div>
