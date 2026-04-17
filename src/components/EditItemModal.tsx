@@ -292,10 +292,9 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
         onTouchEnd={onTouchEnd}
       >
         <div className="eim-handle" />
-          <>
-            <div className="eim-toggle-wrap">
-              <div className="eim-toggle">
-                <button className={`eim-tbtn ${mode === 'tovar' ? 'active' : ''}`} onClick={() => setMode('tovar')}>
+        <div className="eim-toggle-wrap">
+          <div className="eim-toggle">
+            <button className={`eim-tbtn ${mode === 'tovar' ? 'active' : ''}`} onClick={() => setMode('tovar')}>
                   <span className="eim-tbtn-emoji">🧊</span> Товар
                 </button>
                 <button className={`eim-tbtn ${mode === 'dnevnik' ? 'active' : ''}`} onClick={() => setMode('dnevnik')}>
