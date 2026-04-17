@@ -19,7 +19,7 @@ interface DiaryScreenProps {
 
 export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenProps) {
   const {
-    diary, setDiary, addSystemMessage, addLogEvent, stock, baseline
+    diary, setDiary, addSystemMessage, addLogEvent, stock, baseline, calorieNorm
   } = useData();
   const { handleAddToDiary, clarifyDiaryItem } = useDiaryActions(setDiary, addSystemMessage);
   const { healthData, isSyncing, syncData, requestPermissions } = useHealthSync();
@@ -50,11 +50,12 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
     eatenC += d.carbs || 0;
   });
 
-  const targetKcal = 2000;
+  const targetKcal = calorieNorm || 2000;
   const targetP = 120;
   const targetF = 70;
   const targetC = 200;
   const remainingKcal = Math.max(0, targetKcal - eatenKcal);
+  const progressPercent = Math.min(100, Math.max(0, (eatenKcal / targetKcal) * 100));
 
   const MEALS = [
     { id: 'breakfast', label: 'Завтрак', icon: '🍳' },
@@ -126,8 +127,33 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
   return (
     <div className="screen scrollable diary-screen">
       <SubHeader>
-        <div style={{display: 'flex', justifyContent: 'center', width: '100%', alignItems: 'center'}}>
-          <div style={{fontSize: '12px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '1px'}}>{today}</div>
+        <div className="ui-capsule" style={{ width: '220px', position: 'relative', overflow: 'hidden', padding: '2px' }}>
+          {/* Progress Fill */}
+          <div 
+            className="ui-pill active"
+            style={{
+              position: 'absolute',
+              left: '2px', top: '2px', bottom: '2px',
+              width: `calc(${progressPercent}% - 4px)`,
+              minWidth: progressPercent > 0 ? '12px' : '0px',
+              transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+              zIndex: 1,
+              opacity: progressPercent > 0 ? 1 : 0
+            }}
+          />
+          {/* Text Overlay */}
+          <div style={{
+            position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', 
+            width: '100%', padding: '4px 12px', fontSize: '13px', fontWeight: '600',
+            color: 'var(--t1)', mixBlendMode: 'plus-lighter'
+          }}>
+            <span style={{ color: progressPercent > 40 ? '#fff' : 'inherit', transition: 'color 0.3s' }}>
+              {Math.round(eatenKcal)} ккал
+            </span>
+            <span style={{ color: progressPercent > 80 ? 'rgba(255,255,255,0.7)' : 'var(--t3)', transition: 'color 0.3s' }}>
+              из {targetKcal}
+            </span>
+          </div>
         </div>
       </SubHeader>
 

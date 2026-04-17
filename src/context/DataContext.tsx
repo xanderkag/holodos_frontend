@@ -23,7 +23,10 @@ interface DataContextType {
   voiceLogs: VoiceLog[];
   setVoiceLogs: (s: VoiceLog[] | ((prev: VoiceLog[]) => VoiceLog[])) => void;
   uiSettings: UiSettings;
+  uiSettings: UiSettings;
   setUiSettings: React.Dispatch<React.SetStateAction<UiSettings>>;
+  calorieNorm: number;
+  setCalorieNorm: React.Dispatch<React.SetStateAction<number>>;
   diary: DiaryEntry[];
   setDiary: React.Dispatch<React.SetStateAction<DiaryEntry[]>>;
   events: LogEvent[];
@@ -62,6 +65,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   ]);
   const [voiceLogs, setVoiceLogs] = useState<VoiceLog[]>([]);
   const [uiSettings, setUiSettings] = useState<UiSettings>({ density: 'comfortable', theme: 'system' });
+  const [calorieNorm, setCalorieNorm] = useState<number>(2000);
   const [diary, setDiary] = useState<DiaryEntry[]>([]);
   const [events, setEvents] = useState<LogEvent[]>([]);
   const [stats, setStats] = useState<UserData['stats']>({
@@ -84,6 +88,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const storesRef = useRef<Store[]>([]);
   const recipesRef = useRef<Recipe[]>([]);
   const uiRef = useRef<UiSettings>({ density: 'comfortable', theme: 'system' });
+  const calorieNormRef = useRef<number>(2000);
   const eventsRef = useRef<LogEvent[]>([]);
   const statsRef = useRef<UserData['stats']>({
     voice: { d: 0, m: 0, t: 0 },
@@ -109,6 +114,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     });
     setStores(STORES); storesRef.current = STORES;
     setMyRecipes(MY_RECIPES_DEMO); recipesRef.current = MY_RECIPES_DEMO;
+    setUiSettings({ density: 'comfortable', theme: 'system' }); uiRef.current = { density: 'comfortable', theme: 'system' };
+    setCalorieNorm(2000); calorieNormRef.current = 2000;
     setDiary([]); diaryRef.current = [];
     setEvents([]); eventsRef.current = [];
     localMutationTime.current = Date.now();
@@ -157,6 +164,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           if (d.myRecipes) { setMyRecipes(d.myRecipes); recipesRef.current = d.myRecipes; }
           if (d.messages) { setMessages(d.messages); messagesRef.current = d.messages; }
           if (d.diary) { setDiary(d.diary); diaryRef.current = d.diary; }
+          if (typeof d.calorieNorm === 'number') { setCalorieNorm(d.calorieNorm); calorieNormRef.current = d.calorieNorm; }
           if (d.events) { setEvents(d.events); eventsRef.current = d.events; }
           if (d.stats) { setStats(d.stats); statsRef.current = d.stats; }
           setIsDataLoaded(true);
@@ -190,6 +198,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           image: { d: 0, m: 0, t: 0 }
         };
         setUiSettings(data.uiSettings || { density: 'comfortable', theme: 'system' }); uiRef.current = data.uiSettings || { density: 'comfortable', theme: 'system' };
+        if (typeof data.calorieNorm === 'number') { setCalorieNorm(data.calorieNorm); calorieNormRef.current = data.calorieNorm; }
         setDiary(data.diary || []); diaryRef.current = data.diary || [];
         setEvents(data.events || []); eventsRef.current = data.events || [];
         
@@ -216,6 +225,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             image: { d: 0, m: 0, t: 0 }
           },
           uiSettings: { density: 'comfortable', theme: 'system' },
+          calorieNorm: 2000,
           diary: [],
           events: []
         };
@@ -253,6 +263,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (d.myRecipes) { setMyRecipes(d.myRecipes); recipesRef.current = d.myRecipes; }
         if (d.voiceLogs) setVoiceLogs(d.voiceLogs);
         if (d.uiSettings) { setUiSettings(d.uiSettings); uiRef.current = d.uiSettings; }
+        if (typeof d.calorieNorm === 'number') { setCalorieNorm(d.calorieNorm); calorieNormRef.current = d.calorieNorm; }
         
         setIsSubscribed(d.isSubscribed || false);
         setSubscriptionStatus(d.subscriptionStatus || 'free');
@@ -447,6 +458,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       messages: messagesRef.current, 
       voiceLogs: voiceLogs, 
       uiSettings: uiRef.current, 
+      calorieNorm: calorieNormRef.current,
       diary: diaryRef.current,
       events: eventsRef.current
     });
@@ -468,6 +480,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       messages: [{ id: uid(), role: 'assistant', content: 'Данные сброшены. Чем могу помочь?', timestamp: Date.now() }], 
       voiceLogs: [], 
       uiSettings: { density: 'comfortable', theme: 'system' },
+      calorieNorm: 2000,
       diary: [],
       events: []
     };

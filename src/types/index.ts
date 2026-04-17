@@ -108,6 +108,7 @@ export interface UserData {
   messages: Message[];
   voiceLogs: VoiceLog[];
   uiSettings: UiSettings;
+  calorieNorm?: number;
   diary?: DiaryEntry[];
   events?: LogEvent[];
   isSubscribed?: boolean;

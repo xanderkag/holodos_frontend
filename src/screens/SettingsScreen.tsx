@@ -17,6 +17,8 @@ interface SettingsScreenProps {
   setShowDebug?: (show: boolean) => void;
   uiSettings: UiSettings;
   onUpdateUiSettings: (settings: Partial<UiSettings>) => void;
+  calorieNorm: number;
+  onUpdateCalorieNorm: (norm: number) => void;
   onFactoryReset: () => void;
   onLinkTelegram?: (tgData: any) => Promise<void>;
 }
@@ -24,7 +26,9 @@ interface SettingsScreenProps {
 export const SettingsScreen = ({ 
   user, stats, 
   isAdmin = false, onAdminClick, showDebug, setShowDebug, 
-  uiSettings, onUpdateUiSettings, onFactoryReset,
+  uiSettings, onUpdateUiSettings, 
+  calorieNorm, onUpdateCalorieNorm,
+  onFactoryReset,
   onLinkTelegram
 }: SettingsScreenProps) => {
 
@@ -115,8 +119,37 @@ export const SettingsScreen = ({
 
         {/* Health Integration Section */}
         <div className="s-section glass-panel health-section" style={{marginBottom: 16}}>
-          <h3 className="s-sect-title">Данные здоровья</h3>
-          <div className="settings-item has-action" onClick={requestPermissions} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', padding: '12px 0'}}>
+          <h3 className="s-sect-title">Здоровье и Активность</h3>
+          
+          <div className="settings-item has-action" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0'}}>
+            <div className="si-left" style={{display: 'flex', alignItems: 'center', gap: 12}}>
+              <span className="si-icon" style={{fontSize: 20}}>🎯</span>
+              <div className="si-text">
+                <div className="si-label" style={{fontWeight: 600, fontSize: 15, color: 'var(--t1)'}}>Норма калорий</div>
+                <div className="si-sub" style={{fontSize: 12, color: 'var(--t3)'}}>Дневная цель для Трекера</div>
+              </div>
+            </div>
+            <div className="si-right">
+              <input 
+                type="number" 
+                value={calorieNorm} 
+                onChange={(e) => onUpdateCalorieNorm(Number(e.target.value) || 2000)}
+                style={{
+                  width: '70px',
+                  background: 'rgba(0,0,0,0.05)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '6px 8px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  color: 'var(--t1)',
+                  textAlign: 'right'
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="settings-item has-action" onClick={requestPermissions} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', padding: '12px 0', borderTop: '1px solid var(--br-glass)'}}>
             <div className="si-left" style={{display: 'flex', alignItems: 'center', gap: 12}}>
               <span className="si-icon" style={{fontSize: 20}}>🏥</span>
               <div className="si-text">

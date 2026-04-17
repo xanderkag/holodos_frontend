@@ -43,7 +43,7 @@ export default function App() {
     stores, setStores, myRecipes, setMyRecipes, 
     messages, setMessages,
     uiSettings, setUiSettings, diary, setDiary,
-    stats,
+    stats, calorieNorm, setCalorieNorm,
     resetAll, isDataLoaded, addSystemMessage, addLogEvent,
     syncBackendSubscription
   } = useData();
@@ -363,6 +363,8 @@ export default function App() {
             setShowDebug={setShowDebug}
             uiSettings={uiSettings}
             onUpdateUiSettings={(s) => setUiSettings(p => ({ ...p, ...s }))}
+            calorieNorm={calorieNorm}
+            onUpdateCalorieNorm={setCalorieNorm}
             onFactoryReset={resetAll}
             onLinkTelegram={loginWithTelegramWidget}
           />
