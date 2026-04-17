@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { db, getUserData, saveUserData } from '../utils/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, orderBy, limit, setDoc } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 import type { Item, Store, Recipe, Message, VoiceLog, UserData, UiSettings, DiaryEntry, LogEvent } from '../types';
 import { BDEMO, STORES, MY_RECIPES_DEMO, uid } from '../utils/data';
@@ -184,7 +184,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setBaseline(data.baseline || BDEMO); baselineRef.current = data.baseline || BDEMO;
         setStores(data.stores || STORES); storesRef.current = data.stores || STORES;
         setMyRecipes(data.myRecipes || MY_RECIPES_DEMO); recipesRef.current = data.myRecipes || MY_RECIPES_DEMO;
-        setMessages(data.messages || []); messagesRef.current = data.messages || [];
+        // LEGACY MIGRATION: Load old messages if subcollection is empty (handled by subcollection listener below)
+        if (data.messages && data.messages.length > 0) {
+           setMessages(data.messages); messagesRef.current = data.messages;
+        }
         setVoiceLogs(data.voiceLogs || []);
         setStats(data.stats || {
           voice: { d: 0, m: 0, t: 0 },
@@ -257,7 +260,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setDiary(d.diary || []); diaryRef.current = d.diary || [];
         setEvents(d.events || []); eventsRef.current = d.events || [];
         
-        if (d.messages) { setMessages(d.messages); messagesRef.current = d.messages; }
         if (d.stores) { setStores(d.stores); storesRef.current = d.stores; }
         if (d.myRecipes) { setMyRecipes(d.myRecipes); recipesRef.current = d.myRecipes; }
         if (d.voiceLogs) setVoiceLogs(d.voiceLogs);
@@ -286,13 +288,42 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
 
         // Silent cache update with timestamp
-        localStorage.setItem('holodos_cache', JSON.stringify({ ...d, _lastSync: Date.now() }));
+        localStorage.setItem('holodos_cache', JSON.stringify({ ...d, _lastSync: Date.now(), messages: messagesRef.current }));
       }
     });
+
+    // Subcollection listener for Messages (Pagination / 7-Day History)
+    const unsubMessages = onSnapshot(
+      query(collection(db, 'users', user.uid, 'messages'), orderBy('timestamp', 'desc'), limit(100)),
+      (snapshot: any) => {
+        if (!isMounted) return;
+        // Only process if it's not purely a local pending write bounce
+        if (snapshot.metadata.hasPendingWrites) return;
+
+        const dbMessages = snapshot.docs.map((doc: any) => doc.data() as Message);
+        dbMessages.sort((a: Message, b: Message) => a.timestamp - b.timestamp); // Sort chronological for Chat UI
+        
+        setMessages(prev => {
+          // Merge logic: DB messages take precedence over older local ones, but preserve very fresh local ones
+          const merged = [...dbMessages];
+          const dbIds = new Set(dbMessages.map((m: Message) => m.id));
+          prev.forEach(p => {
+             // Legacy fallback: OR if it's an old legacy message that hasn't made it to the subcollection yet
+             if (!dbIds.has(p.id) && (Date.now() - p.timestamp < 60000 || p.timestamp < Date.now() - 3600000)) {
+               merged.push(p);
+             }
+          });
+          merged.sort((a: Message, b: Message) => a.timestamp - b.timestamp);
+          messagesRef.current = merged;
+          return merged;
+        });
+      }
+    );
 
     return () => {
       isMounted = false;
       unsub();
+      unsubMessages();
     };
   }, [user, resetLocalState]);
 
@@ -343,9 +374,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setMessages(prev => {
       const next = typeof val === 'function' ? val(prev) : val;
       messagesRef.current = next;
+      
+      // Atomic individual write to Subcollection
+      if (user && !user.isDemo && next !== prev) {
+         next.forEach((msg: Message) => {
+            const oldMsg = prev.find(m => m.id === msg.id);
+            if (!oldMsg || oldMsg.content !== msg.content || oldMsg.actions !== msg.actions) {
+               setDoc(doc(db, 'users', user.uid, 'messages', msg.id), msg, { merge: true }).catch((e: any) => console.error("Msg sync err", e));
+            }
+         });
+      }
       return next;
     }); 
-  }, []);
+  }, [user]);
   const guardedSetDiary = useCallback((val: any) => { 
     localMutationTime.current = Date.now(); 
     setDiary(prev => {
@@ -425,7 +466,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
           baseline: baselineRef.current, 
           stores: storesRef.current, 
           myRecipes: recipesRef.current, 
-          messages: messagesRef.current, 
           voiceLogs: voiceLogs, 
           uiSettings: uiRef.current, 
           diary: diaryRef.current,
