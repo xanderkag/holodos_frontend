@@ -6,7 +6,6 @@ import { showToast } from '../components/Toast';
 import { APP_VERSION, BUILD_TIME } from '../constants/version';
 import { useHealthSync } from '../hooks/useHealthSync';
 import './SettingsScreen.css';
-import { useData } from '../context/DataContext';
 import { ProfileLimitCard } from '../components/ProfileLimitCard';
 
 interface SettingsScreenProps {
