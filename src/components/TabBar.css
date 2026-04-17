@@ -243,6 +243,12 @@
   transition: color 0.3s ease;
 }
 
+.tab-chat-main .tlabel {
+  position: absolute;
+  bottom: 8px; /* Force label exactly where other labels naturally sit */
+  margin-top: 0;
+}
+
 .tab.on .tlabel {
   color: var(--acc);
 }
