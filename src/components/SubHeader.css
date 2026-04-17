@@ -1,16 +1,15 @@
 .sub-header {
   position: sticky;
-  top: 30px; /* Bulletproof fallback */
-  top: calc(var(--sat) + 30px);
-  z-index: 990; /* Под основную шапку при скролле */
+  top: calc(var(--sat) + var(--hdr-h)); /* Exact bottom edge of fixed header */
+  z-index: 990;
   width: 100%;
-  height: 48px; /* Чуть больше для нормального фона */
+  height: 52px;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0 16px;
-  background: transparent; /* Сбрасываем сплошной фон назад */
-  pointer-events: none; /* Разрешаем кликать сквозь прозрачные зоны контейнера */
+  background: transparent;
+  pointer-events: none;
 }
 
 

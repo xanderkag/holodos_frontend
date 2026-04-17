@@ -92,9 +92,9 @@
 }
 
 [data-theme="dark"] .ui-pill.active {
-  background: #2c2c2e;
+  background: linear-gradient(135deg, #0a84ff, #00c8ff);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);
 }
 
 * {
@@ -159,8 +159,8 @@ body {
 }
 
 .screen.chat-screen {
-  padding-top: 0;
-  padding-bottom: 0; 
+  padding-top: calc(var(--sat) + 32px); /* Same as all other screens */
+  padding-bottom: 0;
   overflow: hidden;
 }
 
@@ -667,8 +667,9 @@ input {
 }
 
 .ui-pill.active {
-  background: var(--acc);
+  background: linear-gradient(135deg, var(--acc), #00aaff);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 97, 164, 0.25);
 }
 
 .ui-pill:active:not(.active) {
