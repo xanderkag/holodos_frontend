@@ -1,0 +1,43 @@
+name: Deploy to Yandex Cloud (RU)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Application
+        run: npm run build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_TELEGRAM_BOT_USERNAME: ${{ secrets.VITE_TELEGRAM_BOT_USERNAME }}
+          VITE_BAKHUS_PRODUCTION_URL: ${{ secrets.VITE_BAKHUS_PRODUCTION_URL }}
+
+      - name: Deploy to Yandex Object Storage
+        uses: chuhlomin/s3-sync-action@v1.1.2
+        with:
+          bucket: my-yandex-bucket-name
+          endpoint: storage.yandexcloud.net
+          access_key: ${{ secrets.VITE_YANDEX_ACCESS_KEY_ID }}
+          secret_key: ${{ secrets.VITE_YANDEX_SECRET_ACCESS_KEY }}
+          source_dir: dist
