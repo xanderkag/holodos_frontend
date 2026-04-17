@@ -24,7 +24,7 @@ import { APP_VERSION } from './constants/version';
 import { mergeItems, uid, classify } from './utils/data';
 import type { DebugLog } from './components/DebugOverlay';
 import { useDiaryActions } from './hooks/useDiaryActions';
-import { LimitPaywallModal, PaywallType } from './components/LimitPaywallModal';
+import { LimitPaywallModal } from './components/LimitPaywallModal';
 
 
 const ONBOARDING_STEPS = [

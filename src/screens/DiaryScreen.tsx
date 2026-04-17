@@ -10,7 +10,6 @@ import { useData } from '../context/DataContext';
 import { useDiaryActions } from '../hooks/useDiaryActions';
 import { useHealthSync } from '../hooks/useHealthSync';
 import type { DiaryEntry, MealType } from '../types';
-import { getUserSubscriptionInfo } from '../utils/subscription';
 import { ProfileLimitCard } from '../components/ProfileLimitCard';
 import './DiaryScreen.css';
 
@@ -21,8 +20,7 @@ interface DiaryScreenProps {
 
 export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenProps) {
   const {
-    diary, setDiary, addSystemMessage, addLogEvent, stock, baseline,
-    stats, isSubscribed, subscriptionType
+    diary, setDiary, addSystemMessage, addLogEvent, stock, baseline
   } = useData();
   const { handleAddToDiary, clarifyDiaryItem } = useDiaryActions(setDiary, addSystemMessage);
   const { healthData, isSyncing, syncData, requestPermissions } = useHealthSync();
