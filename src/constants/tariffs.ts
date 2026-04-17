@@ -12,11 +12,11 @@ export const TARIFFS: Record<string, Tariff> = {
   free: {
     id: 'free',
     label: 'Бесплатный',
-    photoLimit: 3,
-    voiceLimit: 10,
+    photoLimit: 10,
+    voiceLimit: 30,
     priority: 'normal',
     hasVoice: true,
-    paywallText: 'Вы исчерпали дневной лимит (3 фото / 10 голосовых). Перейдите на Pro для 20 фото и 100 голосовых в день!'
+    paywallText: 'Вы исчерпали дневной лимит (10 фото / 30 голосовых). Перейдите на Pro для 20 фото и 100 голосовых в день!'
   },
   pro: {
     id: 'pro',
