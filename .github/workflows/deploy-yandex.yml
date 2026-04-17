@@ -34,10 +34,12 @@ jobs:
           VITE_BAKHUS_PRODUCTION_URL: ${{ secrets.VITE_BAKHUS_PRODUCTION_URL }}
 
       - name: Deploy to Yandex Object Storage
-        uses: chuhlomin/s3-sync-action@v1.1.2
+        uses: jakejarvis/s3-sync-action@master
         with:
-          bucket: my-yandex-bucket-name
-          endpoint: storage.yandexcloud.net
-          access_key: ${{ secrets.VITE_YANDEX_ACCESS_KEY_ID }}
-          secret_key: ${{ secrets.VITE_YANDEX_SECRET_ACCESS_KEY }}
-          source_dir: dist
+          args: --acl public-read --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: my-yandex-bucket-name
+          AWS_ACCESS_KEY_ID: ${{ secrets.VITE_YANDEX_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.VITE_YANDEX_SECRET_ACCESS_KEY }}
+          AWS_S3_ENDPOINT: https://storage.yandexcloud.net
+          SOURCE_DIR: 'dist'
