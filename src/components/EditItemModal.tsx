@@ -433,7 +433,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   )}
                 </div>
 
-                <div className="eim-row" style={{marginTop: 12, marginBottom: 12}}>
+                <div className="eim-row" style={{marginTop: 6, marginBottom: 6}}>
                   <div className="eim-sec" style={{flex: 1, paddingBottom: 0, paddingRight: 6}}>
                     <div className="eim-date-row compact">
                       <input className="eim-date-inp" type="date" value={logDate} onChange={e=>setLogDate(e.target.value)} />

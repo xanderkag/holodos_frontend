@@ -78,14 +78,32 @@
 .limit-bar-labels {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 12px;
   color: var(--t2);
   font-weight: 500;
+  gap: 8px;
+  min-width: 0;
+}
+
+.limit-bar-labels span:first-child {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .limit-bar-labels span:last-child {
-  font-family: monospace;
-  font-size: 11px;
+  /* Android fix: monospace fonts sometimes have huge system glyphs.
+     Using tabular-nums feature instead with system font */
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--t1);
+  flex-shrink: 0;
+  letter-spacing: 0;
 }
 
 .limit-bar-track {

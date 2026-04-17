@@ -135,16 +135,22 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
               opacity: progressPercent > 0 ? 1 : 0
             }}
           />
-          {/* Text Overlay */}
+          {/* Text Overlay — no mix-blend-mode (Android WebView renders black artifacts) */}
           <div style={{
             position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', 
             width: '100%', padding: '4px 12px', fontSize: '13px', fontWeight: '600',
-            color: 'var(--t1)', mixBlendMode: 'plus-lighter'
           }}>
-            <span style={{ color: progressPercent > 40 ? '#fff' : 'inherit', transition: 'color 0.3s' }}>
+            <span style={{
+              color: progressPercent > 40 ? '#fff' : 'var(--t1)',
+              transition: 'color 0.3s',
+              textShadow: progressPercent > 40 ? '0 1px 3px rgba(0,0,0,0.2)' : 'none'
+            }}>
               {Math.round(eatenKcal)} ккал
             </span>
-            <span style={{ color: progressPercent > 80 ? 'rgba(255,255,255,0.7)' : 'var(--t3)', transition: 'color 0.3s' }}>
+            <span style={{
+              color: progressPercent > 80 ? 'rgba(255,255,255,0.7)' : 'var(--t3)',
+              transition: 'color 0.3s'
+            }}>
               из {targetKcal}
             </span>
           </div>
