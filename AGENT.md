@@ -11,7 +11,7 @@
 - **Language**: `TypeScript` (Strict mode).
 - **Mobile Environment**: `Capacitor 8` (iOS, Android, PWA) + Telegram Mini App (TMA).
 - **Styles**: Vanilla CSS с современными функциями (Nesting, CSS Variables, Backdrop filters).
-- **Infrastructure**: `Firebase Auth` & `Firestore` (база данных), `Yandex Cloud S3` (медиа).
+- **Infrastructure**: `Firebase Auth` & `Firestore` (база данных), `Yandex Cloud S3` (frontend hosting & media) + `GitHub Actions` (CI/CD Automated Deploy).
 
 ### Stateless Backend Pattern
 Приложение построено по парадигме **"Stateless Backend"**. Frontend является исключительно потребителем API и отображает состояние, которым управляет backend.
@@ -325,6 +325,9 @@ if (result.subscription) {
 - **Трекер воды**: Иконки-стаканы по 250мл, цель 2.5л, клик с хаптиком.
 
 ### 6. `ChatScreen` (Чат с AI)
+- **Архитектура 레이아үта (Layout)**: Контейнер Чата приведен к единому стандарту Flexbox (`display: flex; flex-direction: column`).
+  - **ЗАПРЕЩАЕТСЯ** использовать `position: absolute` и кастомные паддинги (в обход `var(--sat)`) для имитации отступов.
+  - Обертка `SubHeader` должна использовать стандартную высоту и прилипать по нижнему краю шапки, как и любой другой `SubHeader` в приложении.
 - Центр всех взаимодействий.
 - **Date Grouping**: Все 4 вкладки (Chat, Diary, All Events, Adding/Baseline) используют единую утилиту `groupItemsByDate` из `ChatScreen.tsx`. Даты отображаются как: «Сегодня», «Вчера», «Позавчера», «DD месяца», «Ранее».
 - **System Message Timestamps**: Системные сообщения отображают поле `m.timestamp` (CSS класс `.msg-system-time`).
@@ -370,4 +373,4 @@ if (result.subscription) {
 
 ---
 
-*Документ обновлён автоматически командой Antigravity. Версия: **v3.22.19** (16 апреля 2026).*
+*Документ обновлён автоматически командой Antigravity. Версия: **v3.22.20** (17 апреля 2026).*

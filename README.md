@@ -15,6 +15,10 @@ npm run build      # production build
 npm run verify     # build + preview
 ```
 
+### Автоматический деплой (Yandex S3)
+Реализован через **GitHub Actions** (`.github/workflows/deploy-yandex.yml`). 
+При каждом пуше в ветку `main` проект автоматически собирается и деплоится в бакет `holodos-app-ru` (доступен по `app-ru.holodos.su`). Ручной деплой через скрипты больше не требуется.
+
 ---
 
 ## 📱 Платформы
@@ -281,4 +285,4 @@ Google Cloud Console → OAuth 2.0 → Authorized JavaScript origins:
 
 ## 📌 Текущая версия
 
-**v3.22.19** | 16 апреля 2026
+**v3.22.20** | 17 апреля 2026
