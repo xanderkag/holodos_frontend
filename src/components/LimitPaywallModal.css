@@ -1,0 +1,104 @@
+.paywall-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 20px;
+}
+.paywall-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.paywall-modal {
+  width: 100%;
+  max-width: 360px;
+  background: var(--sf-glass);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 32px 24px 24px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  transform: scale(0.95) translateY(20px);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+}
+.paywall-overlay.show .paywall-modal {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.paywall-icon {
+  font-size: 56px;
+  line-height: 1;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.paywall-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--t1);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.paywall-desc {
+  font-size: 15px;
+  color: var(--t2);
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+
+.paywall-btn-pro {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(135deg, #a265ff, #477bf3);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(162, 101, 255, 0.3);
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
+}
+.paywall-btn-pro:active {
+  transform: scale(0.96);
+  box-shadow: 0 4px 12px rgba(162, 101, 255, 0.2);
+}
+
+.paywall-btn-close {
+  width: 100%;
+  padding: 12px;
+  border-radius: 16px;
+  border: none;
+  background: transparent;
+  color: var(--t3);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.paywall-btn-close:active {
+  color: var(--t1);
+  background: rgba(0,0,0,0.05);
+}

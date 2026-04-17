@@ -10,6 +10,7 @@ import { uid, mergeItems, classify, norm } from '../utils/data';
 import { logDiagnostic } from '../utils/ai';
 import type { AiAction, Message, AiResponse } from '../types';
 import { checkUsage } from '../utils/subscription';
+import type { PaywallType } from '../components/LimitPaywallModal';
 
 interface AiContextType {
   isAiLoading: boolean;
@@ -21,7 +22,9 @@ interface AiContextType {
   setPendingActions: (actions: AiAction[]) => void;
   activeUndos: string[];
   undoAction: (msgId: string) => void;
-  handleLimitError: (message: string) => void;
+  handleLimitError: (message: string, type?: PaywallType) => void;
+  paywallType: PaywallType;
+  setPaywallType: (t: PaywallType) => void;
 }
 
 const AiContext = createContext<AiContextType | undefined>(undefined);
@@ -38,12 +41,12 @@ export function AiProvider({ children }: { children: ReactNode }) {
 
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [pendingActions, setPendingActions] = useState<AiAction[]>([]);
+  const [paywallType, setPaywallType] = useState<PaywallType>(null);
   
   // Undo System States
   const [activeUndos, setActiveUndos] = useState<string[]>([]);
   const undoBackups = useRef<Map<string, { list: any[]; stock: any[]; baseline: any[]; diary: any[] }>>(new Map());
-
-  const handleLimitError = useCallback((message: string) => {
+  const handleLimitError = useCallback((message: string, type: PaywallType = 'voice') => {
     setMessages(prev => [...prev, { 
       id: Date.now().toString(), 
       role: 'system', 
@@ -51,7 +54,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
       timestamp: Date.now() 
     }]);
     addLogEvent(`⚠️ ${message}`, 'ai');
-    showToast(message);
+    setPaywallType(type);
   }, [setMessages, addLogEvent]);
 
   const undoAction = useCallback((msgId: string) => {
@@ -387,7 +390,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
     
     const usage = checkUsage({ stats, isSubscribed, subscriptionType } as any, 'image');
     if (!usage.allowed) {
-      showToast(usage.paywallText || "Лимит фото исчерпан");
+      setPaywallType('image');
       addLogEvent(`⚠️ Лимит фото исчерпан (${usage.limit}/${usage.limit})`, 'ai');
       return;
     }
@@ -424,7 +427,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
       } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
         // Sync backend subscription snapshot into local state
         if (err.data?.subscription) syncBackendSubscription(err.data.subscription);
-        showToast(err.message || "Лимит фото исчерпан");
+        setPaywallType('image');
         addLogEvent(`⚠️ ${err.message}`, 'ai');
       } else {
         showToast(`❌ Ошибка: ${err.message}`);
@@ -442,7 +445,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
     if (isVoice) {
       const voiceUsage = checkUsage({ stats, isSubscribed, subscriptionType } as any, 'voice');
       if (!voiceUsage.allowed) {
-        showToast(voiceUsage.paywallText || "Лимит голосовых исчерпан");
+        setPaywallType('voice');
         addLogEvent(`⚠️ Лимит голоса исчерпан (${voiceUsage.limit}/${voiceUsage.limit})`, 'ai');
         return;
       }
@@ -502,6 +505,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
           content: err.message || "Лимит исчерпан", 
           timestamp: Date.now() 
         }]);
+        setPaywallType(isVoice ? 'voice' : 'chat');
         addLogEvent(`⚠️ ${err.message}`, 'ai');
       } else {
         logDiagnostic(`CHAT Exception: ${err.message}`, 'error');
@@ -516,7 +520,8 @@ export function AiProvider({ children }: { children: ReactNode }) {
     <AiContext.Provider value={{ 
       isAiLoading, analyzeImage, sendChatCommand, 
       applyActions, executeOption, pendingActions, setPendingActions,
-      handleLimitError, activeUndos, undoAction
+      handleLimitError, activeUndos, undoAction,
+      paywallType, setPaywallType
     }}>
       {children}
     </AiContext.Provider>

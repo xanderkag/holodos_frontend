@@ -11,6 +11,7 @@ import { useDiaryActions } from '../hooks/useDiaryActions';
 import { useHealthSync } from '../hooks/useHealthSync';
 import type { DiaryEntry, MealType } from '../types';
 import { getUserSubscriptionInfo } from '../utils/subscription';
+import { ProfileLimitCard } from '../components/ProfileLimitCard';
 import './DiaryScreen.css';
 
 interface DiaryScreenProps {
@@ -132,42 +133,9 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
           <div style={{fontSize: '12px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '1px'}}>{today}</div>
         </div>
       </SubHeader>
+      {/* Subscription & Limits Info */}
+      <ProfileLimitCard onUpgradeClick={() => window.open('tg://resolve?domain=holodos_ai_bot', '_blank')} />
 
-      {/* Subscription & Limits Info (v2.90.0) */}
-      <div className="subscription-limits-bar" style={{padding: '0 20px', marginBottom: '12px'}}>
-        {(() => {
-          const info = getUserSubscriptionInfo({ stats, isSubscribed, subscriptionType } as any);
-          return (
-            <div className="glass-panel" style={{padding: '8px 12px', fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)'}}>
-              <div style={{display: 'flex', gap: '12px'}}>
-                <span title="Лимит фото">📸 {info.limits.photos.remaining} / {info.limits.photos.limit}</span>
-                <span title="Лимит голоса">🎙️ {info.limits.voice.remaining} / {info.limits.voice.limit}</span>
-              </div>
-              <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                <span style={{
-                  padding: '2px 6px', 
-                  borderRadius: '4px', 
-                  background: info.tariffId === 'pro' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
-                  color: info.tariffId === 'pro' ? '#000' : 'inherit',
-                  fontWeight: '600',
-                  fontSize: '10px',
-                  textTransform: 'uppercase'
-                }}>
-                  {info.tariffLabel}
-                </span>
-                {info.tariffId === 'free' && (
-                  <button 
-                    onClick={() => showToast('🚀 Скоро: Подписка Pro')}
-                    style={{border: 'none', background: 'none', color: 'var(--accent)', fontSize: '10px', fontWeight: '600', padding: 0, textDecoration: 'underline'}}
-                  >
-                    Upgrade
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })()}
-      </div>
 
       <DiaryMacrosSummary 
         remainingKcal={remainingKcal}

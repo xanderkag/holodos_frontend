@@ -24,8 +24,7 @@ import { APP_VERSION } from './constants/version';
 import { mergeItems, uid, classify } from './utils/data';
 import type { DebugLog } from './components/DebugOverlay';
 import { useDiaryActions } from './hooks/useDiaryActions';
-
-
+import { LimitPaywallModal, PaywallType } from './components/LimitPaywallModal';
 
 
 const ONBOARDING_STEPS = [
@@ -50,7 +49,8 @@ export default function App() {
   } = useData();
   const { 
     isAiLoading, analyzeImage, sendChatCommand, 
-    applyActions, pendingActions, setPendingActions, handleLimitError
+    applyActions, pendingActions, setPendingActions, handleLimitError,
+    paywallType, setPaywallType
   } = useAi();
 
   const [currentTab, setCurrentTab] = useState('chat');
@@ -475,6 +475,12 @@ export default function App() {
       )}
       
       {isAdmin && showDebug && <DebugOverlay logs={logs} onClear={() => setLogs([])} onClose={() => setShowDebug(false)} />}
+      
+      <LimitPaywallModal 
+        type={paywallType} 
+        onClose={() => setPaywallType(null)} 
+        onUpgrade={() => window.open('tg://resolve?domain=holodos_ai_bot', '_blank')} 
+      />
     </div>
   );
 }
