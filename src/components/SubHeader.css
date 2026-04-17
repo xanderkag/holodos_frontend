@@ -1,15 +1,16 @@
 .sub-header {
   position: sticky;
-  top: 16px; /* Bulletproof fallback */
-  top: calc(var(--sat) + 16px);
-  z-index: 1001; /* Выше чем Header (1000), чтобы капсула не пряталась под стекло */
+  top: 30px; /* Bulletproof fallback */
+  top: calc(var(--sat) + 30px);
+  z-index: 990; /* Под основную шапку при скролле */
   width: 100%;
-  height: 44px; /* Integrated height for progress/capsule */
+  height: 48px; /* Чуть больше для нормального фона */
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0 16px;
-  pointer-events: none;
+  background: var(--bg); /* Сплошной цвет темы */
+  pointer-events: auto; /* Блокируем фантомные клики под фоном */
 }
 
 

@@ -32,7 +32,6 @@ export const SettingsScreen = ({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const { healthData, requestPermissions } = useHealthSync();
-  const { isSubscribed } = useData();
 
   const handleLogout = async () => {
     if (!showLogoutConfirm) {
