@@ -7,6 +7,7 @@ import { APP_VERSION, BUILD_TIME } from '../constants/version';
 import { useHealthSync } from '../hooks/useHealthSync';
 import './SettingsScreen.css';
 import { useData } from '../context/DataContext';
+import { ProfileLimitCard } from '../components/ProfileLimitCard';
 
 interface SettingsScreenProps {
   user: any; // Changed from User to any to support hybrid TG/Firebase user
@@ -100,15 +101,19 @@ export const SettingsScreen = ({
               )}
             </div>
           )}
-        </div>
-          {/* Subscription Status Section */}
-          <div className="s-section glass-panel" style={{marginBottom: 16}}>
-            <h3 className="s-sect-title">Подписка</h3>
-            <div className="settings-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <span style={{fontWeight: 600}}>{isSubscribed ? 'Pro' : 'Free'}</span>
-              {isSubscribed && <span style={{color: 'var(--grn)'}}>✅ Активна</span>}
-            </div>
+
+          <div style={{marginTop: 16}}>
+            <ProfileLimitCard hideHeader onUpgradeClick={() => {
+              const botName = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'HolodosAI_bot';
+              const tgUrl = `https://t.me/${botName}`;
+              if ((window as any).Telegram?.WebApp?.openTelegramLink) {
+                (window as any).Telegram.WebApp.openTelegramLink(tgUrl);
+              } else {
+                window.open(tgUrl, '_blank');
+              }
+            }} />
           </div>
+        </div>
 
         {/* Health Integration Section */}
         <div className="s-section glass-panel health-section" style={{marginBottom: 16}}>

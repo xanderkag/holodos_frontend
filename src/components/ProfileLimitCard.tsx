@@ -6,9 +6,10 @@ import { getUserSubscriptionInfo } from '../utils/subscription';
 
 interface ProfileLimitCardProps {
   onUpgradeClick?: () => void;
+  hideHeader?: boolean;
 }
 
-export const ProfileLimitCard: React.FC<ProfileLimitCardProps> = ({ onUpgradeClick }) => {
+export const ProfileLimitCard: React.FC<ProfileLimitCardProps> = ({ onUpgradeClick, hideHeader }) => {
   const { user } = useAuth();
   const { stats, isSubscribed, subscriptionType } = useData();
 
@@ -28,16 +29,18 @@ export const ProfileLimitCard: React.FC<ProfileLimitCardProps> = ({ onUpgradeCli
   const displayName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Профиль';
 
   return (
-    <div className="profile-limit-card">
-      <div className="limit-card-header">
-        <div className="limit-card-title">
-          <div style={{ fontSize: '18px' }}>👤</div>
-          {displayName}
+    <div className={`profile-limit-card ${hideHeader ? 'no-header' : ''}`}>
+      {!hideHeader && (
+        <div className="limit-card-header">
+          <div className="limit-card-title">
+            <div style={{ fontSize: '18px' }}>👤</div>
+            {displayName}
+          </div>
+          <div className={`limit-card-badge ${isPro ? 'pro' : 'free'}`}>
+            {isPro ? 'PRO' : 'FREE'}
+          </div>
         </div>
-        <div className={`limit-card-badge ${isPro ? 'pro' : 'free'}`}>
-          {isPro ? 'PRO' : 'FREE'}
-        </div>
-      </div>
+      )}
 
       <div className="limit-bars-container">
         {/* Photo Limit */}

@@ -18,6 +18,16 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
+.profile-limit-card.no-header {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 .limit-card-header {
   display: flex;
   justify-content: space-between;

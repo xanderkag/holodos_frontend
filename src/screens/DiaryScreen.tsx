@@ -10,7 +10,6 @@ import { useData } from '../context/DataContext';
 import { useDiaryActions } from '../hooks/useDiaryActions';
 import { useHealthSync } from '../hooks/useHealthSync';
 import type { DiaryEntry, MealType } from '../types';
-import { ProfileLimitCard } from '../components/ProfileLimitCard';
 import './DiaryScreen.css';
 
 interface DiaryScreenProps {
@@ -131,16 +130,7 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
           <div style={{fontSize: '12px', fontWeight: '700', color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '1px'}}>{today}</div>
         </div>
       </SubHeader>
-      {/* Subscription & Limits Info */}
-      <ProfileLimitCard onUpgradeClick={() => {
-        const botName = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'HolodosAI_bot';
-        const tgUrl = `https://t.me/${botName}`;
-        if ((window as any).Telegram?.WebApp?.openTelegramLink) {
-          (window as any).Telegram.WebApp.openTelegramLink(tgUrl);
-        } else {
-          window.open(tgUrl, '_blank');
-        }
-      }} />
+
 
 
       <DiaryMacrosSummary 
