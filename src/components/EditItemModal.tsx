@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { GROUP_ORDER, areUnitsCompatible, mapBackendCategory } from '../utils/data';
 import type { Category, Item } from '../utils/data';
 
-import { CatalogSearch } from './CatalogSearch';
 import './EditItemModal.css';
 
 interface EditItemModalProps {
@@ -47,7 +46,9 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
   initialMode = 'tovar', initialMealType, initialConsumedAt
 }) => {
   const [mode, setMode] = useState<'tovar' | 'dnevnik'>(initialMode);
-  const [view, setView] = useState<'edit' | 'catalog'>('edit');
+  
+  // Focus state for 'Zen Focus' search mode
+  const [isNameFocused, setIsNameFocused] = useState(false);
 
   // Item Edit States
   const [name, setName] = useState(initialName || '');
@@ -224,7 +225,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
     }
 
     setIsLinked(true);
-    setView('edit');
+    setIsNameFocused(false);
     setSuggestions([]);
   };
 
@@ -286,13 +287,11 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
       <div className="eim-backdrop" onClick={(e) => { e.stopPropagation(); onClose(); }} />
       
       <div 
-        className={`eim-sheet ${view === 'catalog' ? 'full' : ''}`}
+        className="eim-sheet"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {view === 'edit' && <div className="eim-handle" />}
-
-        {view === 'edit' ? (
+        <div className="eim-handle" />
           <>
             <div className="eim-toggle-wrap">
               <div className="eim-toggle">
@@ -310,18 +309,49 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
               <div className={`eim-panel ${mode === 'tovar' ? 'active' : ''}`}>
                 <div className="eim-sec">
                   <div className="eim-lbl">Название</div>
-                  <input className="eim-tinp-large" type="text" autoComplete="off" autoCorrect="off" spellCheck={false} value={name} onChange={e => handleNameChange(e.target.value)} placeholder="Молоко" />
-                  
-                  <div className={`eim-chips-scroll ${suggestions.length > 0 ? 'visible' : ''}`}>
-                    {suggestions.map((s, idx) => (
-                      <button key={idx} className="eim-chip" onClick={() => onSelectFromCatalog(s)}>
-                        {s.canonical_name || s.name} <span className="eim-chip-sub">{s.per_100g?.kcal ?? s.kcal} ккал</span>
-                      </button>
-                    ))}
+                  <div style={{position: 'relative'}}>
+                    <input 
+                      className="eim-tinp-large" 
+                      type="text" 
+                      autoComplete="off" 
+                      autoCorrect="off" 
+                      spellCheck={false} 
+                      value={name} 
+                      onChange={e => handleNameChange(e.target.value)} 
+                      onFocus={() => setIsNameFocused(true)}
+                      onBlur={() => setTimeout(() => setIsNameFocused(false), 200)}
+                      placeholder="Молоко" 
+                    />
+                    {isLinked && !isNameFocused && (
+                      <div className="eim-linked-badge" onClick={() => setIsLinked(false)}>
+                        <div className="elb-ico">✅</div>
+                        <div className="elb-text">Из базы: {calcKcal} ккал</div>
+                        <div className="elb-un">Отвязать</div>
+                      </div>
+                    )}
                   </div>
+                  
+                  {isNameFocused && name.length >= 2 && (
+                    <div className="eim-focus-suggestions">
+                      {suggestions.length > 0 ? (
+                        suggestions.slice(0, 5).map((s, idx) => (
+                          <div key={idx} className="eim-fs-item animated-pop" onClick={() => onSelectFromCatalog(s)}>
+                            <div className="efsi-icon">{s.canonical_name ? s.canonical_name[0] : s.name[0]}</div>
+                            <div className="efsi-info">
+                              <div className="efsi-name">{s.canonical_name || s.name}</div>
+                              <div className="efsi-sub">{s.per_100g?.kcal ?? s.kcal} ккал • {mapBackendCategory(s.category || s.cat)}</div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="eim-fs-empty">Ничего не найдено в справочнике</div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <div className="eim-row">
+                <div style={{ display: isNameFocused ? 'none' : 'block', animation: 'fadeIn 0.2s ease' }}>
+                  <div className="eim-row">
                   <div className="eim-sec" style={{flex: 1.2, position: 'relative'}}>
                     <div className="eim-lbl">Категория</div>
                     <input className="eim-inp" type="text" autoComplete="off" autoCorrect="off" spellCheck={false} value={category} onChange={e => handleCategoryChange(e.target.value)} placeholder="Категория" />
@@ -356,32 +386,6 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   <textarea className="eim-inp" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Бренд, жирность, упаковка..." />
                 </div>
 
-                <div className="eim-sec" style={{marginTop: 10}}>
-                  <div className="eim-lbl">Калорийность из базы</div>
-                  <div className={`eim-nlink ${isLinked ? 'linked' : ''}`} onClick={() => setView('catalog')}>
-                    <div className="eim-nlink-top">
-                      <div className="eim-nlink-ico">{isLinked ? '✅' : '🔗'}</div>
-                      <div className="eim-nlink-info">
-                        <div className="eim-nlink-name">{isLinked ? name : 'Привязать к справочнику'}</div>
-                        <div className="eim-nlink-sub">{isLinked ? 'Данные подтянуты из базы' : 'Выбрать продукт из базы КБЖУ'}</div>
-                      </div>
-                      <div className="eim-nlink-arr">›</div>
-                    </div>
-                    {isLinked && (
-                      <div className="eim-nlink-pills">
-                        <div className="eim-npill"><div className="eim-npill-v">{kcal||'—'}</div><div className="eim-npill-l">ккал</div></div>
-                        <div className="eim-npill"><div className="eim-npill-v">{protein||'—'}</div><div className="eim-npill-l">белки</div></div>
-                        <div className="eim-npill"><div className="eim-npill-v">{fat||'—'}</div><div className="eim-npill-l">жиры</div></div>
-                        <div className="eim-npill"><div className="eim-npill-v">{carbs||'—'}</div><div className="eim-npill-l">углев</div></div>
-                      </div>
-                    )}
-                    {isLinked && (
-                      <div className="eim-nlink-foot">
-                        <div className="eim-linked-tag">✓ Привязано к базе</div>
-                        <button className="eim-unlink-btn" onClick={(e) => { e.stopPropagation(); setIsLinked(false); }}>Отвязать</button>
-                      </div>
-                    )}
-                  </div>
                 </div>
 
                 <div className="eim-div" />
@@ -396,27 +400,49 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
               <div className={`eim-panel ${mode === 'dnevnik' ? 'active' : ''}`}>
                 <div className="eim-sec" style={{marginBottom: 12}}>
                   <div className="eim-lbl">Продукт</div>
-                  <input 
-                    className="eim-tinp-large" 
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    autoFocus={!initialName}
-                    placeholder="Что съели?"
-                    value={name} 
-                    onChange={e => handleNameChange(e.target.value)} 
-                  />
-                  
-                  <div className={`eim-chips-scroll ${suggestions.length > 0 ? 'visible' : ''}`}>
-                    {suggestions.map((s, idx) => (
-                      <button key={idx} className="eim-chip" onClick={() => onSelectFromCatalog(s)}>
-                        {s.canonical_name || s.name} <span className="eim-chip-sub">{s.per_100g?.kcal ?? s.kcal} ккал</span>
-                      </button>
-                    ))}
+                  <div style={{position: 'relative'}}>
+                    <input 
+                      className="eim-tinp-large" 
+                      autoComplete="off"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      autoFocus={!initialName}
+                      placeholder="Что съели?"
+                      value={name} 
+                      onChange={e => handleNameChange(e.target.value)} 
+                      onFocus={() => setIsNameFocused(true)}
+                      onBlur={() => setTimeout(() => setIsNameFocused(false), 200)}
+                    />
+                    {isLinked && !isNameFocused && (
+                      <div className="eim-linked-badge" onClick={() => setIsLinked(false)}>
+                        <div className="elb-ico">✅</div>
+                        <div className="elb-text">Из базы: {calcKcal} ккал</div>
+                        <div className="elb-un">Отвязать</div>
+                      </div>
+                    )}
                   </div>
+                  
+                  {isNameFocused && name.length >= 2 && (
+                    <div className="eim-focus-suggestions">
+                      {suggestions.length > 0 ? (
+                        suggestions.slice(0, 5).map((s, idx) => (
+                          <div key={idx} className="eim-fs-item animated-pop" onClick={() => onSelectFromCatalog(s)}>
+                            <div className="efsi-icon">{s.canonical_name ? s.canonical_name[0] : s.name[0]}</div>
+                            <div className="efsi-info">
+                              <div className="efsi-name">{s.canonical_name || s.name}</div>
+                              <div className="efsi-sub">{s.per_100g?.kcal ?? s.kcal} ккал • {mapBackendCategory(s.category || s.cat)}</div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="eim-fs-empty">Ничего не найдено в справочнике</div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <div className="eim-row" style={{marginBottom: 12}}>
+                <div style={{ display: isNameFocused ? 'none' : 'block', animation: 'fadeIn 0.2s ease' }}>
+                  <div className="eim-row" style={{marginBottom: 12}}>
                   <div className="eim-sec" style={{flex: 1.5, paddingBottom: 0}}>
                     <div className="eim-meal-tabs">
                       <button className={`eim-mtab ${mealType==='breakfast'?'active':''}`} onClick={()=>setMealType('breakfast')}>Завтрак</button>
@@ -467,13 +493,7 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
                   </div>
                 </div>
 
-                {!isLinked && name.length > 0 && (
-                  <div className="eim-sec">
-                    <div className="eim-link-warning animated-pop" onClick={() => setView('catalog')}>
-                       ⚠️ Не привязано к базе. <span>Найти в справочнике ›</span>
-                    </div>
-                  </div>
-                )}
+                </div>
 
                 <div className="eim-divider-mini" style={{margin: '12px 0'}} />
 
@@ -508,16 +528,6 @@ export const EditItemModal: React.FC<EditItemModalProps> = ({
               </div>
 
             </div>
-          </>
-        ) : (
-          <div className="eim-cat-integrated">
-            <CatalogSearch 
-              onBack={() => setView('edit')} 
-              onSelect={onSelectFromCatalog}
-              initialQuery={name}
-            />
-          </div>
-        )}
       </div>
     </>
   );
