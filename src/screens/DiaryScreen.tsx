@@ -305,7 +305,7 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
           initialProtein={editingEntry?.protein}
           initialFat={editingEntry?.fat}
           initialCarbs={editingEntry?.carbs}
-          initialMealType={editingEntry?.mealType || (addingCustomForMeal || undefined)}
+          initialMealType={(editingEntry?.mealType && editingEntry.mealType !== 'unknown' ? editingEntry.mealType : (addingCustomForMeal || undefined)) as ('breakfast' | 'lunch' | 'dinner' | 'snack' | undefined)}
           initialConsumedAt={editingEntry?.consumedAt}
           initialMode="dnevnik"
           baseline={baseline}

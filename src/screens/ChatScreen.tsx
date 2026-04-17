@@ -3,6 +3,7 @@ import { SubHeader } from '../components/SubHeader';
 import { useData } from '../context/DataContext';
 import { useAi } from '../context/AiContext';
 import { ChatDiaryMessage } from '../components/Diary/ChatDiaryMessage';
+import type { StockTaggedItem } from '../types';
 import { useDiaryActions } from '../hooks/useDiaryActions';
 import './ChatScreen.css';
 
@@ -229,6 +230,48 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                     );
                   }
 
+                  // stock_analysis branch
+                  if (m.type === 'stock_analysis') {
+                    const TAG_CONFIG: Record<string, { icon: string; label: string; color: string; bg: string }> = {
+                      low_stock:      { icon: '🔴', label: 'Заканчивается',     color: '#FF3B30', bg: 'rgba(255,59,48,0.08)' },
+                      expiring_soon:  { icon: '🟡', label: 'Скоро истечёт',    color: '#FF9500', bg: 'rgba(255,149,0,0.08)'  },
+                      maybe_finished: { icon: '⚪', label: 'Возможно, кончился', color: '#8E8E93', bg: 'rgba(142,142,147,0.08)' },
+                    };
+                    const items: StockTaggedItem[] = m.stockTaggedItems || [];
+                    return (
+                      <div key={m.id} className="msg-row assistant">
+                        <div className="msg-bubble assistant" style={{ padding: '12px 16px', maxWidth: '90%' }}>
+                          <div className="msg-content" style={{ marginBottom: items.length > 0 ? '12px' : 0 }}>{m.content}</div>
+                          {items.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {items.map((ti, idx) => {
+                                const cfg = TAG_CONFIG[ti.tag] || TAG_CONFIG.maybe_finished;
+                                return (
+                                  <div key={idx} style={{
+                                    display: 'flex', alignItems: 'center', gap: '10px',
+                                    background: cfg.bg, borderRadius: '12px', padding: '8px 12px'
+                                  }}>
+                                    <span style={{ fontSize: '18px' }}>{cfg.icon}</span>
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ fontWeight: '600', fontSize: '14px', color: 'var(--t1)' }}>{ti.name}</div>
+                                      <div style={{ fontSize: '12px', color: cfg.color, fontWeight: '500' }}>{cfg.label}</div>
+                                      {ti.reason && <div style={{ fontSize: '11px', opacity: 0.55, marginTop: '2px' }}>{ti.reason}</div>}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {m.timestamp && (
+                            <div className="msg-time" style={{ marginTop: '8px' }}>
+                              {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <div key={m.id} className={`msg-row ${m.role} ${m.type_info === 'undo' ? 'msg-undo-state' : ''}`}>
                       <div className={`msg-bubble ${m.role}`}>
@@ -280,10 +323,10 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                     <div className="idr-main">
                       <div className="idr-name">{entry.name}</div>
                       <div className="idr-meta">
-                        {entry.mealType === 'breakfast' && '🍳 Завтрак'}
-                        {entry.mealType === 'lunch' && '🍲 Обед'}
-                        {entry.mealType === 'dinner' && '🍽️ Ужин'}
-                        {entry.mealType === 'snack' && '🍎 Перекус'}
+                        {(entry.mealType as string) === 'breakfast' && '🍳 Завтрак'}
+                        {(entry.mealType as string) === 'lunch' && '🍲 Обед'}
+                        {(entry.mealType as string) === 'dinner' && '🍽️ Ужин'}
+                        {(entry.mealType as string) === 'snack' && '🍎 Перекус'}
                       </div>
                     </div>
                     <div className="idr-side">

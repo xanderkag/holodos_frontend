@@ -145,8 +145,14 @@ export function AiProvider({ children }: { children: ReactNode }) {
           } as any;
           if (to === 'diary') {
             item.consumedAt = Date.now();
-            const hr = new Date().getHours();
-            item.mealType = hr < 11 ? 'breakfast' : hr < 16 ? 'lunch' : hr < 21 ? 'dinner' : 'snack';
+            // Use AI-supplied meal_type if present and not 'unknown'; fallback to time-of-day
+            const aiMealType = (it as any).meal_type;
+            if (aiMealType && aiMealType !== 'unknown') {
+              item.mealType = aiMealType;
+            } else {
+              const hr = new Date().getHours();
+              item.mealType = hr < 11 ? 'breakfast' : hr < 16 ? 'lunch' : hr < 21 ? 'dinner' : 'snack';
+            }
             if (messageId) item.chatMessageId = messageId;
             item.needsClarification = it.needsClarification || false;
             item.clarificationField = it.clarificationField;
@@ -180,8 +186,14 @@ export function AiProvider({ children }: { children: ReactNode }) {
           } as any;
           if (target === 'diary') {
             item.consumedAt = Date.now();
-            const hr = new Date().getHours();
-            item.mealType = hr < 11 ? 'breakfast' : hr < 16 ? 'lunch' : hr < 21 ? 'dinner' : 'snack';
+            // Use AI-supplied meal_type if present and not 'unknown'; fallback to time-of-day
+            const aiMealType = (it as any).meal_type;
+            if (aiMealType && aiMealType !== 'unknown') {
+              item.mealType = aiMealType;
+            } else {
+              const hr = new Date().getHours();
+              item.mealType = hr < 11 ? 'breakfast' : hr < 16 ? 'lunch' : hr < 21 ? 'dinner' : 'snack';
+            }
             if (messageId) item.chatMessageId = messageId;
             item.needsClarification = it.needsClarification || false;
             item.clarificationField = it.clarificationField;
@@ -251,6 +263,26 @@ export function AiProvider({ children }: { children: ReactNode }) {
     try {
       const actions = res.actions || [];
       const hasValidActions = Array.isArray(actions) && actions.length > 0;
+      
+      // ── stock_analysis branch ──────────────────────────────────────────────
+      // Backend returns tagged_items (possibly empty) + empty actions array.
+      // Do NOT apply actions; instead push a special chat message.
+      const isStockAnalysis = Array.isArray(res.tagged_items) && actions.length === 0;
+      if (isStockAnalysis) {
+        const feedbackStr = typeof res.feedback === 'string' ? res.feedback : 'Анализ запасов выполнен';
+        const stockMsg: Message = {
+          id: uid(),
+          role: 'assistant',
+          content: feedbackStr,
+          timestamp: Date.now(),
+          type: 'stock_analysis',
+          stockTaggedItems: res.tagged_items,
+        };
+        setMessages(prev => [...prev, stockMsg]);
+        addLogEvent(`🔍 stock_analysis: ${res.tagged_items?.length ?? 0} tagged`, 'ai');
+        return;
+      }
+      // ──────────────────────────────────────────────────────────────────────
       
       if (!hasValidActions) {
         if (res.feedback) {

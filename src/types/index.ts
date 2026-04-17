@@ -19,7 +19,14 @@ export interface Item {
   updatedAt?: number;
 }
 
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'unknown';
+export type VoiceIntent = 'product_action' | 'food_diary' | 'stock_analysis';
+
+export interface StockTaggedItem {
+  name: string;
+  tag: 'low_stock' | 'expiring_soon' | 'maybe_finished';
+  reason: string;
+}
 
 export interface DiaryEntry extends Item {
   consumedAt: number;
@@ -72,6 +79,8 @@ export interface Message {
   diaryEntryId?: string;
   diarySource?: 'voice' | 'photo';
   diaryTranscript?: string;
+  // Stock analysis message fields
+  stockTaggedItems?: StockTaggedItem[];
 }
 
 export interface UiSettings {
@@ -158,4 +167,11 @@ export interface AiResponse {
   suggestions?: AiSuggestion[];
   requiresConfirmation?: boolean;
   type?: string;
+  intent?: VoiceIntent;
+  source?: 'voice' | 'photo' | 'text';
+  // stock_analysis branch
+  tagged_items?: StockTaggedItem[];
+  analysis_tags?: ('low_stock' | 'expiring_soon' | 'maybe_finished')[];
+  // backend subscription snapshot
+  subscription?: any;
 }
