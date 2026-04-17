@@ -25,7 +25,7 @@ export interface SmartInputProps {
   // New props for hidden smart input
   smartInputState: 'hidden' | 'active' | 'recording' | 'media';
   onStateChange: (state: 'hidden' | 'active' | 'recording' | 'media') => void;
-  onLimitError?: (message: string) => void;
+  onLimitError?: (message: string, type?: 'voice' | 'chat' | 'image', subscription?: any) => void;
   hints?: React.ReactNode;
 }
 
@@ -257,7 +257,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
             addSystemMessage('⚠️ Файл слишком большой для отправки', 'system');
             logAiAudit({ message: 'Payload too large', status: '413', action: 'sendVoiceToN8N' });
           } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
-            if (onLimitError) onLimitError(err.message || 'Лимит голосовых исчерпан');
+            if (onLimitError) onLimitError(err.message || 'Лимит голосовых исчерпан', 'voice', err.data?.subscription);
             else showToast(err.message || 'Лимит голосовых исчерпан');
           } else {
             showToast(`❌ Ошибка: ${err.message}`);

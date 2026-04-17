@@ -46,7 +46,10 @@ export function AiProvider({ children }: { children: ReactNode }) {
   // Undo System States
   const [activeUndos, setActiveUndos] = useState<string[]>([]);
   const undoBackups = useRef<Map<string, { list: any[]; stock: any[]; baseline: any[]; diary: any[] }>>(new Map());
-  const handleLimitError = useCallback((message: string, type: PaywallType = 'voice') => {
+  const handleLimitError = useCallback((message: string, type: PaywallType = 'voice', subscription?: any) => {
+    if (subscription) {
+      syncBackendSubscription(subscription);
+    }
     setMessages(prev => [...prev, { 
       id: Date.now().toString(), 
       role: 'system', 
@@ -55,7 +58,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
     }]);
     addLogEvent(`⚠️ ${message}`, 'ai');
     setPaywallType(type);
-  }, [setMessages, addLogEvent]);
+  }, [setMessages, addLogEvent, syncBackendSubscription]);
 
   const undoAction = useCallback((msgId: string) => {
     const backup = undoBackups.current.get(msgId);
@@ -425,10 +428,8 @@ export function AiProvider({ children }: { children: ReactNode }) {
         addSystemMessage('⚠️ Фото слишком большое для загрузки. Попробуйте обрезать или сжать', 'system');
         logAiAudit({ message: 'Payload too large', status: '413', action: 'analyzeImage' });
       } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
-        // Sync backend subscription snapshot into local state
-        if (err.data?.subscription) syncBackendSubscription(err.data.subscription);
-        setPaywallType('image');
-        addLogEvent(`⚠️ ${err.message}`, 'ai');
+        handleLimitError(err.message || 'Лимит загрузки чеков и фото исчерпан', 'image', err.data?.subscription);
+
       } else {
         showToast(`❌ Ошибка: ${err.message}`);
       }
@@ -497,16 +498,8 @@ export function AiProvider({ children }: { children: ReactNode }) {
         showToast('⚠️ Текст слишком большой');
         logAiAudit({ message: 'Payload too large', status: '413', action: 'sendChatCommand' });
       } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
-        // Sync backend subscription snapshot into local state
-        if (err.data?.subscription) syncBackendSubscription(err.data.subscription);
-        setMessages(prev => [...prev, { 
-          id: Date.now().toString(), 
-          role: 'system', 
-          content: err.message || "Лимит исчерпан", 
-          timestamp: Date.now() 
-        }]);
-        setPaywallType(isVoice ? 'voice' : 'chat');
-        addLogEvent(`⚠️ ${err.message}`, 'ai');
+        handleLimitError(err.message || 'Лимит сообщений исчерпан', isVoice ? 'voice' : 'chat', err.data?.subscription);
+
       } else {
         logDiagnostic(`CHAT Exception: ${err.message}`, 'error');
         showToast(`❌ Ошибка ИИ: ${err.message}`);
