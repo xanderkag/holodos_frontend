@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, memo } from 'react';
 import { CAT_COLORS } from '../utils/data';
 import type { Item } from '../utils/data';
 import './ItemRow.css';
@@ -22,7 +22,7 @@ interface ItemRowProps {
   swipeLeftColor?: string;
 }
 
-export default function ItemRow({ 
+function ItemRowBase({ 
   item, 
   onToggle, 
   onDelete, 
@@ -203,3 +203,17 @@ export default function ItemRow({
     </div>
   );
 }
+
+const ItemRow = memo(ItemRowBase, (prev, next) =>
+  prev.item.id === next.item.id &&
+  prev.item.name === next.item.name &&
+  prev.item.isChecked === next.item.isChecked &&
+  prev.item.qty === next.item.qty &&
+  prev.item.kcal === next.item.kcal &&
+  prev.item.notes === next.item.notes &&
+  prev.isFirstInCategory === next.isFirstInCategory &&
+  prev.isLastInCategory === next.isLastInCategory &&
+  prev.hideBullet === next.hideBullet
+);
+
+export default ItemRow;

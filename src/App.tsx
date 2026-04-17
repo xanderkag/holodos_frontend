@@ -1,14 +1,15 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { AuthScreen } from './screens/AuthScreen';
-import { AdminScreen } from './screens/AdminScreen';
 import { Header } from './components/Header';
 import { TabBar } from './components/TabBar';
-import ListScreen from './screens/ListScreen';
-import BaselineScreen from './screens/BaselineScreen';
 import ChatScreen from './screens/ChatScreen';
-import DiaryScreen from './screens/DiaryScreen';
-import EventsScreen from './screens/EventsScreen';
-import { SettingsScreen } from './screens/SettingsScreen';
+// Lazy-loaded screens — not needed on initial paint
+const AdminScreen = lazy(() => import('./screens/AdminScreen').then(m => ({ default: m.AdminScreen })));
+const ListScreen = lazy(() => import('./screens/ListScreen'));
+const BaselineScreen = lazy(() => import('./screens/BaselineScreen'));
+const DiaryScreen = lazy(() => import('./screens/DiaryScreen'));
+const EventsScreen = lazy(() => import('./screens/EventsScreen'));
+const SettingsScreen = lazy(() => import('./screens/SettingsScreen').then(m => ({ default: m.SettingsScreen })));
 import { SmartInput } from './components/SmartInput';
 import { SmartHints } from './components/SmartHints';
 import { ToastContainer, showToast } from './components/Toast';
@@ -25,7 +26,6 @@ import { mergeItems, uid, classify } from './utils/data';
 import type { DebugLog } from './components/DebugOverlay';
 import { useDiaryActions } from './hooks/useDiaryActions';
 import { LimitPaywallModal } from './components/LimitPaywallModal';
-
 
 const ONBOARDING_STEPS = [
   { id: 'onb1', text: "👋 Привет! Я помогаю управлять холодильником и списком покупок.", delay: 1000 },
@@ -318,57 +318,59 @@ export default function App() {
       />
       
       <main className="content-area">
-        {currentTab === 'chat' && (
-          <ChatScreen
-            messages={messages}
-            isLoading={isAiLoading || isOnboardingTyping}
-            onUndo={() => {}}
-            onShowInstructions={() => runOnboarding(true)}
-            onChatTap={() => handleSmartInputStateChange('active')}
-          />
-        )}
-        {currentTab === 'history' && (
-          <DiaryScreen
-            onImageSelect={handleDiaryPhotoSelect}
-            onGoToChat={() => setCurrentTab('chat')}
-          />
-        )}
-        {currentTab === 'events' && <EventsScreen />}
-        {currentTab === 'baseline' && <BaselineScreen stock={stock} setStock={setStock} baseline={baseline} setBaseline={setBaseline} myRecipes={myRecipes} setMyRecipes={setMyRecipes} toList={(it) => { setList(prev => mergeItems(prev, [it])); showToast("✅ В список"); addSystemMessage(`Добавлено в покупки: ${it.name}`); }} mode={baselineSubMode} setMode={setBaselineSubMode} onEat={handleAddToDiary} />}
-        {currentTab === 'list' && (
-          <ListScreen 
-            list={list} 
-            setList={setList} 
-            toStock={(it) => {
-              setStock(prev => mergeItems(prev, [it]));
-              showToast(`🧊 ${it.name} в Холодосе`);
-              addSystemMessage(`Перемещено в холодильник: ${it.name}`);
-              addLogEvent(`"${it.name}" перемещен в Холодос`, 'move');
-            }}
-            categoryOrder={stores[currentStore]?.ord || []} 
-            setCategoryOrder={(o) => { 
-              const s = [...stores]; 
-              if (s[currentStore]) s[currentStore].ord = o; 
-              setStores(s); 
-            }} 
-          />
-        )}
-        {currentTab === 'settings' && (
-          <SettingsScreen
-            user={user}
-            stats={stats}
-            isAdmin={isAdmin}
-            onAdminClick={() => setShowAdmin(true)}
-            showDebug={showDebug}
-            setShowDebug={setShowDebug}
-            uiSettings={uiSettings}
-            onUpdateUiSettings={(s) => setUiSettings(p => ({ ...p, ...s }))}
-            calorieNorm={calorieNorm}
-            onUpdateCalorieNorm={setCalorieNorm}
-            onFactoryReset={resetAll}
-            onLinkTelegram={loginWithTelegramWidget}
-          />
-        )}
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', paddingTop: '50%', opacity: 0.3 }}>⏳</div>}>
+          {currentTab === 'chat' && (
+            <ChatScreen
+              messages={messages}
+              isLoading={isAiLoading || isOnboardingTyping}
+              onUndo={() => {}}
+              onShowInstructions={() => runOnboarding(true)}
+              onChatTap={() => handleSmartInputStateChange('active')}
+            />
+          )}
+          {currentTab === 'history' && (
+            <DiaryScreen
+              onImageSelect={handleDiaryPhotoSelect}
+              onGoToChat={() => setCurrentTab('chat')}
+            />
+          )}
+          {currentTab === 'events' && <EventsScreen />}
+          {currentTab === 'baseline' && <BaselineScreen stock={stock} setStock={setStock} baseline={baseline} setBaseline={setBaseline} myRecipes={myRecipes} setMyRecipes={setMyRecipes} toList={(it) => { setList(prev => mergeItems(prev, [it])); showToast("✅ В список"); addSystemMessage(`Добавлено в покупки: ${it.name}`); }} mode={baselineSubMode} setMode={setBaselineSubMode} onEat={handleAddToDiary} />}
+          {currentTab === 'list' && (
+            <ListScreen 
+              list={list} 
+              setList={setList} 
+              toStock={(it) => {
+                setStock(prev => mergeItems(prev, [it]));
+                showToast(`🧊 ${it.name} в Холодосе`);
+                addSystemMessage(`Перемещено в холодильник: ${it.name}`);
+                addLogEvent(`"${it.name}" перемещен в Холодос`, 'move');
+              }}
+              categoryOrder={stores[currentStore]?.ord || []} 
+              setCategoryOrder={(o) => { 
+                const s = [...stores]; 
+                if (s[currentStore]) s[currentStore].ord = o; 
+                setStores(s); 
+              }} 
+            />
+          )}
+          {currentTab === 'settings' && (
+            <SettingsScreen
+              user={user}
+              stats={stats}
+              isAdmin={isAdmin}
+              onAdminClick={() => setShowAdmin(true)}
+              showDebug={showDebug}
+              setShowDebug={setShowDebug}
+              uiSettings={uiSettings}
+              onUpdateUiSettings={(s) => setUiSettings(p => ({ ...p, ...s }))}
+              calorieNorm={calorieNorm}
+              onUpdateCalorieNorm={setCalorieNorm}
+              onFactoryReset={resetAll}
+              onLinkTelegram={loginWithTelegramWidget}
+            />
+          )}
+        </Suspense>
       </main>
 
       {/* Computed Smart Hints */}

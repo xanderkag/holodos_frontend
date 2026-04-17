@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import type { DiaryEntry } from '../../types';
 import ItemRow from '../ItemRow';
 import { ClarificationInline } from './ClarificationInline';
@@ -12,7 +12,7 @@ interface DiaryMealGroupProps {
   onClarifyItem?: (itemId: string, quantity: number, unit: string) => void;
 }
 
-export const DiaryMealGroup: React.FC<DiaryMealGroupProps> = ({ meal, items, onAddClick, onRemoveItem, onEditItem, onClarifyItem }) => {
+export const DiaryMealGroupInner: React.FC<DiaryMealGroupProps> = ({ meal, items, onAddClick, onRemoveItem, onEditItem, onClarifyItem }) => {
   const [isExpanded, setIsExpanded] = useState(items.length > 0);
   const [clarifyingItemId, setClarifyingItemId] = useState<string | null>(null);
   const mealKcal = items.reduce((sum, it) => sum + (it.kcal || 0), 0);
@@ -111,3 +111,10 @@ export const DiaryMealGroup: React.FC<DiaryMealGroupProps> = ({ meal, items, onA
     </div>
   );
 };
+
+export const DiaryMealGroup = memo(DiaryMealGroupInner, (prev, next) =>
+  prev.meal.id === next.meal.id &&
+  prev.items.length === next.items.length &&
+  prev.items.reduce((s, i) => s + (i.kcal || 0), 0) === next.items.reduce((s, i) => s + (i.kcal || 0), 0) &&
+  prev.items.every((it, idx) => it.id === next.items[idx]?.id)
+);
