@@ -38,7 +38,7 @@ jobs:
         with:
           args: --acl public-read --follow-symlinks --delete
         env:
-          AWS_S3_BUCKET: app-ru.holodos.su
+          AWS_S3_BUCKET: holodos-app-ru
           AWS_ACCESS_KEY_ID: ${{ secrets.VITE_YANDEX_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.VITE_YANDEX_SECRET_ACCESS_KEY }}
           AWS_S3_ENDPOINT: https://storage.yandexcloud.net
