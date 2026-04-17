@@ -1,27 +1,18 @@
 .chat-screen {
   display: flex;
   flex-direction: column;
-  position: relative;
-}
-
-/* SubHeader handles sticky filter bar and gradient blur */
-.chat-sub-header {
-  position: absolute !important;
-  top: calc(var(--sat) + 16px) !important;
+  height: 100%;
 }
 
 .chat-messages {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  flex: 1;
   overflow-y: auto;
-  padding: calc(var(--sat) + 80px) 16px 280px;
+  padding: 8px 16px 180px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .msg-date-group {

@@ -131,7 +131,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
 
   return (
     <div className="screen chat-screen">
-      <SubHeader className="chat-sub-header">
+      <SubHeader>
         <div className="ui-capsule">
           <button 
             className={`ui-pill ${filter === 'chat' ? 'active' : ''}`} 
