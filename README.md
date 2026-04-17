@@ -102,7 +102,7 @@ Backend является **источником правды** по дневны
 
 | Тариф | Фото/день | Голос/день |
 |-------|-----------|-----------|
-| Free | 3 | 10 |
+| Free | 10 | 30 |
 | Pro | 20 | 100 |
 
 ### Правила обработки ответов
@@ -153,11 +153,19 @@ if (result.subscription) {
 | `POST /ai/voice` | аудио файл | `voice` |
 
 - Source tagging устанавливается на фронте в `AiContext.tsx` и `SmartInput.tsx`
-- Backend возвращает `AiResponse` с `actions[]`, `feedback`, `requiresConfirmation`
+- Backend возвращает `AiResponse` с `actions[]`, `feedback`, `requiresConfirmation` и опциональным `intent`.
+- **Voice Intents**:
+  - Бэкенд классифицирует голосовые запросы (stock_analysis, food_diary, product_action).
+  - Информацию о пищевом приёме (завтрак, обед, и т.д.) бэкенд возвращает в `meal_type` каждого `action.item`.
+  - При `intent: 'stock_analysis'` бэкенд возвращает пустой массив `actions` и детали в `tagged_items`. Фронт рендерит интерактивные карточки со статусами на основе этих тегов.
 - `applyActions()` в `AiContext.tsx` применяет все actions к глобальному стейту. Примечания:
   - Сущности для Дневника (`target: 'diary'`) добавляются **прямым пушем**, чтобы сохранить уникальные ключи `chatMessageId`.
   - Поля пищевой ценности (`kcal`, `protein`, `fat`, `carbs`) переносятся один к одному из AI payload в State.
   - Если приходит action `type: "check"`, `target: "list"`, а товара нет в списке — фронтенд **сам** добавит его и отметит выполненным.
+
+### Производительность (Performance v3.22.20+)
+- **Code-Splitting**: Основные экраны загружаются лениво через `React.lazy` и `<Suspense>` (`AdminScreen`, `ListScreen`, `BaselineScreen`, `DiaryScreen`, `SettingsScreen`, `EventsScreen`).
+- **Memoization**: Интенсивно рендерящиеся компоненты (`ItemRow`, `DiaryMealGroup`) обернуты в `React.memo` с кастомными функциями сравнения (equals). Это блокирует каскадный ререндер списка при изменениях, не касающихся конкретного элемента.
 
 ### Гибридная загрузка медиа
 Из-за проблем Yandex API Gateway с прерыванием соединений `multipart/form-data` на стороне WebView/Capacitor, передача медиа (аудио/фото) с мобильных клиентов происходит в виде чистого JSON-объекта (base64 string). PWA и Web продолжают использовать стандартную `FormData`.

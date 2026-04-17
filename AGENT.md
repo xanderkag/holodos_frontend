@@ -30,9 +30,13 @@
 > Мы (Frontend) **НЕ ИМЕЕМ ПРАВА** вносить изменения в интеграцию с backend'ом. Схемы данных (`AiAction`, payload-запросы к `/ai/text`, `/ai/voice`, `/ai/image`), контракты и общая логика взаимодействия с API — неприкасаемы. Любые изменения формата обмена данными требуют строжайшего согласования с backend-отделом.
 
 > [!IMPORTANT]
-> **Актуальный Production Contract (15 апреля 2026):**
+> **Актуальный Production Contract (17 апреля 2026):**
 > - Основной продуктовый AI-flow идет через `text / voice / image`.
 > - Маршруты `/diary/analyze-photo` и `/diary/analyze-voice` считаются legacy transition shim и **не используются**.
+> - **Voice Intent Classification**: Голосовые и текстовые ответы от AI теперь содержат поле `intent` (опционально).
+>   - `product_action` (default): стандартные действия (добавить, отметить).
+>   - `food_diary`: записи дневника содержат `meal_type` (breakfast/lunch/dinner/snack/unknown). Фронт использует `meal_type` (если не unknown) вместо локального времени.
+>   - `stock_analysis`: возвращает `tagged_items` с `tags` без элементов `actions`. Фронт перехватывает это в `applyActions` и рендерит спец. карточки в чате вместо применения пустого `actions`.
 > - Source tagging (`photo` / `voice` / `text`) выполняется на стороне frontend **в `AiContext.tsx` и `SmartInput.tsx`**, строго перед вызовом `applyActions()`:
 >   - `analyzeImage()` → `result.source = 'photo'`
 >   - `sendChatCommand()` → `result.source = 'text'`
@@ -74,10 +78,9 @@ export class ApiError extends Error {
 
 ### Правило обработки `limit_reached` в `AiContext.tsx`:
 - **НЕ** считать 403 limit_reached падением AI — это валидный продуктовый ответ.
-- **В chat flow** → добавить `system message` с `err.message` прямо в ленту чата.
-- **В image flow** → показать `showToast(err.message)`.
-- **В voice flow (SmartInput)** → вызвать `onLimitError(err.message)` → добавит системное сообщение через `handleLimitError`.
-- **Во всех случаях** → если `err.data?.subscription` присутствует, вызвать `syncBackendSubscription(err.data.subscription)`.
+- Во всех потоках (`analyzeImage`, `sendChatCommand`, голос в `SmartInput`) обязательно вызывается общая функция `handleLimitError(err.message, type, err.data?.subscription)`.
+- **Во всех случаях** → обязательно добавляется `system message` с предупреждением прямо в ленту чата и открывается соответствующий Paywall.
+- **Во всех случаях** → если передан `subscription`, вызывается `syncBackendSubscription()`.
 
 ---
 
@@ -119,7 +122,7 @@ if (result.subscription) {
 ### Тарифные лимиты (текущие):
 | Тариф | Фото в день | Голос в день |
 |-------|------------|--------------|
-| Free | 3 | 10 |
+| Free | 10 | 30 |
 | Pro | 20 | 100 |
 
 ### Локальный `checkUsage`:
