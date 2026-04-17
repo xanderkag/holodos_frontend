@@ -132,7 +132,15 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
         </div>
       </SubHeader>
       {/* Subscription & Limits Info */}
-      <ProfileLimitCard onUpgradeClick={() => window.open('tg://resolve?domain=holodos_ai_bot', '_blank')} />
+      <ProfileLimitCard onUpgradeClick={() => {
+        const botName = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'HolodosAI_bot';
+        const tgUrl = `https://t.me/${botName}`;
+        if ((window as any).Telegram?.WebApp?.openTelegramLink) {
+          (window as any).Telegram.WebApp.openTelegramLink(tgUrl);
+        } else {
+          window.open(tgUrl, '_blank');
+        }
+      }} />
 
 
       <DiaryMacrosSummary 

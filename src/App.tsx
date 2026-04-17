@@ -479,7 +479,15 @@ export default function App() {
       <LimitPaywallModal 
         type={paywallType} 
         onClose={() => setPaywallType(null)} 
-        onUpgrade={() => window.open('tg://resolve?domain=holodos_ai_bot', '_blank')} 
+        onUpgrade={() => {
+          const botName = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'HolodosAI_bot';
+          const tgUrl = `https://t.me/${botName}`;
+          if ((window as any).Telegram?.WebApp?.openTelegramLink) {
+            (window as any).Telegram.WebApp.openTelegramLink(tgUrl);
+          } else {
+            window.open(tgUrl, '_blank');
+          }
+        }} 
       />
     </div>
   );
