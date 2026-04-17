@@ -64,12 +64,6 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
     { id: 'snack', label: 'Перекусы', icon: '🍎' }
   ];
 
-  const today = new Date().toLocaleDateString('ru-RU', { 
-    weekday: 'long', 
-    day: 'numeric', 
-    month: 'long' 
-  });
-
   const addWater = () => {
     setWater(prev => prev + 250);
     showToast('💧 + 250 мл (Дневник)');

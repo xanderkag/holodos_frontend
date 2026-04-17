@@ -23,7 +23,6 @@ interface DataContextType {
   voiceLogs: VoiceLog[];
   setVoiceLogs: (s: VoiceLog[] | ((prev: VoiceLog[]) => VoiceLog[])) => void;
   uiSettings: UiSettings;
-  uiSettings: UiSettings;
   setUiSettings: React.Dispatch<React.SetStateAction<UiSettings>>;
   calorieNorm: number;
   setCalorieNorm: React.Dispatch<React.SetStateAction<number>>;
@@ -506,7 +505,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       isDataLoaded,
       saveAll,
       resetAll,
-      addSystemMessage 
+      addSystemMessage,
+      calorieNorm,
+      setCalorieNorm
     }}>
       {children}
     </DataContext.Provider>
