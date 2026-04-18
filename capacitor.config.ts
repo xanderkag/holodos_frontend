@@ -5,8 +5,9 @@ const config: CapacitorConfig = {
   appName: 'HOLODOS AI',
   webDir: 'dist',
   server: {
-    // Capacitor 5+: use https scheme to avoid Mixed Content blocks & cookie issues on Android
+    // Capacitor 5+: use https scheme to avoid Mixed Content blocks & cookie issues
     androidScheme: 'https',
+    iosScheme: 'https',
   },
   plugins: {
     CapacitorHttp: {

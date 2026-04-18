@@ -71,13 +71,13 @@ export const loginWithGoogle = async () => {
       // Bypasses Firebase authDomain/web-redirect entirely (no unauthorized-domain)
       console.log('Auth: Starting native Google Sign-In (Capacitor)');
       try { await GoogleAuth.initialize(); } catch (e) { console.log('Init error:', e); }
-      logAuthAudit({ provider: 'google', channel: 'android', stage: 'attempt', message: 'Starting native Google Sign-In (Capacitor)' });
+      logAuthAudit({ provider: 'google', channel: Capacitor.getPlatform() as any, stage: 'attempt', message: 'Starting native Google Sign-In (Capacitor)' });
       const googleUser = await GoogleAuth.signIn();
       const credential = GoogleAuthProvider.credential(
         googleUser.authentication.idToken
       );
       const res = await signInWithCredential(auth, credential);
-      logAuthAudit({ provider: 'google', channel: 'android', stage: 'success', message: 'Native Google Sign-In completed successfully' });
+      logAuthAudit({ provider: 'google', channel: Capacitor.getPlatform() as any, stage: 'success', message: 'Native Google Sign-In completed successfully' });
       return res;
     } else {
       // ─── Web path (browser only) ──────────────────────────────────────────
@@ -99,7 +99,7 @@ export const loginWithGoogle = async () => {
     console.error('Auth Error Details:', error.code, error.message);
     logAuthAudit({ 
       provider: 'google', 
-      channel: isNativePlatform ? 'android' : 'web', 
+      channel: isNativePlatform ? Capacitor.getPlatform() as any : 'web', 
       stage: 'failure', 
       message: error.message || String(error), 
       code: error.code 
