@@ -2,10 +2,11 @@
   position: fixed;
   left: 16px;
   right: 16px;
-  bottom: calc(var(--tab-h, 80px) + 36px);
+  bottom: calc(var(--tab-h, 80px) + var(--kb-offset, 0px) + 36px);
   z-index: 1000;
   pointer-events: none;
-  transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* smooth transition covers both CSS-class changes and keyboard offset changes */
+  transition: bottom 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, transform 0.35s;
 }
 
 .smart-input {

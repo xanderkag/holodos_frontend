@@ -64,7 +64,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
   const MIN_RECORDING_MS = 1000;
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   const triggerHaptic = (pattern: number | number[]) => {
     if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
@@ -76,10 +75,10 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     const v = window.visualViewport;
     const handleResize = () => {
       if (!v) return;
-      // offset is the distance between the bottom of the layout viewport and the bottom of the visual viewport
+      // Write directly to CSS custom property — avoids React re-render and conflicting inline styles
       const offset = window.innerHeight - v.height;
-      // Safari PWA introduces small discrepancies due to the Home Indicator. A real keyboard is > 150px.
-      setKeyboardOffset(offset > 150 ? offset : 0);
+      const kb = offset > 150 ? offset : 0;
+      document.documentElement.style.setProperty('--kb-offset', `${kb}px`);
     };
     v.addEventListener('resize', handleResize);
     v.addEventListener('scroll', handleResize);
@@ -87,6 +86,8 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     return () => {
       v.removeEventListener('resize', handleResize);
       v.removeEventListener('scroll', handleResize);
+      // Reset on unmount
+      document.documentElement.style.setProperty('--kb-offset', '0px');
     };
   }, []);
 
@@ -313,7 +314,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     <div
       className="smart-input-wrap"
       ref={wrapperRef}
-      style={{ bottom: keyboardOffset > 0 ? `${keyboardOffset + 10}px` : undefined }}
     >
       <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={processFile} />
       <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} style={{ display: 'none' }} onChange={processFile} />
