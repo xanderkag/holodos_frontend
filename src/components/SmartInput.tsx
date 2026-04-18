@@ -70,26 +70,8 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     navigator.vibrate(pattern);
   };
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.visualViewport) return;
-    const v = window.visualViewport;
-    const handleResize = () => {
-      if (!v) return;
-      // Write directly to CSS custom property — avoids React re-render and conflicting inline styles
-      const offset = window.innerHeight - v.height;
-      const kb = offset > 150 ? offset : 0;
-      document.documentElement.style.setProperty('--kb-offset', `${kb}px`);
-    };
-    v.addEventListener('resize', handleResize);
-    v.addEventListener('scroll', handleResize);
-    handleResize();
-    return () => {
-      v.removeEventListener('resize', handleResize);
-      v.removeEventListener('scroll', handleResize);
-      // Reset on unmount
-      document.documentElement.style.setProperty('--kb-offset', '0px');
-    };
-  }, []);
+  // ANDROID: adjustResize is set in AndroidManifest.xml → WebView shrinks when keyboard opens.
+  // No visualViewport hack needed — all position:fixed elements stay visible automatically.
 
 
   useEffect(() => {
@@ -153,52 +135,48 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
     logDiagnostic(`n8n-Input: Selected ${file.name} (${Math.round(file.size / 1024)} KB)`, 'info');
     setSheetOpen(false);
+    showToast('📷 Обрабатываю фото...');
 
-    let processedBlob: Blob | File = file;
-    const isHEIC = file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif') || file.type.includes('heic');
+    try {
+      let processedBlob: Blob | File = file;
+      const isHEIC = file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif') || file.type.includes('heic');
 
-    if (isHEIC) {
-      logDiagnostic('n8n-Input: HEIC detected, converting...', 'info');
-      try {
-        const result = await heic2any({
-          blob: file,
-          toType: 'image/jpeg',
-          quality: 0.7
-        });
+      if (isHEIC) {
+        logDiagnostic('n8n-Input: HEIC detected, converting...', 'info');
+        const result = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.7 });
         processedBlob = Array.isArray(result) ? result[0] : (result as Blob);
         logDiagnostic(`n8n-Input: HEIC converted. New size: ${Math.round(processedBlob.size / 1024)} KB`, 'info');
-      } catch (err: any) {
-        logDiagnostic(`n8n ERROR (HEIC): ${err.message}`, 'error');
-        showToast('❌ Ошибка HEIC - попробуйте JPEG');
-        e.target.value = '';
-        return; 
       }
-    }
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const base64 = reader.result;
-        if (typeof base64 !== 'string') {
-          throw new Error('Invalid format');
-        }
-        const compressed = await compressImage(base64, 1024); 
-        // IMMEDIATE SEND - No preview step
-        onImageSelect(compressed);
-        triggerHaptic([15, 40, 15]);
-        onStateChange('active');
-      } catch (err: any) {
-        logDiagnostic(`n8n ERROR: ${err.message}`, 'error');
-        showToast('❌ Ошибка: ' + err.message);
-      }
-    };
-    reader.onerror = () => {
-      logDiagnostic('n8n ERROR: FileReader failed to read file', 'error');
-      showToast('❌ Не удалось прочитать файл. Попробуйте другую фотографию.');
+      // FileReader with timeout — Android can hang on corrupt/huge files
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        const timeout = setTimeout(() => {
+          reader.abort();
+          reject(new Error('Чтение файла заняло слишком долго (>10с)'));
+        }, 10000);
+        reader.onload = () => {
+          clearTimeout(timeout);
+          if (typeof reader.result === 'string') resolve(reader.result);
+          else reject(new Error('Invalid format'));
+        };
+        reader.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error('Не удалось прочитать файл'));
+        };
+        reader.readAsDataURL(processedBlob);
+      });
+
+      const compressed = await compressImage(base64, 1024);
+      onImageSelect(compressed);
+      triggerHaptic([15, 40, 15]);
+      onStateChange('active');
+    } catch (err: any) {
+      logDiagnostic(`n8n ERROR: ${err.message}`, 'error');
+      showToast('❌ ' + (err.message || 'Ошибка обработки фото'));
+    } finally {
       e.target.value = '';
-    };
-    reader.readAsDataURL(processedBlob);
-    e.target.value = '';
+    }
   };
 
   const startRecording = async () => {

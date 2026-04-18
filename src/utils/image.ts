@@ -8,8 +8,15 @@ export const compressImage = (base64Str: any, maxWidth = 800): Promise<string> =
       return reject(new Error(`Некорректные данные изображения (длина: ${base64Str?.length || 0})`));
     }
     const img = new Image();
-    img.src = base64Str;
+    img.crossOrigin = 'anonymous'; // Prevent CORS taint on some Android Chrome versions
+
+    // Timeout: if image doesn't load in 5s, it's probably corrupt
+    const timeout = setTimeout(() => {
+      reject(new Error('Изображение не загрузилось за 5 секунд'));
+    }, 5000);
+
     img.onload = () => {
+      clearTimeout(timeout);
       try {
         let canvas = document.createElement('canvas');
         let width = img.width;
@@ -55,7 +62,9 @@ export const compressImage = (base64Str: any, maxWidth = 800): Promise<string> =
       }
     };
     img.onerror = () => {
+      clearTimeout(timeout);
       reject(new Error(`Ошибка декодирования: изображение повреждено или огромного размера.`));
     };
+    img.src = base64Str;
   });
 };

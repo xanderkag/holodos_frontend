@@ -38,7 +38,7 @@ export async function apiPost<T>(path: string, body: Record<string, unknown>): P
         'Content-Type': 'application/json',
         'X-Firebase-Authorization': `Bearer ${token}`,
       },
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(90000), // 90s — Android on 3G needs more time for large payloads
       body: JSON.stringify(body),
     });
 
@@ -107,7 +107,7 @@ export async function apiPostFormData<T>(path: string, formData: FormData): Prom
         'X-Firebase-Authorization': `Bearer ${token}`,
         // Content-Type НЕ выставляем — браузер сам добавит boundary для multipart
       },
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(90000), // 90s — Android on 3G needs more time for large payloads
       body: formData,
     });
 

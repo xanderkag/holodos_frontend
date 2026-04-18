@@ -236,7 +236,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
         });
       }
     }).catch(err => {
-      console.warn("getUserData failed (client offline). Using cache/snapshot.", err);
+      console.warn("getUserData failed (client offline). Retrying in 3s...", err);
+      // Ensure UI unblocks from cache even if fetch fails
+      if (!isDataLoaded) setIsDataLoaded(true);
+      // Retry once after 3 seconds (Android network may need time to establish)
+      setTimeout(() => {
+        if (!isMounted) return;
+        getUserData(user.uid).then(data => {
+          if (!isMounted || !data) return;
+          setList(data.list || []); listRef.current = data.list || [];
+          setStock(data.stock || []); stockRef.current = data.stock || [];
+          setBaseline(data.baseline || BDEMO); baselineRef.current = data.baseline || BDEMO;
+          setDiary(data.diary || []); diaryRef.current = data.diary || [];
+          setEvents(data.events || []); eventsRef.current = data.events || [];
+          if (data.stats) { setStats(data.stats); statsRef.current = data.stats; }
+          setIsDataLoaded(true);
+          localStorage.setItem('holodos_cache', JSON.stringify({ ...data, _lastSync: Date.now() }));
+        }).catch(() => { /* silent — onSnapshot will sync when online */ });
+      }, 3000);
     });
 
     // Real-time listener

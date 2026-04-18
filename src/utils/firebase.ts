@@ -38,15 +38,21 @@ export const auth = getAuth(app);
 
 // Automatically uses browserLocalPersistence (localStorage) for stable Auth.
 
-// v2.29.1: Forced Long Polling was for Capacitor stability.
-// v3.11.0: Reverted to DEFAULTS to fix COOP redirect errors.
-// v3.22.21: Re-enabling Long Polling for Android only.
-// Android WebView WebSocket is unreliable → causes "client is offline" errors.
+// v3.22.21: Android WebView WebSocket is unreliable → causes "client is offline" errors.
 // iOS and Web use defaults (WebChannel / gRPC) which are stable.
-const firestoreSettings = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'
-  ? { experimentalForceLongPolling: true }
-  : {};
-export const db = initializeFirestore(app, firestoreSettings);
+// try/catch: if IndexedDB is corrupted after a crash, fallback to defaults.
+import { getFirestore } from 'firebase/firestore';
+let db: ReturnType<typeof initializeFirestore>;
+try {
+  const firestoreSettings: any = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'
+    ? { experimentalForceLongPolling: true, cacheSizeBytes: 10_485_760 } // 10MB cap
+    : { cacheSizeBytes: 10_485_760 };
+  db = initializeFirestore(app, firestoreSettings);
+} catch (e) {
+  console.warn('initializeFirestore failed, using getFirestore fallback:', e);
+  db = getFirestore(app) as any;
+}
+export { db };
 
 
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
