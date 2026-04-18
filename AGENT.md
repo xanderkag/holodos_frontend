@@ -192,6 +192,13 @@ if (result.subscription) {
 - В `App.tsx` JS принудительно устанавливает `--sat-force: 47px` (iOS) и `--sat-force: 36px` (Android).
 - Это гарантирует, что `Dynamic Island`, `Android System StatusBar` или нижняя панель не будут перекрывать контент приложения.
 
+### Поведение клавиатуры на Android (adjustResize)
+> [!IMPORTANT]
+> **Android `AndroidManifest.xml` содержит `android:windowSoftInputMode="adjustResize"`.**
+> Это означает, что при открытии клавиатуры WebView **сжимается** по высоте (а не сдвигается). Все `position: fixed` элементы (SmartInput, EditItemModal, TabBar) автоматически остаются видны.
+> **ЗАПРЕЩЕНО**: использовать `visualViewport` хаки, `--kb-offset` CSS-переменные, `dvh` единицы для позиционирования fixed-элементов.
+> Правильный подход: `max-height: 90vh` / `bottom: calc(...)` — `vh` пересчитывается автоматически при resize.
+
 ### Глобальные Компоненты
 1. **`ActionSheet` & `Modal`**:
     - Плавное появление (класс `.animated-pop`). Модалки поверх всего контента.
@@ -229,7 +236,7 @@ if (result.subscription) {
 ### `SmartInput` (Механика умного ввода)
 Режимы (`state`):
 1. `hidden` — по умолчанию скрыт.
-2. `active` — клавиатура открыта. `window.visualViewport` синхронизирует позицию под клавиатуру на iOS/Android.
+2. `active` — клавиатура открыта. На Android `adjustResize` автоматически сжимает WebView → fixed-элементы остаются на месте.
 3. `media` — лоток прикрепления фото.
 4. `recording` — запись голоса.
 

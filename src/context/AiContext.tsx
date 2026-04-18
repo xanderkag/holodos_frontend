@@ -22,7 +22,7 @@ function isNetworkError(err: any): boolean {
     err?.code === 'timeout' ||
     err?.code === 'network_error' ||
     name === 'networkerror' ||
-    name === 'typeerror' && msg.includes('fetch') ||
+    (name === 'typeerror' && msg.includes('fetch')) ||
     msg.includes('failed to fetch') ||
     msg.includes('network request failed') ||
     msg.includes('err_internet_disconnected') ||
