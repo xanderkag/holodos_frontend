@@ -44,7 +44,7 @@ export const auth = getAuth(app);
 // Android WebView WebSocket is unreliable → causes "client is offline" errors.
 // iOS and Web use defaults (WebChannel / gRPC) which are stable.
 const firestoreSettings = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'
-  ? { experimentalForceLongPolling: true, useFetchStreams: false }
+  ? { experimentalForceLongPolling: true }
   : {};
 export const db = initializeFirestore(app, firestoreSettings);
 
