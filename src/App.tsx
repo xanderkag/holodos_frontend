@@ -245,9 +245,38 @@ export default function App() {
   }, [setMessages, setCurrentTab, analyzeImage]);
 
   if (authLoading) return (
-    <div className="empty" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#1c1c1e' }}>
-      <div className="cat-name" style={{ color: '#1c1c1e', fontWeight: 800 }}>Инициализация...</div>
-      <div style={{ fontSize: '12px', opacity: 0.5, marginTop: '8px' }}>v{APP_VERSION} (Checking Auth)</div>
+    <div style={{ 
+      height: '100vh', 
+      height: '100dvh', // Use dynamic viewport height for mobile browsers
+      display: 'flex', 
+      flexDirection: 'column', 
+      background: 'var(--bg, #ffffff)', 
+      color: 'var(--t1, #1c1c1e)',
+      position: 'relative' 
+    }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img 
+          src="/logo.png" 
+          alt="Holodos AI" 
+          style={{ 
+            width: '100px', 
+            height: '100px', 
+            borderRadius: '24px', 
+            boxShadow: '0 12px 32px rgba(0,0,0,0.1)' 
+          }} 
+        />
+      </div>
+      <div style={{ 
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 32px)', 
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '4px'
+      }}>
+        <div style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em' }}>HOLODOS AI</div>
+        <div style={{ fontSize: '13px', opacity: 0.5, fontWeight: 500 }}>Загрузка... v{APP_VERSION}</div>
+      </div>
     </div>
   );
   if (!user) return <AuthScreen />;
