@@ -6,6 +6,8 @@ import { App as CapApp } from '@capacitor/app';
 import { useTelegram } from '../hooks/useTelegram';
 import { mapAuthErrorToMessage } from '../utils/auth';
 import { logAuthAudit } from '../utils/authLogger';
+import { identifyUser, track } from '../utils/analytics';
+import { Capacitor } from '@capacitor/core';
 
 interface AuthContextType {
   user: any; // Using any to support both Firebase User and TG User
@@ -161,6 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           try {
             const result = await signInWithCustomToken(auth, yandexToken);
             logAuthAudit({ provider: 'yandex', channel: 'web', stage: 'success', message: 'Yandex auth successful' });
+            await identifyUser(result.user.uid, { channel: 'yandex', platform: 'web' });
+            track('login', { method: 'yandex' });
             setUser(result.user);
           } catch (e: any) {
             logAuthAudit({ provider: 'yandex', channel: 'web', stage: 'failure', message: e.message || String(e), code: e.code });
@@ -180,8 +184,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const redirectResult = await getRedirectResult(auth);
             
             if (redirectResult) {
-              console.log("Auth: Redirect result FOUND", redirectResult.user.uid);
+              if (import.meta.env.DEV) console.log("Auth: Redirect result FOUND", redirectResult.user.uid);
               logAuthAudit({ provider: 'google', channel: 'web', stage: 'success', message: 'Google Redirect Successful' });
+              await identifyUser(redirectResult.user.uid, { channel: 'google', platform: 'web' });
+              track('login', { method: 'google' });
               setUser(redirectResult.user);
             } else {
               console.log("Auth: No Google redirect result found (Normal if manual entry or direct link)");
@@ -242,10 +248,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           
           if (tgUser) {
-            console.log("Auth: TMA detected, authenticating via backend...");
-            // Instead of anonymous, we use the same custom token flow as the widget
+            if (import.meta.env.DEV) console.log("Auth: TMA detected, authenticating via backend...");
             try {
               await loginWithTelegramWidget(tgUser);
+              await identifyUser(tgUser.id?.toString() || 'tma', { channel: 'telegram', platform: Capacitor.getPlatform() });
+              track('login', { method: 'telegram_miniapp' });
             } catch (e: any) {
               logAuthAudit({ provider: 'telegram', channel: 'telegram_miniapp', stage: 'failure', message: e.message || String(e), code: e.code });
             }
@@ -253,16 +260,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // 4. Initialize Auth Observer
-        // This will recover the persisted user session
         unsubscribe = onAuthStateChanged(auth, (u) => {
           if (signingInRef.current) return;
-          console.log("Auth: Firebase connection established", u?.uid || 'guest');
+          if (import.meta.env.DEV) console.log("Auth: Firebase connection established", u?.uid || 'guest');
           
           if (mountedRef.current) {
             setUser(u);
-            if (u) localStorage.setItem('auth_uid', u.uid);
-            clearTimeout(safetyValve); // Remove safety valve if React/Auth naturally resolves
-            setLoading(false); // FINALLY remove the global loading state
+            if (u) {
+              localStorage.setItem('auth_uid', u.uid);
+              identifyUser(u.uid, { channel: 'google', platform: Capacitor.getPlatform() });
+            }
+            clearTimeout(safetyValve);
+            setLoading(false);
           }
         });
       } catch (err: any) {
@@ -348,6 +357,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    track('logout');
     await firebaseLogout();
     setUser(null);
   };

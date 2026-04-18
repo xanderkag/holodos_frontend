@@ -26,6 +26,7 @@ import { mergeItems, uid, classify } from './utils/data';
 import type { DebugLog } from './components/DebugOverlay';
 import { useDiaryActions } from './hooks/useDiaryActions';
 import { LimitPaywallModal } from './components/LimitPaywallModal';
+import { track } from './utils/analytics';
 
 const ONBOARDING_STEPS = [
   { id: 'onb1', text: "👋 Привет! Я твой ИИ-ассистент Holodos. Помогу с покупками, учетом холодильника и подсчетом калорий.", delay: 1000 },
@@ -89,6 +90,7 @@ export default function App() {
     
     // Normal tab switching
     setCurrentTab(tab);
+    track('tab_changed', { tab });
     // Auto-hide input when switching to other tabs like Settings
     if (smartInputState !== 'hidden') setSmartInputState('hidden');
   };
@@ -246,8 +248,7 @@ export default function App() {
 
   if (authLoading) return (
     <div style={{ 
-      height: '100vh', 
-      height: '100dvh', // Use dynamic viewport height for mobile browsers
+      height: '100dvh',
       display: 'flex', 
       flexDirection: 'column', 
       background: 'var(--bg, #ffffff)', 

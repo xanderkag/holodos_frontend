@@ -8,6 +8,7 @@ import { logAiAudit } from '../utils/aiLogger';
 import { showToast } from '../components/Toast';
 import { uid, mergeItems, classify, norm } from '../utils/data';
 import { logDiagnostic } from '../utils/ai';
+import { track } from '../utils/analytics';
 import type { AiAction, Message, AiResponse } from '../types';
 import { checkUsage } from '../utils/subscription';
 import type { PaywallType } from '../components/LimitPaywallModal';
@@ -50,6 +51,8 @@ export function AiProvider({ children }: { children: ReactNode }) {
     if (subscription) {
       syncBackendSubscription(subscription);
     }
+    track('limit_hit', { type: type || 'unknown' });
+    track('paywall_shown', { type: type || 'unknown' });
     setMessages(prev => [...prev, { 
       id: Date.now().toString(), 
       role: 'system', 
@@ -208,6 +211,8 @@ export function AiProvider({ children }: { children: ReactNode }) {
           newState = mergeItems(newState, toAdd);
         }
         summaries.push(`+ ${items.map(i => i.name).join(', ')} в "${getTargetName(target)}"`);
+        if (target === 'diary') track('diary_entry_added', { count: items.length });
+        else track('item_added', { target: target || 'list', count: items.length });
       } else if (type === 'remove') {
         const lowerNames = items.map(n => n.name?.toLowerCase());
         newState = newState.filter(it => !lowerNames.includes(it.name.toLowerCase()));
@@ -439,6 +444,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
       );
       if (result) {
         result.source = 'photo';
+        track('photo_analyzed', { tab, priority: usage.priority });
         if (result.subscription) {
           // Backend sent authoritative usage snapshot — use it, skip local increment
           syncBackendSubscription(result.subscription);
@@ -453,15 +459,17 @@ export function AiProvider({ children }: { children: ReactNode }) {
         showToast('⏳ Проблема со связью. Сервер не ответил, попробуйте еще раз');
         addLogEvent('⚠️ Фото не отправлено из-за обрыва связи', 'ai');
         addSystemMessage('⚠️ Фото не было проанализировано из-за обрыва связи', 'system');
+        track('ai_error', { type: 'image', reason: 'timeout' });
         logAiAudit({ message: 'Network error or timeout during image analysis', status: 'timeout', code: err?.code || 'network_error', action: 'analyzeImage' });
       } else if (err?.status === 413 || err?.code === 'payload_too_large') {
         showToast('⚠️ Файл слишком большой. Попробуйте сжать или обрезать фото');
         addSystemMessage('⚠️ Фото слишком большое для загрузки. Попробуйте обрезать или сжать', 'system');
+        track('ai_error', { type: 'image', reason: 'payload_too_large' });
         logAiAudit({ message: 'Payload too large', status: '413', action: 'analyzeImage' });
       } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
         handleLimitError(err.message || 'Лимит загрузки чеков и фото исчерпан', 'image', err.data?.subscription);
-
       } else {
+        track('ai_error', { type: 'image', reason: err?.code || 'unknown' });
         showToast(`❌ Ошибка: ${err.message}`);
       }
     } finally {
@@ -491,6 +499,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
         ? checkUsage({ stats, isSubscribed, subscriptionType } as any, 'voice')
         : { priority: 'normal' as const };
       
+      track(isVoice ? 'voice_sent' : 'chat_sent', { priority: (usage as any).priority || 'normal' });
       logDiagnostic('CHAT: Sending text command via backend /ai/text...', 'net');
       const result = await apiPost<any>('/ai/text', {
         type: 'chat',
@@ -524,15 +533,17 @@ export function AiProvider({ children }: { children: ReactNode }) {
         showToast('⏳ Проблема со связью. Сервер не ответил, попробуйте еще раз');
         setMessages(prev => [...prev, { id: Date.now().toString(), role: 'system', content: "Сообщение не отправлено из-за обрыва связи", timestamp: Date.now() }]);
         addLogEvent('⚠️ Текст не отправлен из-за обрыва связи', 'ai');
+        track('ai_error', { type: isVoice ? 'voice' : 'chat', reason: 'timeout' });
         logAiAudit({ message: 'Network error or timeout during text command', status: 'timeout', code: err?.code || 'network_error', action: 'sendChatCommand' });
       } else if (err?.status === 413 || err?.code === 'payload_too_large') {
         showToast('⚠️ Текст слишком большой');
+        track('ai_error', { type: isVoice ? 'voice' : 'chat', reason: 'payload_too_large' });
         logAiAudit({ message: 'Payload too large', status: '413', action: 'sendChatCommand' });
       } else if (err?.name === 'ApiError' && err.status === 403 && err.code === 'limit_reached') {
         handleLimitError(err.message || 'Лимит сообщений исчерпан', isVoice ? 'voice' : 'chat', err.data?.subscription);
-
       } else {
         logDiagnostic(`CHAT Exception: ${err.message}`, 'error');
+        track('ai_error', { type: isVoice ? 'voice' : 'chat', reason: err?.code || 'unknown' });
         showToast(`❌ Ошибка ИИ: ${err.message}`);
       }
     } finally {
