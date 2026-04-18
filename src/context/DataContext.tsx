@@ -235,6 +235,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
           if (isMounted) setIsDataLoaded(true);
         });
       }
+    }).catch(err => {
+      console.warn("getUserData failed (client offline). Using cache/snapshot.", err);
     });
 
     // Real-time listener
