@@ -13,6 +13,26 @@ import type { AiAction, Message, AiResponse } from '../types';
 import { checkUsage } from '../utils/subscription';
 import type { PaywallType } from '../components/LimitPaywallModal';
 
+/** Android Capacitor WebView throws different network errors by firmware/Chrome version.
+ *  Cover all known variants so user sees ⏳ toast instead of raw error code. */
+function isNetworkError(err: any): boolean {
+  const msg: string = (err?.message || '').toLowerCase();
+  const name: string = (err?.name || '').toLowerCase();
+  return (
+    err?.code === 'timeout' ||
+    err?.code === 'network_error' ||
+    name === 'networkerror' ||
+    name === 'typeerror' && msg.includes('fetch') ||
+    msg.includes('failed to fetch') ||
+    msg.includes('network request failed') ||
+    msg.includes('err_internet_disconnected') ||
+    msg.includes('err_network_changed') ||
+    msg.includes('load failed') ||
+    msg.includes('networkerror') ||
+    msg.includes('the internet connection appears to be offline')
+  );
+}
+
 interface AiContextType {
   isAiLoading: boolean;
   analyzeImage: (base64: string, tab?: string) => Promise<void>;
@@ -455,7 +475,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
         await applyActions(result);
       }
     } catch (err: any) {
-      if (err?.code === 'timeout' || err?.message === 'Failed to fetch') {
+      if (isNetworkError(err)) {
         showToast('⏳ Проблема со связью. Сервер не ответил, попробуйте еще раз');
         addLogEvent('⚠️ Фото не отправлено из-за обрыва связи', 'ai');
         addSystemMessage('⚠️ Фото не было проанализировано из-за обрыва связи', 'system');
@@ -529,7 +549,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
       }
       await applyActions(result);
     } catch (err: any) {
-      if (err?.code === 'timeout' || err?.message === 'Failed to fetch') {
+      if (isNetworkError(err)) {
         showToast('⏳ Проблема со связью. Сервер не ответил, попробуйте еще раз');
         setMessages(prev => [...prev, { id: Date.now().toString(), role: 'system', content: "Сообщение не отправлено из-за обрыва связи", timestamp: Date.now() }]);
         addLogEvent('⚠️ Текст не отправлен из-за обрыва связи', 'ai');

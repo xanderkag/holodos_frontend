@@ -192,6 +192,11 @@ export const SmartInput: React.FC<SmartInputProps> = ({
         showToast('❌ Ошибка: ' + err.message);
       }
     };
+    reader.onerror = () => {
+      logDiagnostic('n8n ERROR: FileReader failed to read file', 'error');
+      showToast('❌ Не удалось прочитать файл. Попробуйте другую фотографию.');
+      e.target.value = '';
+    };
     reader.readAsDataURL(processedBlob);
     e.target.value = '';
   };
