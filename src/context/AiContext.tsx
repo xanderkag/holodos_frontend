@@ -390,7 +390,6 @@ export function AiProvider({ children }: { children: ReactNode }) {
       setTimeout(() => saveAll(), 200);
     } catch (err: any) {
       logDiagnostic(`CHAT CRASH (applyActions): ${err.message}`, 'error');
-      console.error(err);
       showToast("❌ Ошибка обработки ответа: " + err.message);
     }
   }, [executeActions, setBaseline, setList, setMessages, setStock, setDiary, saveAll, addLogEvent]);

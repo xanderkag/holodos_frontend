@@ -13,7 +13,7 @@ export const setAiLogCallback = (cb: (msg: string, level: LogLevel) => void) => 
 };
 
 export const logDiagnostic = (msg: string, level: LogLevel = 'info') => {
-  console.log(`[n8n-DIAG] ${msg}`);
+  if (import.meta.env.DEV) console.log(`[n8n-DIAG] ${msg}`);
   if (logCallback) logCallback(msg, level);
 };
 
@@ -138,7 +138,7 @@ export async function analyzeImage(
             logDiagnostic(`Vision Limit Reached: ${error.message}`, 'info');
             throw error;
         }
-        console.error("Assistant Error (image):", error);
+        logDiagnostic(`Vision Exception: ${error.message}`, 'error');
         logAssistantRequest(userEmail, 0, "backend-image-FAILED", error.message);
         throw error;
     }
@@ -200,7 +200,6 @@ export async function sendVoiceToN8N(
         }
 
         logDiagnostic(`Voice: Success received. Actions: ${json.actions?.length || 0}`, 'net');
-        console.log('Voice Response Body:', JSON.stringify(json));
 
         let itemsCount = 0;
         if (json.actions) {

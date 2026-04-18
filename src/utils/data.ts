@@ -1,5 +1,4 @@
 import type { Category, Store, Item, Recipe, Ingredient } from '../types';
-import { GLOBAL_CATALOG } from './catalogData';
 export type { Category, Store, Item, Recipe, Ingredient };
 
 export const GROUP_ORDER: Category[] = [
@@ -242,7 +241,7 @@ export const ONLINE_RECIPES: Recipe[] = [
       {
         label: 'Классический', ingredients: [
           { name: 'курица филе', quantity: '200 г', category: 'Мясо и птица' },
-          { name: 'салат айсберг', quantity: 'Зелень и грибы', category: 'Овощи' },
+          { name: 'салат айсберг', quantity: '1 шт', category: 'Зелень и грибы' },
           { name: 'гренки', quantity: '50 г', category: 'Хлеб и выпечка' },
           { name: 'сыр пармезан', quantity: '30 г', category: 'Сыры' },
           { name: 'соус цезарь', quantity: '50 мл', category: 'Масла и соусы' },
@@ -335,35 +334,16 @@ export function classify(name: string): Partial<Item> {
   const n = norm(name);
   if (!n) return { cat: 'Другое' };
 
-  // v2.5.0: Search in GLOBAL_CATALOG (exact or alias)
-  for (const item of GLOBAL_CATALOG) {
-    if (norm(item.name) === n || item.aliases.some(a => norm(a) === n)) {
-      return { 
-        cat: item.cat as Category, 
-        kcal: item.kcal, 
-        protein: item.protein, 
-        fat: item.fat, 
-        carbs: item.carbs 
-      };
-    }
+  // DICT-based classification (local, zero-weight)
+  const cat = DICT[n];
+  if (cat) return { cat };
+
+  // Partial match fallback
+  for (const k of Object.keys(DICT)) {
+    if (n.includes(k) || k.includes(n)) return { cat: DICT[k] };
   }
 
-  // v2.5.0: Partial search as backup
-  for (const item of GLOBAL_CATALOG) {
-    if (n.includes(norm(item.name)) || item.aliases.some(a => n.includes(norm(a)))) {
-      return { cat: item.cat as Category, kcal: item.kcal, protein: item.protein, fat: item.fat, carbs: item.carbs };
-    }
-  }
-
-  // Legacy fallback: DICT
-  const cat = DICT[n] || 'Другое';
-  if (cat === 'Другое') {
-    for (const k of Object.keys(DICT)) {
-      if (n.includes(k) || k.includes(n)) return { cat: DICT[k] };
-    }
-  }
-  
-  return { cat };
+  return { cat: 'Другое' };
 }
 
 export function mapBackendCategory(cat: string): Category {

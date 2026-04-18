@@ -1,7 +1,15 @@
 import { useMemo } from 'react';
 
+// Extended type for Telegram WebApp fields not yet in @types/telegram-web-app
+type TelegramWebAppExtended = typeof window.Telegram.WebApp & {
+  isVerticalSwipesEnabled?: boolean;
+  disableVerticalSwipes?: () => void;
+  enableVerticalSwipes?: () => void;
+  isExpanded?: boolean;
+};
+
 export const useTelegram = () => {
-  const tg = window.Telegram?.WebApp;
+  const tg = window.Telegram?.WebApp as TelegramWebAppExtended | undefined;
 
   return useMemo(() => ({
     tg,
@@ -17,16 +25,13 @@ export const useTelegram = () => {
     },
     expand: () => tg?.expand(),
     ready: () => tg?.ready(),
-    // @ts-ignore
-    disableVerticalSwipes: () => tg?.isVerticalSwipesEnabled && tg?.disableVerticalSwipes(),
-    // @ts-ignore
-    enableVerticalSwipes: () => !tg?.isVerticalSwipesEnabled && tg?.enableVerticalSwipes(),
+    disableVerticalSwipes: () => tg?.isVerticalSwipesEnabled && tg?.disableVerticalSwipes?.(),
+    enableVerticalSwipes: () => !tg?.isVerticalSwipesEnabled && tg?.enableVerticalSwipes?.(),
     haptics: tg?.HapticFeedback,
     mainButton: tg?.MainButton,
     backButton: tg?.BackButton,
     themeParams: tg?.themeParams,
     isDark: tg?.colorScheme === 'dark',
-    // @ts-ignore
     isExpanded: tg?.isExpanded,
     platform: tg?.platform,
     initData: tg?.initData

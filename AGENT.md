@@ -289,14 +289,14 @@ if (result.subscription) {
 - **Header**: Плашки профиля (UserPill/аватарки) в шапке **запрещены**. Профиль — только в Настройках.
 - **Высота шапки (iPhone UI Rules)**:
   - `position: fixed; top: 0; left: 0; right: 0;` (никаких `sticky`).
-  - **Единственная правильная формула высоты**: `height: calc(var(--sat) + 56px);`
+  - **Единственная правильная формула высоты**: `height: calc(var(--sat) + 30px);`
   - `padding-top: var(--sat);` обязателен, чтобы контент не уезжал под Dynamic Island.
   - `--hdr-h: 32px` — **УСТАРЕВШАЯ** переменная. Не использовать для отступов и высоты (`top`, `margin-top` и т.д.).
 - **Контент экрана (`.screen`)**:
-  - Базовый сдвиг от шапки: `padding-top: calc(var(--sat) + 58px);` (56px шапка + 2px зазор).
-  - Для ChatScreen (где есть `SubHeader`): `padding-top: calc(var(--sat) + 100px);` (56px шапка + 44px SubHeader).
+  - Базовый сдвиг от шапки: `padding-top: calc(var(--sat) + 32px);` (30px шапка + 2px зазор).
+  - Для ChatScreen (где есть `SubHeader`): `padding-top: calc(var(--sat) + 32px);` (SubHeader sticky берёт на себя отступ).
 - **SubHeader (`.sub-header`)**:
-  - `position: sticky; top: calc(var(--sat) + 56px); height: 44px; z-index: 100;`
+  - `position: sticky; top: calc(var(--sat) + 30px); height: 52px; z-index: 1001;`
 - **TabBar (`.glass-tabbar`)**:
   - Вычисляется через `bottom: 0; height: calc(var(--tab-h) + var(--sab)); padding-bottom: var(--sab);` где `--tab-h` = 72px. Контент экрана имеет нижний паддинг `calc(var(--tab-h) + var(--sab) + 16px)`.
 ### 2. TMA Адаптации (Telegram Mini App)

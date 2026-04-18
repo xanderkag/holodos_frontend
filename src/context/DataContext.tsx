@@ -128,10 +128,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
 
     let isMounted = true;
-    console.log("DataContext: Connecting for", user.email);
+    if (import.meta.env.DEV) console.log("DataContext: Connecting for", user.email);
 
     if (user.isDemo) {
-      console.log("DataContext: Initializing DEMO mock user");
+      if (import.meta.env.DEV) console.log("DataContext: Initializing DEMO mock user");
       setList(DEMO_LIST); listRef.current = DEMO_LIST;
       setStock(BDEMO); stockRef.current = BDEMO;
       setBaseline(BDEMO); baselineRef.current = BDEMO;
@@ -246,7 +246,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // This protects against "stale" server snapshots arriving before the server accepts our new state.
       const isRecentlyMutated = Date.now() - localMutationTime.current < 10000;
       if (snapshot.metadata.hasPendingWrites || isRecentlyMutated) {
-        if (isRecentlyMutated) console.log("SYNC: Atomic Sync Guard Blocked snapshot (Recent Mutation)");
+        if (import.meta.env.DEV && isRecentlyMutated) console.log("SYNC: Atomic Sync Guard Blocked snapshot (Recent Mutation)");
         return;
       }
 
