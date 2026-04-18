@@ -28,8 +28,9 @@ async function logAssistantRequest(userEmail: string, productsCount: number, mod
       details: details || null,
       status: error ? 'error' : 'success'
     });
-  } catch (err) {
-    console.error("Failed to log Assistant request:", err);
+  } catch (err: any) {
+    // Firestore offline on Android — silent, not a user-facing error
+    logDiagnostic(`ai_logs write failed (likely offline): ${err?.code || err?.message}`, 'warn');
   }
 }
 

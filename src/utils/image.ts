@@ -38,12 +38,15 @@ export const compressImage = (base64Str: any, maxWidth = 800): Promise<string> =
           ctx.drawImage(img, 0, 0, width, height);
         }
 
-        // 0.6 quality strongly minimizes payload for n8n AI Vision
-        const finalBase64 = canvas.toDataURL('image/jpeg', 0.6);
+        let finalBase64 = canvas.toDataURL('image/jpeg', 0.6);
         
-        // n8n generally rejects payloads over 1MB without nginx tweaks.
-        if (finalBase64.length > 1300000) { // ~1.3MB string length
-          reject(new Error(`После сжатия файл всё еще слишком велик (${Math.round(finalBase64.length / 1024)} KB)`));
+        // If still too large for Android/n8n, re-compress at lower quality
+        if (finalBase64.length > 1300000) {
+          finalBase64 = canvas.toDataURL('image/jpeg', 0.4);
+        }
+        // Hard cap — something is very wrong if still over 2MB
+        if (finalBase64.length > 2000000) {
+          reject(new Error(`Файл слишком большой даже после сжатия. Попробуйте другую фото.`));
         } else {
           resolve(finalBase64);
         }
