@@ -12,6 +12,7 @@
 
 import { getAnalytics, logEvent, setUserId, setUserProperties, isSupported } from 'firebase/analytics';
 import { getApps } from 'firebase/app';
+import { Capacitor } from '@capacitor/core';
 
 // Reuse the already-initialized Firebase app
 const getApp = () => {
@@ -24,9 +25,12 @@ let analyticsInstance: ReturnType<typeof getAnalytics> | null = null;
 
 const getAnalyticsInstance = async () => {
   if (analyticsInstance) return analyticsInstance;
+  // Firebase Analytics Web SDK does NOT work in Capacitor Android/iOS WebViews.
+  // isSupported() can hang or throw in this environment → skip entirely.
+  if (Capacitor.isNativePlatform()) return null;
   try {
     const supported = await isSupported();
-    if (!supported) return null; // Blocked environments (incognito, Capacitor without plugin)
+    if (!supported) return null;
     analyticsInstance = getAnalytics(getApp());
     return analyticsInstance;
   } catch {
