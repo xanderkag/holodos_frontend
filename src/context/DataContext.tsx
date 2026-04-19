@@ -117,7 +117,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setCalorieNorm(2000); calorieNormRef.current = 2000;
     setDiary([]); diaryRef.current = [];
     setEvents([]); eventsRef.current = [];
-    localMutationTime.current = Date.now();
   }, []);
 
   // Initial Data Load & Subscription
@@ -401,7 +400,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }); 
   }, []);
   const guardedSetMessages = useCallback((val: any) => { 
-    localMutationTime.current = Date.now(); 
     setMessages(prev => {
       const next = typeof val === 'function' ? val(prev) : val;
       messagesRef.current = next;

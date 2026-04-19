@@ -490,7 +490,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
     showToast("✨ Анализирую фото...");
     try {
       const result = await apiAnalyzeImage(
-        base64, user.email || 'unknown', user.uid, tab, 
+        base64, tab, user.email || 'unknown', user.uid, 
         list, stock, diary, baseline, usage.priority
       );
       if (result) {
