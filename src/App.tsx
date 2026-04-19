@@ -49,7 +49,7 @@ export default function App() {
   } = useData();
   const { 
     isAiLoading, analyzeImage, sendChatCommand, 
-    applyActions, pendingActions, setPendingActions, handleLimitError,
+    applyActions, pendingActions, setPendingActions, confirmPendingAction, handleLimitError,
     paywallType, setPaywallType
   } = useAi();
 
@@ -507,7 +507,7 @@ export default function App() {
           <div className="confirmation-card glass-panel animated-pop">
             <h3>Подтвердите действие</h3>
             <div className="confirmation-actions">
-              <button className="confirm-btn" onClick={() => { applyActions({ actions: pendingActions, feedback: "Подтверждено" }); setPendingActions([]); }}>Подтвердить</button>
+              <button className="confirm-btn" onClick={() => { confirmPendingAction(); }}>Подтвердить</button>
               <button className="cancel-btn" onClick={() => setPendingActions([])}>Отмена</button>
             </div>
           </div>

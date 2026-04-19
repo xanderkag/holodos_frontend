@@ -41,6 +41,7 @@ interface AiContextType {
   executeOption: (messageId: string, option: any) => Promise<void>;
   pendingActions: AiAction[];
   setPendingActions: (actions: AiAction[]) => void;
+  confirmPendingAction: () => Promise<void>;
   activeUndos: string[];
   undoAction: (msgId: string) => void;
   handleLimitError: (message: string, type?: PaywallType) => void;
@@ -62,6 +63,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
 
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [pendingActions, setPendingActions] = useState<AiAction[]>([]);
+  const [pendingMessageId, setPendingMessageId] = useState<string | undefined>(undefined);
   const [paywallType, setPaywallType] = useState<PaywallType>(null);
   
   // Undo System States
@@ -102,10 +104,15 @@ export function AiProvider({ children }: { children: ReactNode }) {
     setActiveUndos(prev => prev.filter(id => id !== msgId));
     undoBackups.current.delete(msgId);
     
+    // Phase 2: Backend Undo Hook
+    apiPost('/ai/undo', { messageId: msgId, userId: user?.uid, userEmail: user?.email }).catch(err => {
+      logDiagnostic(`Undo Backend Error: ${err.message}`, 'warn');
+    });
+    
     showToast("Отменено");
     addLogEvent("Пользователь отменил действие ИИ", "remove");
     setTimeout(() => saveAll().catch(() => {}), 200);
-  }, [setList, setStock, setBaseline, setDiary, setMessages, saveAll, addLogEvent]);
+  }, [setList, setStock, setBaseline, setDiary, setMessages, saveAll, addLogEvent, user]);
 
   const executeActions = useCallback((actions: AiAction[], messageId?: string) => {
     let currentList = [...list];
@@ -339,6 +346,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
 
     if (res.requiresConfirmation || isSensitive) {
       setPendingActions(actions);
+      setPendingMessageId(res.messageId);
       showToast(isSensitive ? "⚠️ Требуется подтверждение для массового действия" : "🔐 Требуется подтверждение");
       return;
     }
@@ -422,6 +430,25 @@ export function AiProvider({ children }: { children: ReactNode }) {
       showToast("❌ Ошибка обработки ответа: " + err.message);
     }
   }, [executeActions, setBaseline, setList, setMessages, setStock, setDiary, saveAll, addLogEvent]);
+
+  const confirmPendingAction = useCallback(async () => {
+    if (!pendingActions.length) return;
+    
+    // Phase 2: if backend gave a messageId, call POST /ai/confirm and just clear local
+    if (pendingMessageId && user) {
+      apiPost('/ai/confirm', { messageId: pendingMessageId, userId: user.uid, userEmail: user.email })
+        .catch(err => logDiagnostic(`Confirm Backend Error: ${err.message}`, 'error'));
+      showToast("✅ Запрос на подтверждение отправлен");
+      setPendingActions([]);
+      setPendingMessageId(undefined);
+      return;
+    }
+
+    // Fallback Phase 1: Local apply
+    applyActions({ actions: pendingActions, feedback: "Подтверждено", source: 'text' });
+    setPendingActions([]);
+    setPendingMessageId(undefined);
+  }, [pendingActions, pendingMessageId, user, applyActions]);
 
   const executeOption = useCallback(async (messageId: string, option: any) => {
     const { nextList, nextStock, nextBaseline, nextDiary } = executeActions([option.action]);
@@ -578,7 +605,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
   return (
     <AiContext.Provider value={{ 
       isAiLoading, analyzeImage, sendChatCommand, 
-      applyActions, executeOption, pendingActions, setPendingActions,
+      applyActions, executeOption, pendingActions, setPendingActions, confirmPendingAction,
       handleLimitError, activeUndos, undoAction,
       paywallType, setPaywallType
     }}>
