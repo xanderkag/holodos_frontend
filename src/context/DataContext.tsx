@@ -26,6 +26,8 @@ interface DataContextType {
   setUiSettings: React.Dispatch<React.SetStateAction<UiSettings>>;
   calorieNorm: number;
   setCalorieNorm: React.Dispatch<React.SetStateAction<number>>;
+  macroNorms: { protein: number; fat: number; carbs: number };
+  setMacroNorms: React.Dispatch<React.SetStateAction<{ protein: number; fat: number; carbs: number }>>;
   diary: DiaryEntry[];
   setDiary: React.Dispatch<React.SetStateAction<DiaryEntry[]>>;
   events: LogEvent[];
@@ -65,6 +67,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [voiceLogs, setVoiceLogs] = useState<VoiceLog[]>([]);
   const [uiSettings, setUiSettings] = useState<UiSettings>({ density: 'comfortable', theme: 'system' });
   const [calorieNorm, setCalorieNorm] = useState<number>(2000);
+  const [macroNorms, setMacroNorms] = useState<{ protein: number; fat: number; carbs: number }>({ protein: 120, fat: 70, carbs: 200 });
   const [diary, setDiary] = useState<DiaryEntry[]>([]);
   const [events, setEvents] = useState<LogEvent[]>([]);
   const [stats, setStats] = useState<UserData['stats']>({
@@ -88,6 +91,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const recipesRef = useRef<Recipe[]>([]);
   const uiRef = useRef<UiSettings>({ density: 'comfortable', theme: 'system' });
   const calorieNormRef = useRef<number>(2000);
+  const macroNormsRef = useRef<{ protein: number; fat: number; carbs: number }>({ protein: 120, fat: 70, carbs: 200 });
   const eventsRef = useRef<LogEvent[]>([]);
   const statsRef = useRef<UserData['stats']>({
     voice: { d: 0, m: 0, t: 0 },
@@ -164,6 +168,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           if (d.messages) { setMessages(d.messages); messagesRef.current = d.messages; }
           if (d.diary) { setDiary(d.diary); diaryRef.current = d.diary; }
           if (typeof d.calorieNorm === 'number') { setCalorieNorm(d.calorieNorm); calorieNormRef.current = d.calorieNorm; }
+          if (d.macroNorms) { setMacroNorms(d.macroNorms); macroNormsRef.current = d.macroNorms; }
           if (d.events) { setEvents(d.events); eventsRef.current = d.events; }
           if (d.stats) { setStats(d.stats); statsRef.current = d.stats; }
           setIsDataLoaded(true);
@@ -201,6 +206,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         };
         setUiSettings(data.uiSettings || { density: 'comfortable', theme: 'system' }); uiRef.current = data.uiSettings || { density: 'comfortable', theme: 'system' };
         if (typeof data.calorieNorm === 'number') { setCalorieNorm(data.calorieNorm); calorieNormRef.current = data.calorieNorm; }
+        if (data.macroNorms) { setMacroNorms(data.macroNorms); macroNormsRef.current = data.macroNorms; }
         setDiary(data.diary || []); diaryRef.current = data.diary || [];
         setEvents(data.events || []); eventsRef.current = data.events || [];
         
@@ -284,6 +290,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (d.voiceLogs) setVoiceLogs(d.voiceLogs);
         if (d.uiSettings) { setUiSettings(d.uiSettings); uiRef.current = d.uiSettings; }
         if (typeof d.calorieNorm === 'number') { setCalorieNorm(d.calorieNorm); calorieNormRef.current = d.calorieNorm; }
+        if (d.macroNorms) { setMacroNorms(d.macroNorms); macroNormsRef.current = d.macroNorms; }
         
         setIsSubscribed(d.isSubscribed || false);
         setSubscriptionStatus(d.subscriptionStatus || 'free');
@@ -533,6 +540,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         voiceLogs: voiceLogs, 
         uiSettings: uiRef.current, 
         calorieNorm: calorieNormRef.current,
+        macroNorms: macroNormsRef.current,
         diary: diaryRef.current,
         events: eventsRef.current
       });
@@ -559,6 +567,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       voiceLogs: [], 
       uiSettings: { density: 'comfortable', theme: 'system' },
       calorieNorm: 2000,
+      macroNorms: { protein: 120, fat: 70, carbs: 200 },
       diary: [],
       events: []
     };
@@ -586,7 +595,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       resetAll,
       addSystemMessage,
       calorieNorm,
-      setCalorieNorm
+      setCalorieNorm,
+      macroNorms,
+      setMacroNorms
     }}>
       {children}
     </DataContext.Provider>

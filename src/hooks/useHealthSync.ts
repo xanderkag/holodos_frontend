@@ -29,6 +29,12 @@ export function useHealthSync() {
     }
 
     try {
+      const avail = await Health.isAvailable();
+      if (!avail.available) {
+        showToast('⚠️ Health Connect не установлен на этом устройстве');
+        return false;
+      }
+
       const status = await Health.requestAuthorization({
         read: ['steps', 'weight', 'totalCalories'],
         write: ['weight']
@@ -37,11 +43,21 @@ export function useHealthSync() {
       const isGranted = status.readAuthorized.includes('steps');
       if (isGranted) {
         showToast('✅ Доступ к данным здоровья разрешен');
+      } else {
+        showToast('⚠️ Разрешите доступ к Шагам в настройках Health Connect');
+        if (Capacitor.getPlatform() === 'android') {
+           Health.openHealthConnectSettings().catch(() => {});
+        }
       }
       return isGranted;
-    } catch (err) {
+    } catch (err: any) {
       console.error('Health authorization error:', err);
-      showToast('❌ Ошибка при запросе разрешений');
+      // specific error from plugin or OS
+      showToast(`❌ Ошибка: ${err?.message || 'Сбой запроса разрешений'}`);
+      
+      if (Capacitor.getPlatform() === 'android') {
+         Health.openHealthConnectSettings().catch(() => {});
+      }
       return false;
     }
   }, []);

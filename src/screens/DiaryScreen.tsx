@@ -19,7 +19,7 @@ interface DiaryScreenProps {
 
 export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenProps) {
   const {
-    diary, setDiary, addSystemMessage, addLogEvent, stock, baseline, calorieNorm
+    diary, setDiary, addSystemMessage, addLogEvent, stock, baseline, calorieNorm, macroNorms
   } = useData();
   const { handleAddToDiary, clarifyDiaryItem } = useDiaryActions(setDiary, addSystemMessage);
   const { healthData, isSyncing, syncData, requestPermissions } = useHealthSync();
@@ -51,9 +51,9 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
   });
 
   const targetKcal = calorieNorm || 2000;
-  const targetP = 120;
-  const targetF = 70;
-  const targetC = 200;
+  const targetP = macroNorms?.protein || 120;
+  const targetF = macroNorms?.fat || 70;
+  const targetC = macroNorms?.carbs || 200;
   const remainingKcal = Math.max(0, targetKcal - eatenKcal);
   const progressPercent = Math.min(100, Math.max(0, (eatenKcal / targetKcal) * 100));
 

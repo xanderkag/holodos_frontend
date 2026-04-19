@@ -118,6 +118,7 @@ export interface UserData {
   voiceLogs: VoiceLog[];
   uiSettings: UiSettings;
   calorieNorm?: number;
+  macroNorms?: { protein: number; fat: number; carbs: number };
   diary?: DiaryEntry[];
   events?: LogEvent[];
   isSubscribed?: boolean;

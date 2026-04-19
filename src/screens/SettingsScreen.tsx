@@ -5,11 +5,12 @@ import { TelegramLogin } from '../components/TelegramLogin';
 import { showToast } from '../components/Toast';
 import { APP_VERSION, BUILD_TIME } from '../constants/version';
 import { useHealthSync } from '../hooks/useHealthSync';
+import { Capacitor } from '@capacitor/core';
 import './SettingsScreen.css';
 import { ProfileLimitCard } from '../components/ProfileLimitCard';
 
 interface SettingsScreenProps {
-  user: any; // Changed from User to any to support hybrid TG/Firebase user
+  user: any;
   stats: UserData['stats'];
   isAdmin?: boolean;
   onAdminClick?: () => void;
@@ -19,6 +20,8 @@ interface SettingsScreenProps {
   onUpdateUiSettings: (settings: Partial<UiSettings>) => void;
   calorieNorm: number;
   onUpdateCalorieNorm: (norm: number) => void;
+  macroNorms: { protein: number; fat: number; carbs: number };
+  onUpdateMacroNorms: (n: { protein: number; fat: number; carbs: number }) => void;
   onFactoryReset: () => void;
   onLinkTelegram?: (tgData: any) => Promise<void>;
 }
@@ -28,21 +31,16 @@ export const SettingsScreen = ({
   isAdmin = false, onAdminClick, showDebug, setShowDebug, 
   uiSettings, onUpdateUiSettings, 
   calorieNorm, onUpdateCalorieNorm,
+  macroNorms, onUpdateMacroNorms,
   onFactoryReset,
   onLinkTelegram
 }: SettingsScreenProps) => {
 
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const { healthData, requestPermissions } = useHealthSync();
+  const { healthData, requestPermissions, syncData } = useHealthSync();
+  const isAndroid = Capacitor.getPlatform() === 'android';
 
   const handleLogout = async () => {
-    if (!showLogoutConfirm) {
-      setShowLogoutConfirm(true);
-      setTimeout(() => setShowLogoutConfirm(false), 3000);
-      return;
-    }
-
     try {
       await logout();
     } catch (e: any) {
@@ -60,6 +58,18 @@ export const SettingsScreen = ({
     setShowResetConfirm(false);
   };
 
+  const inputStyle = {
+    width: '64px',
+    background: 'rgba(0,0,0,0.05)',
+    border: 'none',
+    borderRadius: '8px',
+    padding: '5px 8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: 'var(--t1)',
+    textAlign: 'right' as const,
+  };
+
   return (
     <div className="screen settings-screen">
       <div className="settings-container">
@@ -70,16 +80,24 @@ export const SettingsScreen = ({
             <div className="s-avatar">
               {user?.photoURL ? <img src={user.photoURL} alt="p" className="s-avatar-img" /> : (user?.email ? user.email[0].toUpperCase() : 'U')}
             </div>
-            <div className="s-name-col">
+            <div className="s-name-col" style={{ flex: 1 }}>
               <div className="s-name">{user?.displayName || user?.email || 'Пользователь'}</div>
               {user?.telegramHandle
                 ? <div className="s-email-sub">@{user.telegramHandle}</div>
                 : user?.email && !user.email.endsWith('@telegram') && <div className="s-email-sub">{user.email}</div>
               }
             </div>
+            {/* Logout btn inline with profile */}
+            <button
+              className="logout-btn-inline"
+              onClick={handleLogout}
+              title="Выйти из аккаунта"
+            >
+              🚪
+            </button>
           </div>
           
-          {/* In TMA: TG handle already shown under name — skip redundant section */}
+          {/* Telegram link section */}
           {!(window as any).Telegram?.WebApp?.initData && (
             <div className="s-tg-status">
               {user?.telegramHandle ? (
@@ -117,48 +135,68 @@ export const SettingsScreen = ({
           </div>
         </div>
 
-        {/* Health Integration Section */}
+        {/* Health & Nutrition Section */}
         <div className="s-section glass-panel health-section" style={{marginBottom: 16}}>
-          <h3 className="s-sect-title">Здоровье и Активность</h3>
+          <h3 className="s-sect-title">Здоровье и Питание</h3>
           
-          <div className="settings-item has-action" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0'}}>
-            <div className="si-left" style={{display: 'flex', alignItems: 'center', gap: 12}}>
-              <span className="si-icon" style={{fontSize: 20}}>🎯</span>
+          {/* Calorie norm */}
+          <div className="settings-item has-action" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0'}}>
+            <div className="si-left" style={{display: 'flex', alignItems: 'center', gap: 10}}>
+              <span className="si-icon" style={{fontSize: 18}}>🎯</span>
               <div className="si-text">
-                <div className="si-label" style={{fontWeight: 600, fontSize: 15, color: 'var(--t1)'}}>Норма калорий</div>
-                <div className="si-sub" style={{fontSize: 12, color: 'var(--t3)'}}>Дневная цель для Трекера</div>
+                <div className="si-label" style={{fontWeight: 600, fontSize: 14, color: 'var(--t1)'}}>Калории</div>
+                <div className="si-sub" style={{fontSize: 11, color: 'var(--t3)'}}>ккал / день</div>
               </div>
             </div>
-            <div className="si-right">
-              <input 
-                type="number" 
-                value={calorieNorm} 
-                onChange={(e) => onUpdateCalorieNorm(Number(e.target.value) || 2000)}
-                style={{
-                  width: '70px',
-                  background: 'rgba(0,0,0,0.05)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '6px 8px',
-                  fontSize: '15px',
-                  fontWeight: '600',
-                  color: 'var(--t1)',
-                  textAlign: 'right'
-                }}
-              />
+            <input type="number" value={calorieNorm} onChange={(e) => onUpdateCalorieNorm(Number(e.target.value) || 2000)} style={inputStyle} />
+          </div>
+
+          {/* Macro norms */}
+          <div style={{borderTop: '1px solid var(--br-glass)', paddingTop: 10, paddingBottom: 2}}>
+            <div style={{fontSize: 12, fontWeight: 600, color: 'var(--t3)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6}}>
+              <span>⚖️</span> Нормы БЖУ (г / день)
+            </div>
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8}}>
+              {([
+                { key: 'protein', label: 'Белки', emoji: '🥩' },
+                { key: 'fat',     label: 'Жиры',  emoji: '🧈' },
+                { key: 'carbs',   label: 'Углев.', emoji: '🍞' },
+              ] as const).map(({ key, label, emoji }) => (
+                <div key={key} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4}}>
+                  <div style={{fontSize: 11, color: 'var(--t3)', fontWeight: 600}}>{emoji} {label}</div>
+                  <input
+                    type="number"
+                    value={macroNorms[key]}
+                    onChange={(e) => onUpdateMacroNorms({ ...macroNorms, [key]: Number(e.target.value) || 0 })}
+                    style={{ ...inputStyle, width: '100%', textAlign: 'center' as const }}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="settings-item has-action" onClick={requestPermissions} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', padding: '12px 0', borderTop: '1px solid var(--br-glass)'}}>
-            <div className="si-left" style={{display: 'flex', alignItems: 'center', gap: 12}}>
-              <span className="si-icon" style={{fontSize: 20}}>🏥</span>
+          {/* Health sync */}
+          <div
+            className="settings-item has-action"
+            onClick={async () => {
+              const granted = await requestPermissions();
+              if (granted) syncData();
+            }}
+            style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', padding: '10px 0', borderTop: '1px solid var(--br-glass)', marginTop: 10}}
+          >
+            <div className="si-left" style={{display: 'flex', alignItems: 'center', gap: 10}}>
+              <span className="si-icon" style={{fontSize: 18}}>🏥</span>
               <div className="si-text">
-                <div className="si-label" style={{fontWeight: 600, fontSize: 15, color: 'var(--t1)'}}>Синхронизация</div>
-                <div className="si-sub" style={{fontSize: 12, color: 'var(--t3)'}}>{healthData ? `Активно • ${new Date(healthData.lastSync).toLocaleDateString()}` : 'Подключить Apple / Google Health'}</div>
+                <div className="si-label" style={{fontWeight: 600, fontSize: 14, color: 'var(--t1)'}}>Синхронизация</div>
+                <div className="si-sub" style={{fontSize: 11, color: 'var(--t3)'}}>
+                  {healthData
+                    ? `Активно • ${new Date(healthData.lastSync).toLocaleDateString()}`
+                    : isAndroid ? 'Подключить Google Health' : 'Подключить Apple Health'}
+                </div>
               </div>
             </div>
-            <div className={`si-toggle ${healthData ? 'on' : ''}`} style={{width: 44, height: 24, borderRadius: 12, background: healthData ? 'var(--grn)' : 'rgba(0,0,0,0.1)', position: 'relative', transition: 'all 0.2s'}}>
-              <div style={{width: 18, height: 18, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: healthData ? 23 : 3, transition: 'all 0.2s'}}></div>
+            <div className={`si-toggle ${healthData ? 'on' : ''}`} style={{width: 40, height: 22, borderRadius: 11, background: healthData ? 'var(--grn)' : 'rgba(0,0,0,0.1)', position: 'relative', transition: 'all 0.2s', flexShrink: 0}}>
+              <div style={{width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: healthData ? 21 : 3, transition: 'all 0.2s'}}></div>
             </div>
           </div>
         </div>
@@ -193,80 +231,48 @@ export const SettingsScreen = ({
                 </div>
               </div>
             </div>
-
-            <div className="a-control-item">
-              <span className="a-label">Плотность интерфейса</span>
-              <div className="ui-capsule">
-                <button 
-                  className={`ui-pill ${uiSettings.density === 'comfortable' ? 'active' : ''}`}
-                  onClick={() => onUpdateUiSettings({ density: 'comfortable' })}
-                >
-                  ☁️ Комфорт
-                </button>
-                <button 
-                  className={`ui-pill ${uiSettings.density === 'compact' ? 'active' : ''}`}
-                  onClick={() => onUpdateUiSettings({ density: 'compact' })}
-                >
-                  ✨ Компакт
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Usage Stats Section */}
+        {/* Usage Stats Section — compact */}
         <div className="s-section glass-panel">
           <h3 className="s-sect-title">Аналитика использования</h3>
-          <div className="usage-stats-grid">
-            <div className="u-stats-header">
-              <span>Тип</span>
-              <span>24ч</span>
-              <span>Месяц</span>
-              <span>Итого</span>
-            </div>
-            
-            <div className="u-stats-row">
-              <span className="u-stats-label">🎤 Голос</span>
-              <span className="u-stats-val">{stats?.voice.d || 0}</span>
-              <span className="u-stats-val">{stats?.voice.m || 0}</span>
-              <span className="u-stats-val">{stats?.voice.t || 0}</span>
-            </div>
-            
-            <div className="u-stats-row">
-              <span className="u-stats-label">💬 Чат</span>
-              <span className="u-stats-val">{stats?.chat.d || 0}</span>
-              <span className="u-stats-val">{stats?.chat.m || 0}</span>
-              <span className="u-stats-val">{stats?.chat.t || 0}</span>
-            </div>
-            
-            <div className="u-stats-row">
-              <span className="u-stats-label">📸 Фото</span>
-              <span className="u-stats-val">{stats?.image.d || 0}</span>
-              <span className="u-stats-val">{stats?.image.m || 0}</span>
-              <span className="u-stats-val">{stats?.image.t || 0}</span>
-            </div>
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6}}>
+            {[
+              { icon: '🎤', label: 'Голос', data: stats?.voice },
+              { icon: '💬', label: 'Чат',   data: stats?.chat },
+              { icon: '📸', label: 'Фото',  data: stats?.image },
+            ].map(({ icon, label, data }) => (
+              <div key={label} style={{
+                background: 'rgba(0,0,0,0.04)',
+                borderRadius: 12,
+                padding: '8px 6px',
+                textAlign: 'center',
+              }}>
+                <div style={{fontSize: 16, marginBottom: 2}}>{icon}</div>
+                <div style={{fontSize: 11, color: 'var(--t3)', marginBottom: 4, fontWeight: 600}}>{label}</div>
+                <div style={{display: 'flex', justifyContent: 'space-around'}}>
+                  {[['24ч', data?.d], ['мес', data?.m], ['∞', data?.t]].map(([lbl, val]) => (
+                    <div key={lbl as string} style={{textAlign: 'center'}}>
+                      <div style={{fontSize: 13, fontWeight: 700, color: 'var(--t1)'}}>{val || 0}</div>
+                      <div style={{fontSize: 9, color: 'var(--t3)'}}>{lbl}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Account Section */}
+        {/* Danger Zone — factory reset only */}
         <div className="s-section glass-panel danger-zone">
-           <h3 className="s-sect-title">Аккаунт и Безопасность</h3>
-           <div className="account-actions">
-              <button 
-                className={`logout-btn ${showLogoutConfirm ? 'confirm' : ''}`} 
-                onClick={handleLogout}
-              >
-                {showLogoutConfirm ? '⚠️ Подтвердить выход' : '🚪 Выйти из аккаунта'}
-              </button>
-              
-              <button 
-                className={`reset-btn ${showResetConfirm ? 'confirm' : ''}`} 
-                onClick={handleReset}
-                style={{ marginTop: '12px' }}
-              >
-                {showResetConfirm ? '🚨 УДАЛИТЬ ВСЕ ДАННЫЕ?' : '🧹 Сброс до заводских'}
-              </button>
-           </div>
+          <h3 className="s-sect-title">Сброс данных</h3>
+          <button 
+            className={`reset-btn ${showResetConfirm ? 'confirm' : ''}`} 
+            onClick={handleReset}
+          >
+            {showResetConfirm ? '🚨 УДАЛИТЬ ВСЕ ДАННЫЕ?' : '🧹 Сброс до заводских'}
+          </button>
         </div>
 
         {/* Admin Tools */}
@@ -297,13 +303,6 @@ export const SettingsScreen = ({
               >
                 {showDebug ? '🔍 Скрыть консоль отладки' : '🔍 Показать консоль отладки'}
               </button>
-            </div>
-
-            <div className="s-section glass-panel">
-              <h3 className="s-sect-title">Админ-лог (голос)</h3>
-              <div className="v-log-container">
-                <div className="v-log-empty">Логов пока нет...</div>
-              </div>
             </div>
           </>
         )}
