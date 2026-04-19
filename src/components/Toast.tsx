@@ -33,7 +33,8 @@ export const ToastContainer = () => {
   );
 };
 
-const getTypeClass = (msg: string) => {
+const getTypeClass = (msg: string | any) => {
+  if (!msg || typeof msg !== 'string') return 'toast-info';
   if (msg.startsWith('❌') || msg.startsWith('🔴')) return 'toast-error';
   if (msg.startsWith('✅') || msg.startsWith('🟢')) return 'toast-success';
   if (msg.startsWith('⚠️') || msg.startsWith('🟡') || msg.startsWith('🔐')) return 'toast-warning';

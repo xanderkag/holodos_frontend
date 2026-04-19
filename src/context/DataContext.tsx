@@ -110,11 +110,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setMessages([{ id: '1', role: 'assistant', content: 'Привет! Я твой ИИ ассистент HOLODOS. Чем могу помочь?', timestamp: Date.now() }]);
     messagesRef.current = [{ id: '1', role: 'assistant', content: 'Привет! Я твой ИИ ассистент HOLODOS. Чем могу помочь?', timestamp: Date.now() }];
     setVoiceLogs([]);
-    setStats({
-      voice: { d: 0, m: 0, t: 0 },
-      chat: { d: 0, m: 0, t: 0 },
-      image: { d: 0, m: 0, t: 0 }
-    });
+    // Do NOT wipe stats or subscription data here, they are tied to billing/usage limits!
     setStores(STORES); storesRef.current = STORES;
     setMyRecipes(MY_RECIPES_DEMO); recipesRef.current = MY_RECIPES_DEMO;
     setUiSettings({ density: 'comfortable', theme: 'system' }); uiRef.current = { density: 'comfortable', theme: 'system' };

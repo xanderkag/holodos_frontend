@@ -65,7 +65,7 @@ export default function CategoryBlock({ cat, count, children, isDragging, isOver
     >
       <div className="cb-hdr" {...dragHandleProps}>
         <div className="cb-hdr-left">
-          <span className="cat-name">{cat.toUpperCase()}</span>
+          <span className="cat-name">{(cat || 'Другое').toUpperCase()}</span>
         </div>
         <div className="cb-hdr-right">
           <span className="cat-icon">{icon}</span>

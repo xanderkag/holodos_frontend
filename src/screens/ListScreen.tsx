@@ -88,8 +88,9 @@ export default function ListScreen({ list, setList, toStock, categoryOrder, setC
   const groups = useMemo(() => {
     const g: Record<string, Item[]> = {};
     activeItems.forEach(i => {
-      if (!g[i.cat]) g[i.cat] = [];
-      g[i.cat].push(i);
+      const c = i.cat || 'Другое';
+      if (!g[c]) g[c] = [];
+      g[c].push(i);
     });
     return g;
   }, [activeItems]);
