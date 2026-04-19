@@ -127,7 +127,7 @@
   opacity: 0.8;
 }
 .empty-icon { font-size: 48px; opacity: 0.4; filter: grayscale(1); }
-.empty-text { font-size: 12px; text-align: center; line-height: 1.5; color: var(--t3); }
+
 
 .list-groups {
   padding-top: 4px; 

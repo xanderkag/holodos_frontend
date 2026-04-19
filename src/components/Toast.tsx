@@ -25,11 +25,18 @@ export const ToastContainer = () => {
 
   return createPortal(
     <div className="toast-portal-inner">
-      <div className="toast-bubble glass-panel-dark pop-down">
+      <div className={`toast-bubble glass-panel-dark pop-down ${getTypeClass(msg)}`}>
         {msg}
       </div>
     </div>,
     portalRoot
   );
+};
+
+const getTypeClass = (msg: string) => {
+  if (msg.startsWith('❌') || msg.startsWith('🔴')) return 'toast-error';
+  if (msg.startsWith('✅') || msg.startsWith('🟢')) return 'toast-success';
+  if (msg.startsWith('⚠️') || msg.startsWith('🟡') || msg.startsWith('🔐')) return 'toast-warning';
+  return 'toast-info';
 };
 
