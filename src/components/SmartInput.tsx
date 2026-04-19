@@ -212,6 +212,9 @@ export const SmartInput: React.FC<SmartInputProps> = ({
           return;
         }
 
+        // STOP TRACKS IMMEDIATELY! Do not hold the mic while waiting for N8N (prevents aggressive iOS Safari OOM kill)
+        stream.getTracks().forEach(track => track.stop());
+
         try {
           const mimeType = recorder.mimeType || 'audio/webm';
           const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
@@ -247,7 +250,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
             showToast(`❌ Ошибка: ${err.message}`);
           }
         }
-        stream.getTracks().forEach(track => track.stop());
         onStateChange('active');
       };
 
