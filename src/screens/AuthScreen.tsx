@@ -3,13 +3,13 @@ import { loginWithEmail, registerWithEmail } from '../utils/firebase';
 import { APP_VERSION } from '../constants/version';
 import { useAuth } from '../context/AuthContext';
 import { mapAuthErrorToMessage } from '../utils/auth';
-import { TelegramLogin } from '../components/TelegramLogin';
+
 import { logAuthAudit } from '../utils/authLogger';
 import { isNativePlatform } from '../utils/firebase';
 import './AuthScreen.css';
 
 export const AuthScreen = () => {
-  const { user, loading: authLoading, login, loginWithTelegramWidget, authError, isTMA } = useAuth();
+  const { user, loading: authLoading, login, authError, isTMA } = useAuth();
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
   const [loading, setLoading] = useState(false);
