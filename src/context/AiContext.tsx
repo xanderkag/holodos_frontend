@@ -104,7 +104,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
     
     showToast("Отменено");
     addLogEvent("Пользователь отменил действие ИИ", "remove");
-    setTimeout(() => saveAll(), 200);
+    setTimeout(() => saveAll().catch(() => {}), 200);
   }, [setList, setStock, setBaseline, setDiary, setMessages, saveAll, addLogEvent]);
 
   const executeActions = useCallback((actions: AiAction[], messageId?: string) => {
@@ -412,7 +412,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
       }
       
       // Urgent save to Firebase to prevent data loss on high-latency snapshots
-      setTimeout(() => saveAll(), 200);
+      setTimeout(() => saveAll().catch(() => {}), 200);
     } catch (err: any) {
       logDiagnostic(`CHAT CRASH (applyActions): ${err.message}`, 'error');
       showToast("❌ Ошибка обработки ответа: " + err.message);
@@ -441,7 +441,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
     
     showToast("✨ Выбор принят");
     addLogEvent(`Выбор из чата: ${option.label}`, 'check');
-    saveAll();
+    saveAll().catch(() => {});
   }, [executeActions, setBaseline, setList, setMessages, setStock, setDiary, saveAll, addLogEvent]);
 
   const analyzeImage = async (base64: string, tab: string = 'unknown') => {

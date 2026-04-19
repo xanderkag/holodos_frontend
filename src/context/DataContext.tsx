@@ -394,14 +394,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const next = typeof val === 'function' ? val(prev) : val;
       messagesRef.current = next;
       
-      // Atomic individual write to Subcollection
+      // Deferred write to Firestore subcollection — OUTSIDE setState to avoid
+      // unhandled promise rejections ("client is offline") inside React batch updates.
       if (user && !user.isDemo && next !== prev) {
-         next.forEach((msg: Message) => {
+        queueMicrotask(() => {
+          next.forEach((msg: Message) => {
             const oldMsg = prev.find(m => m.id === msg.id);
             if (!oldMsg || oldMsg.content !== msg.content || oldMsg.actions !== msg.actions) {
-               setDoc(doc(db, 'users', user.uid, 'messages', msg.id), msg, { merge: true }).catch((e: any) => console.error("Msg sync err", e));
+              // Strip heavy fields before writing to subcollection (items arrays, suggestions)
+              const { actions: _a, suggestions: _s, ...lightMsg } = msg as any;
+              setDoc(doc(db, 'users', user.uid, 'messages', msg.id), lightMsg, { merge: true })
+                .catch((e: any) => console.warn('Msg sync deferred err (safe):', e?.message));
             }
-         });
+          });
+        });
       }
       return next;
     }); 
@@ -498,7 +504,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             d: new Date().toISOString().split('T')[0],
             m: new Date().toISOString().split('T')[0].substring(0, 7)
           }
-        });
+        }).catch(() => { /* Firestore queues writes locally when offline */ });
       }, 1500);
       return () => clearTimeout(timer);
     }
@@ -507,19 +513,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const saveAll = async () => {
     if (!user || user.isDemo) return;
     lastSaveTime.current = Date.now();
-    await saveUserData(user.uid, { 
-      list: listRef.current, 
-      stock: stockRef.current, 
-      baseline: baselineRef.current, 
-      stores: storesRef.current, 
-      myRecipes: recipesRef.current, 
-      messages: messagesRef.current, 
-      voiceLogs: voiceLogs, 
-      uiSettings: uiRef.current, 
-      calorieNorm: calorieNormRef.current,
-      diary: diaryRef.current,
-      events: eventsRef.current
-    });
+    try {
+      await saveUserData(user.uid, { 
+        list: listRef.current, 
+        stock: stockRef.current, 
+        baseline: baselineRef.current, 
+        stores: storesRef.current, 
+        myRecipes: recipesRef.current, 
+        messages: messagesRef.current, 
+        voiceLogs: voiceLogs, 
+        uiSettings: uiRef.current, 
+        calorieNorm: calorieNormRef.current,
+        diary: diaryRef.current,
+        events: eventsRef.current
+      });
+    } catch (e: any) {
+      // Android offline: Firestore queues writes locally, no user-facing error needed
+      console.warn('saveAll: Firestore write failed (offline), will retry on reconnect:', e?.message);
+    }
   };
 
   const addSystemMessage = useCallback((text: string, type = 'action') => {

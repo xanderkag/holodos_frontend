@@ -191,7 +191,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                   if (m.role === 'system') {
                     return (
                       <div key={m.id} className={`msg-row system ${m.type || ''}`}>
-                        <div className="msg-system" dangerouslySetInnerHTML={{ __html: m.content }} />
+                        <div className="msg-system">{m.content}</div>
                         {m.timestamp && (
                           <div className="msg-system-time">{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                         )}
