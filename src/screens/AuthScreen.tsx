@@ -154,14 +154,16 @@ export const AuthScreen = () => {
           </div>
 
           <div className="soc-row-unified">
-            <div className="soc-item">
-              <TelegramLogin 
-                botName={import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "HolodosAI_bot"} 
-                onAuth={handleTelegramWidget}
-                buttonSize="medium"
-                cornerRadius={100}
-              />
-            </div>
+            {!isNativePlatform && (
+              <div className="soc-item">
+                <TelegramLogin 
+                  botName={import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "HolodosAI_bot"} 
+                  onAuth={handleTelegramWidget}
+                  buttonSize="medium"
+                  cornerRadius={100}
+                />
+              </div>
+            )}
 
             <button className="soc-item google" onClick={handleGoogle} title="Google">
               <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" />
