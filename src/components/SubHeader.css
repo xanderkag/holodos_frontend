@@ -23,6 +23,10 @@
   transform: translateY(-20px);
 }
 
+body.is-tma .sub-header-content {
+  transform: translateY(-10px);
+}
+
 /* Ensure no shadows/backgrounds on the containers when inside SubHeader */
 .sub-header .ui-capsule,
 .sub-header .prog-container {

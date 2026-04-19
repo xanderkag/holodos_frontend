@@ -110,6 +110,11 @@ export default function App() {
         }
         StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
         SplashScreen.hide().catch(() => {});
+      } else {
+        const isTma = !!(window as any).Telegram?.WebApp?.initData;
+        if (isTma) {
+          document.body.classList.add('is-tma');
+        }
       }
     }, 500);
     return () => clearTimeout(startupTimeout);
