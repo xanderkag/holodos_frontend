@@ -131,8 +131,19 @@ export const ChatDiaryMessage: React.FC<ChatDiaryMessageProps> = ({
 
       <div>
         {items.length === 0 ? (
-          <div style={{ padding: '8px 0', fontSize: '14px', color: 'var(--red)', fontStyle: 'italic' }}>
-            ИИ не смог найти конкретные продукты или калории в этом сообщении.
+          <div style={{ 
+            padding: '12px 14px', 
+            margin: '8px 0',
+            fontSize: '13px', 
+            color: 'var(--t2)', 
+            background: 'rgba(255,149,0,0.08)',
+            borderLeft: '3px solid var(--acc)',
+            borderRadius: '6px'
+          }}>
+            <div style={{ fontWeight: '600', color: 'var(--acc)', marginBottom: '4px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              ⚠️ Уточнение
+            </div>
+            Не удалось точно распознать продукты. Попробуйте описать их чуть подробнее (например: «Я съел бургер 250г»).
           </div>
         ) : (
           items.map(item => (
