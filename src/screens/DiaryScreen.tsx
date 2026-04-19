@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { showToast } from '../components/Toast';
 import { compressImage } from '../utils/image';
 import { logDiagnostic } from '../utils/ai';
+import { Capacitor } from '@capacitor/core';
 import { DiaryMacrosSummary } from '../components/Diary/DiaryMacrosSummary';
 import { DiaryMealGroup } from '../components/Diary/DiaryMealGroup';
 import { EditItemModal } from '../components/EditItemModal';
@@ -28,7 +29,11 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
     logDiagnostic(`DIARY: Rendering... (SyncState: ${isSyncing})`, 'info');
   }, [isSyncing]);
 
-  const [water, setWater] = useState(1250);
+  const [water, setWater] = useState(() => {
+    const today = new Date().setHours(0,0,0,0);
+    const saved = localStorage.getItem(`waterTrack_${today}`);
+    return saved ? parseInt(saved) : 0;
+  });
   const [addingCustomForMeal, setAddingCustomForMeal] = useState<MealType | null>(null);
   const [editingEntry, setEditingEntry] = useState<DiaryEntry | null>(null);
 
@@ -65,7 +70,11 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
   ];
 
   const addWater = () => {
-    setWater(prev => prev + 250);
+    setWater(prev => {
+      const val = prev + 250;
+      localStorage.setItem(`waterTrack_${todayStart}`, val.toString());
+      return val;
+    });
     showToast('💧 + 250 мл (Дневник)');
     if (addSystemMessage) addSystemMessage('💧 Выпито 250 мл воды', 'log');
     if (addLogEvent) addLogEvent('Выпито 250 мл воды', 'log');
@@ -171,9 +180,10 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
         targetC={targetC}
       />
 
-      {/* Health Sync Dashboard */}
-      <div className="diary-section" style={{marginBottom: '16px'}}>
-        <div className={`health-sync-card glass-panel animated-pop ${isSyncing ? 'syncing' : ''}`} onClick={syncData}>
+      {/* Health Sync Dashboard (Native Only) */}
+      {Capacitor.isNativePlatform() && (
+        <div className="diary-section" style={{marginBottom: '16px'}}>
+          <div className={`health-sync-card glass-panel animated-pop ${isSyncing ? 'syncing' : ''}`} onClick={syncData}>
           <div className="hsc-header">
             <span className="hsc-title">🏥 Здоровье и Активность</span>
             <div className="hsc-sync-btn">
@@ -207,11 +217,12 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
               const granted = await requestPermissions();
               if (granted) syncData();
             }}>
-              Подключить Apple Health / Google Fit
+              {Capacitor.getPlatform() === 'android' ? 'Подключить Google Health' : 'Подключить Apple Health'}
             </button>
           )}
         </div>
       </div>
+      )}
 
       {/* Pending clarification banner */}
       {pendingClarification.length > 0 && (
