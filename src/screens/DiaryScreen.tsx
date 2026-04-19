@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { showToast } from '../components/Toast';
-import { compressImage } from '../utils/image';
+import { compressFile } from '../utils/image';
 import { logDiagnostic } from '../utils/ai';
 import { Capacitor } from '@capacitor/core';
 import { DiaryMacrosSummary } from '../components/Diary/DiaryMacrosSummary';
@@ -30,9 +30,13 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
   }, [isSyncing]);
 
   const [water, setWater] = useState(() => {
-    const today = new Date().setHours(0,0,0,0);
-    const saved = localStorage.getItem(`waterTrack_${today}`);
-    return saved ? parseInt(saved) : 0;
+    try {
+      const today = new Date().setHours(0,0,0,0);
+      const saved = localStorage.getItem(`waterTrack_${today}`);
+      return saved ? parseInt(saved) : 0;
+    } catch (e) {
+      return 0;
+    }
   });
   const [addingCustomForMeal, setAddingCustomForMeal] = useState<MealType | null>(null);
   const [editingEntry, setEditingEntry] = useState<DiaryEntry | null>(null);
@@ -72,7 +76,9 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
   const addWater = () => {
     setWater(prev => {
       const val = prev + 250;
-      localStorage.setItem(`waterTrack_${todayStart}`, val.toString());
+      try {
+        localStorage.setItem(`waterTrack_${todayStart}`, val.toString());
+      } catch (e) {}
       return val;
     });
     showToast('💧 + 250 мл (Дневник)');
@@ -100,28 +106,20 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.capture = 'environment';
-    input.onchange = (e: any) => {
-      const file = e.target.files[0];
-      if (file) {
+    // Don't force capture=environment — lets user choose gallery or camera
+    // iOS Safari with capture= often allocates full resolution in memory before compress
+    input.onchange = async (e: any) => {
+      const file: File = e.target?.files?.[0];
+      if (!file) return;
+      try {
         logDiagnostic(`n8n-Diary: Selected ${file.name} (${Math.round(file.size / 1024)} KB)`, 'info');
-        const reader = new FileReader();
-        reader.onload = async (re: any) => {
-          try {
-            const base64 = re.target.result;
-            logDiagnostic('n8n-Diary: Resizing...', 'info');
-            const compressed = await compressImage(base64, 800);
-            onImageSelect(compressed);
-          } catch (err: any) {
-            logDiagnostic(`n8n ERROR (diary-comp): ${err.message}`, 'error');
-            showToast('Ошибка обработки: ' + err.message);
-          }
-        };
-        reader.onerror = () => {
-          logDiagnostic('n8n ERROR (FileReader): Read failed', 'error');
-          showToast('Не удалось прочитать файл');
-        };
-        reader.readAsDataURL(file);
+        logDiagnostic('n8n-Diary: Compressing (objectURL method)...', 'info');
+        const compressed = await compressFile(file);
+        logDiagnostic(`n8n-Diary: Compressed to ${Math.round(compressed.length / 1024)} KB`, 'info');
+        onImageSelect(compressed);
+      } catch (err: any) {
+        logDiagnostic(`n8n ERROR (diary-comp): ${err.message}`, 'error');
+        showToast('❌ Ошибка обработки фото: ' + err.message);
       }
     };
     input.click();

@@ -137,7 +137,7 @@ export const SettingsScreen = ({
 
         {/* Health & Nutrition Section */}
         <div className="s-section glass-panel health-section" style={{marginBottom: 16}}>
-          <h3 className="s-sect-title">Здоровье и Питание</h3>
+          <h3 className="s-sect-title">{Capacitor.isNativePlatform() ? 'Здоровье и Питание' : 'Питание'}</h3>
           
           {/* Calorie norm */}
           <div className="settings-item has-action" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0'}}>
@@ -175,30 +175,32 @@ export const SettingsScreen = ({
             </div>
           </div>
 
-          {/* Health sync */}
-          <div
-            className="settings-item has-action"
-            onClick={async () => {
-              const granted = await requestPermissions();
-              if (granted) syncData();
-            }}
-            style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', padding: '10px 0', borderTop: '1px solid var(--br-glass)', marginTop: 10}}
-          >
-            <div className="si-left" style={{display: 'flex', alignItems: 'center', gap: 10}}>
-              <span className="si-icon" style={{fontSize: 18}}>🏥</span>
-              <div className="si-text">
-                <div className="si-label" style={{fontWeight: 600, fontSize: 14, color: 'var(--t1)'}}>Синхронизация</div>
-                <div className="si-sub" style={{fontSize: 11, color: 'var(--t3)'}}>
-                  {healthData
-                    ? `Активно • ${new Date(healthData.lastSync).toLocaleDateString()}`
-                    : isAndroid ? 'Подключить Google Health' : 'Подключить Apple Health'}
+          {/* Health sync - Mobile Only */}
+          {Capacitor.isNativePlatform() && (
+            <div
+              className="settings-item has-action"
+              onClick={async () => {
+                const granted = await requestPermissions();
+                if (granted) syncData();
+              }}
+              style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', padding: '10px 0', borderTop: '1px solid var(--br-glass)', marginTop: 10}}
+            >
+              <div className="si-left" style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                <span className="si-icon" style={{fontSize: 18}}>🏥</span>
+                <div className="si-text">
+                  <div className="si-label" style={{fontWeight: 600, fontSize: 14, color: 'var(--t1)'}}>Синхронизация</div>
+                  <div className="si-sub" style={{fontSize: 11, color: 'var(--t3)'}}>
+                    {healthData
+                      ? `Активно • ${new Date(healthData.lastSync).toLocaleDateString()}`
+                      : isAndroid ? 'Подключить Google Health' : 'Подключить Apple Health'}
+                  </div>
                 </div>
               </div>
+              <div className={`si-toggle ${healthData ? 'on' : ''}`} style={{width: 40, height: 22, borderRadius: 11, background: healthData ? 'var(--grn)' : 'rgba(0,0,0,0.1)', position: 'relative', transition: 'all 0.2s', flexShrink: 0}}>
+                <div style={{width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: healthData ? 21 : 3, transition: 'all 0.2s'}}></div>
+              </div>
             </div>
-            <div className={`si-toggle ${healthData ? 'on' : ''}`} style={{width: 40, height: 22, borderRadius: 11, background: healthData ? 'var(--grn)' : 'rgba(0,0,0,0.1)', position: 'relative', transition: 'all 0.2s', flexShrink: 0}}>
-              <div style={{width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: healthData ? 21 : 3, transition: 'all 0.2s'}}></div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Appearance Section */}
