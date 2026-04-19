@@ -383,4 +383,35 @@ if (result.subscription) {
 
 ---
 
-*Документ обновлён автоматически командой Antigravity. Версия: **v3.22.20** (17 апреля 2026).*
+## 🚀 Раздел 7. Релиз и Версионирование APK (Release Flow)
+
+В проекте настроена автоматическая синхронизация версий между \`package.json\`, React (\`src/constants/version.ts\`), Android (\`build.gradle\`) и iOS (\`pbxproj\`). **Единым источником правды для версии является \`package.json\`.**
+
+**Строгий порядок сборки нового релиза:**
+
+1. **Bump Version:** Обновить версию (например, используя `npm version patch` или вручную отредактировав `package.json`).
+2. **Build & Sync Versions:** 
+   ```bash
+   npm run build
+   ```
+   *В рамках билда `scripts/update-version.js` автоматически перенесет версию в `version.ts`, пересчитает `versionCode` / `versionName` для Android и `MARKETING_VERSION` для iOS.*
+3. **Обновление Native проектов:**
+   ```bash
+   npx cap sync android
+   npx cap sync ios
+   ```
+4. **Android Build (APK):**
+   ```bash
+   cd android && ./gradlew clean assembleDebug && cd ..
+   ```
+   *(Если сборка падает с ошибкой `Duplicate resources`, сперва следует удалить дубликаты файлов macOS (от Finder) с именами в духе `* 2*` внутри `node_modules/@capacitor/android` и `android/app/src/main/res/`)*
+5. **Публикация на Desktop (ОБЯЗАТЕЛЬНО):**
+   Всегда удаляйте предыдущие версии APK с рабочего стола перед копированием нового файла, чтобы у пользователя всегда оставался только один актуальный файл! Перенесите готовый `app-debug.apk` на рабочий стол и переименуйте в соответствии с собранной версией:
+   ```bash
+   rm -f ~/Desktop/holodos-*.apk
+   cp android/app/build/outputs/apk/debug/app-debug.apk ~/Desktop/holodos-vX.Y.Z.apk
+   ```
+
+---
+
+*Документ обновлён автоматически командой Antigravity. Версия: **v3.22.22** (19 апреля 2026).*
