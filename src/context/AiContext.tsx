@@ -404,7 +404,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
       setTimeout(() => {
         setActiveUndos(prev => prev.filter(id => id !== generatedMsgId));
         undoBackups.current.delete(generatedMsgId);
-      }, 15000);
+      }, 30000);
     }
     
       if (hasValidActions) {
