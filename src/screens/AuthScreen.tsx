@@ -16,20 +16,6 @@ export const AuthScreen = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [error, setError] = useState<string | null>(null);
 
-  const handleTelegramWidget = async (tgUser: any) => {
-    logAuthAudit({ 
-      provider: 'telegram', channel: 'telegram_widget', stage: 'attempt', 
-      message: 'Telegram widget button clicked/auth started' 
-    });
-    setLoading(true);
-    try {
-      await loginWithTelegramWidget(tgUser);
-    } catch (e: any) {
-      setError(mapAuthErrorToMessage(e));
-      setLoading(false);
-    }
-  };
-
   const handleGo = async () => {
     if (!email.trim() || !pass.trim()) {
       setError('Заполните все поля');
@@ -154,17 +140,6 @@ export const AuthScreen = () => {
           </div>
 
           <div className="soc-row-unified">
-            {!isNativePlatform && (
-              <div className="soc-item">
-                <TelegramLogin 
-                  botName={import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "HolodosAI_bot"} 
-                  onAuth={handleTelegramWidget}
-                  buttonSize="medium"
-                  cornerRadius={100}
-                />
-              </div>
-            )}
-
             <button className="soc-item google" onClick={handleGoogle} title="Google">
               <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" />
             </button>
