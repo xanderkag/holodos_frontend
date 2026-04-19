@@ -4,4 +4,5 @@
     <string name="title_activity_main">HOLODOS AI</string>
     <string name="package_name">com.holodos.ai</string>
     <string name="custom_url_scheme">com.holodos.ai</string>
+    <string name="server_client_id">983609791949-041og7lpedat9olfnp3iptgpi7q18rqv.apps.googleusercontent.com</string>
 </resources>
