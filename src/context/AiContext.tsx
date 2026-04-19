@@ -163,7 +163,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
             name: it.name || '', 
             cat: it.cat || (classify(it.name || '')).cat || 'Другое', 
             isChecked: it.isChecked || false, 
-            qty: it.qty || '1',
+            qty: it.qty || (it.quantity && it.unit ? `${it.quantity} ${it.unit}` : it.quantity ? `${it.quantity}` : '1'),
             updatedAt: Date.now()
           } as any;
           if (to === 'diary') {
@@ -200,7 +200,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
             name: it.name || '', 
             cat: it.cat || (classify(it.name || '')).cat || 'Другое', 
             isChecked: it.isChecked || false, 
-            qty: it.qty || '1',
+            qty: it.qty || (it.quantity && it.unit ? `${it.quantity} ${it.unit}` : it.quantity ? `${it.quantity}` : '1'),
             kcal: it.kcal !== undefined ? it.kcal : it.calories,
             protein: it.protein,
             fat: it.fat,
@@ -251,7 +251,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
             name: it.name || '', 
             cat: it.cat || (classify(it.name || '')).cat || 'Другое', 
             isChecked: true, // checked immediately
-            qty: it.qty || '1',
+            qty: it.qty || (it.quantity && it.unit ? `${it.quantity} ${it.unit}` : it.quantity ? `${it.quantity}` : '1'),
             kcal: it.kcal !== undefined ? it.kcal : it.calories,
             protein: it.protein,
             fat: it.fat,
