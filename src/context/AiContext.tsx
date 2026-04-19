@@ -384,10 +384,12 @@ export function AiProvider({ children }: { children: ReactNode }) {
       diarySource: isDiaryAction ? (res.source || 'text') : undefined,
     };
 
-    setList(nextList);
-    setStock(nextStock);
-    setBaseline(nextBaseline);
-    if (setDiary) setDiary(nextDiary);
+    if (!res.appliedToDb) {
+      setList(nextList);
+      setStock(nextStock);
+      setBaseline(nextBaseline);
+      if (setDiary) setDiary(nextDiary);
+    }
     setMessages(prev => {
       const newList = [...prev, { ...newAssistantMsg, actions: res.actions, suggestions: res.suggestions }];
       logDiagnostic(`CHAT: applyActions finished. Msg ID: ${newAssistantMsg.id}, Total now: ${newList.length}`, 'info');
@@ -412,7 +414,9 @@ export function AiProvider({ children }: { children: ReactNode }) {
       }
       
       // Urgent save to Firebase to prevent data loss on high-latency snapshots
-      setTimeout(() => saveAll().catch(() => {}), 200);
+      if (!res.appliedToDb) {
+        setTimeout(() => saveAll().catch(() => {}), 200);
+      }
     } catch (err: any) {
       logDiagnostic(`CHAT CRASH (applyActions): ${err.message}`, 'error');
       showToast("❌ Ошибка обработки ответа: " + err.message);
