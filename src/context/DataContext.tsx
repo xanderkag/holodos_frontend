@@ -309,6 +309,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         // Silent cache update with timestamp
         localStorage.setItem('holodos_cache', JSON.stringify({ ...d, _lastSync: Date.now(), messages: messagesRef.current }));
       }
+    },
+    // Error handler: Safari / iOS Private Mode can throw here — must not crash
+    (err: any) => {
+      console.warn('[onSnapshot:user] Listener error (safe):', err?.message);
     });
 
     // Subcollection listener for Messages (Pagination / 7-Day History)
@@ -323,19 +327,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
         dbMessages.sort((a: Message, b: Message) => a.timestamp - b.timestamp); // Sort chronological for Chat UI
         
         setMessages(prev => {
-          // Merge logic: DB messages take precedence over older local ones, but preserve very fresh local ones
+          // Merge: keep only VERY fresh local messages not yet confirmed by DB (< 60s old)
+          // Bug fix: previously also added messages older than 1h which caused duplicates
           const merged = [...dbMessages];
           const dbIds = new Set(dbMessages.map((m: Message) => m.id));
           prev.forEach(p => {
-             // Legacy fallback: OR if it's an old legacy message that hasn't made it to the subcollection yet
-             if (!dbIds.has(p.id) && (Date.now() - p.timestamp < 60000 || p.timestamp < Date.now() - 3600000)) {
-               merged.push(p);
-             }
+            if (!dbIds.has(p.id) && Date.now() - p.timestamp < 60000) {
+              merged.push(p);
+            }
           });
           merged.sort((a: Message, b: Message) => a.timestamp - b.timestamp);
           messagesRef.current = merged;
           return merged;
         });
+      },
+      // Error handler: Safari (iOS) / Private Mode can throw here — must not crash silently
+      (err: any) => {
+        console.warn('[onSnapshot:messages] Listener error (safe, will retry):', err?.message);
+        // Do NOT unsubscribe — Firestore will auto-reconnect when back online
       }
     );
 
