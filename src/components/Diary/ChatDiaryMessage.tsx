@@ -130,34 +130,40 @@ export const ChatDiaryMessage: React.FC<ChatDiaryMessageProps> = ({
       )}
 
       <div>
-        {items.map(item => (
-          <div key={item.id}>
-            <div
-              style={rowStyle}
-              onClick={() => handleRowClick(item)}
-            >
-              <span style={{ fontSize: '14px' }}>
-                {item.needsClarification ? '⚠️' : '✅'}
-              </span>
-              <span style={nameStyle}>{item.name}</span>
-              <span style={qtyStyle}>
-                {item.needsClarification ? '? г' : (item.qty || '—')}
-              </span>
-              <span style={kcalStyle}>
-                {item.needsClarification ? '— ккал' : `${Math.round(item.kcal || 0)} ккал`}
-              </span>
-            </div>
-            {activeItemId === item.id && item.needsClarification && item.clarificationHint && (
-              <ClarificationInline
-                hint={item.clarificationHint}
-                itemName={item.name}
-                field={item.clarificationField || 'quantity'}
-                onConfirm={(qty, unit) => handleClarify(item.id, qty, unit)}
-                onSkip={() => handleSkip(item.id)}
-              />
-            )}
+        {items.length === 0 ? (
+          <div style={{ padding: '8px 0', fontSize: '14px', color: 'var(--red)', fontStyle: 'italic' }}>
+            ИИ не смог найти конкретные продукты или калории в этом сообщении.
           </div>
-        ))}
+        ) : (
+          items.map(item => (
+            <div key={item.id}>
+              <div
+                style={rowStyle}
+                onClick={() => handleRowClick(item)}
+              >
+                <span style={{ fontSize: '14px' }}>
+                  {item.needsClarification ? '⚠️' : '✅'}
+                </span>
+                <span style={nameStyle}>{item.name}</span>
+                <span style={qtyStyle}>
+                  {item.needsClarification ? '? г' : (item.qty || '—')}
+                </span>
+                <span style={kcalStyle}>
+                  {item.needsClarification ? '— ккал' : `${Math.round(item.kcal || 0)} ккал`}
+                </span>
+              </div>
+              {activeItemId === item.id && item.needsClarification && item.clarificationHint && (
+                <ClarificationInline
+                  hint={item.clarificationHint}
+                  itemName={item.name}
+                  field={item.clarificationField || 'quantity'}
+                  onConfirm={(qty, unit) => handleClarify(item.id, qty, unit)}
+                  onSkip={() => handleSkip(item.id)}
+                />
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       <div style={footerStyle}>
