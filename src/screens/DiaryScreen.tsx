@@ -202,7 +202,11 @@ export default function DiaryScreen({ onImageSelect, onGoToChat }: DiaryScreenPr
             </div>
           )}
           {!healthData && (
-            <button className="hsc-connect-btn" onClick={(e) => { e.stopPropagation(); requestPermissions(); }}>
+            <button className="hsc-connect-btn" onClick={async (e) => { 
+              e.stopPropagation(); 
+              const granted = await requestPermissions();
+              if (granted) syncData();
+            }}>
               Подключить Apple Health / Google Fit
             </button>
           )}
